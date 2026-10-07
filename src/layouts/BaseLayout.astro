@@ -1,0 +1,39 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import '../styles/global.css';
+
+interface Props {
+	locale: Locale;
+	title?: string;
+	description?: string;
+	canonicalPath?: string;
+}
+
+const { locale, title, description, canonicalPath } = Astro.props;
+const messages = getMessages(locale);
+---
+
+<!doctype html>
+<html lang={locale}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title ?? messages.brandName}</title>
+		{description && <meta name="description" content={description} />}
+		{canonicalPath && <link rel="canonical" href={canonicalPath} />}
+		{canonicalPath && <link rel="alternate" hreflang="es" href="/" />}
+		{canonicalPath && <link rel="alternate" hreflang="en" href="/en/" />}
+	</head>
+	<body class="m-0 min-h-screen bg-surface-container-lowest font-body-md text-on-surface">
+		<div class="flex min-h-screen flex-col">
+			<SiteHeader locale={locale} messages={messages} />
+			<main class="flex-1">
+				<slot />
+			</main>
+			<SiteFooter messages={messages} />
+		</div>
+	</body>
+</html>

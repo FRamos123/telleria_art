@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getMessages } from '../i18n';
+
+const spanish = getMessages('es');
+const english = getMessages('en');
+---
+
+<BaseLayout locale="es">
+	<section
+		class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-space-xl px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
+		aria-label={`${spanish.notFoundTitle} / ${english.notFoundTitle}`}
+	>
+		<div class="tablet:col-span-4 desktop:col-span-5" lang="es">
+			<h1 class="m-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+				{spanish.notFoundTitle}
+			</h1>
+			<p class="mb-space-md mt-space-sm font-body-md text-body-md text-on-surface-variant">
+				{spanish.notFoundMessage}
+			</p>
+			<a
+				class="font-label-technical text-label-technical text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+				href="/"
+				lang="es"
+			>
+				{spanish.homeLink}
+			</a>
+		</div>
+
+		<div class="tablet:col-span-4 desktop:col-span-5 desktop:col-start-8" lang="en">
+			<h2 class="m-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+				{english.notFoundTitle}
+			</h2>
+			<p class="mb-space-md mt-space-sm font-body-md text-body-md text-on-surface-variant">
+				{english.notFoundMessage}
+			</p>
+			<a
+				class="font-label-technical text-label-technical text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+				href="/en/"
+				lang="en"
+			>
+				{english.homeLink}
+			</a>
+		</div>
+	</section>
+</BaseLayout>

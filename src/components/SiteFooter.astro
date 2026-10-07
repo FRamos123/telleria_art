@@ -1,0 +1,17 @@
+---
+import type { Messages } from '../i18n';
+
+interface Props {
+	messages: Messages;
+}
+
+const { messages } = Astro.props;
+---
+
+<footer class="border-t border-surface-variant bg-surface-container-lowest">
+	<div class="mx-auto w-full max-w-7xl px-margin-mobile py-space-lg desktop:px-gutter">
+		<p class="m-0 font-label-technical text-label-caption uppercase text-on-surface">
+			{messages.brandName}
+		</p>
+	</div>
+</footer>

@@ -1,0 +1,20 @@
+---
+import type { Locale, Messages } from '../i18n';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+	locale: Locale;
+	messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+---
+
+<header class="border-b border-surface-variant bg-surface-container-lowest">
+	<div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-space-sm px-margin-mobile py-space-md desktop:px-gutter">
+		<p class="m-0 font-label-technical text-label-caption uppercase text-on-surface">
+			{messages.brandName}
+		</p>
+		<LanguageSwitcher locale={locale} messages={messages} />
+	</div>
+</header>

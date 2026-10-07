@@ -1,0 +1,38 @@
+---
+import type { Locale, Messages } from '../i18n';
+
+interface Props {
+	locale: Locale;
+	messages: Messages;
+}
+
+const { locale, messages } = Astro.props;
+---
+
+<div class="flex items-center gap-space-sm font-label-technical text-label-technical" role="group" aria-label={messages.languageSelectorLabel}>
+	<a
+		class:list={[
+			'no-underline focus-visible:outline-2 focus-visible:outline-primary',
+			locale === 'es' ? 'text-primary' : 'text-on-surface-variant',
+		]}
+		href="/"
+		lang="es"
+		aria-label={messages.spanishLanguage}
+		aria-current={locale === 'es' ? 'page' : undefined}
+	>
+		ES
+	</a>
+	<span aria-hidden="true" class="text-on-surface-variant">/</span>
+	<a
+		class:list={[
+			'no-underline focus-visible:outline-2 focus-visible:outline-primary',
+			locale === 'en' ? 'text-primary' : 'text-on-surface-variant',
+		]}
+		href="/en/"
+		lang="en"
+		aria-label={messages.englishLanguage}
+		aria-current={locale === 'en' ? 'page' : undefined}
+	>
+		EN
+	</a>
+</div>

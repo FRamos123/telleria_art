@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getMessages } from '../i18n';
+
+const messages = getMessages('es');
+---
+
+<BaseLayout
+	locale="es"
+	title={messages.homeTitle}
+	description={messages.homeDescription}
+	canonicalPath="/"
+>
+	<section
+		class="mx-auto grid w-full max-w-7xl grid-cols-1 px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
+		aria-labelledby="home-title"
+	>
+		<div class="tablet:col-span-7 desktop:col-span-8">
+			<h1
+				id="home-title"
+				class="m-0 font-display-hero-mobile text-display-hero-mobile text-on-surface desktop:font-display-hero desktop:text-display-hero"
+			>
+				{messages.artistName}
+			</h1>
+		</div>
+		<p class="mb-0 mt-space-lg font-body-lg text-body-lg text-on-surface-variant desktop:col-start-9 desktop:col-span-4 desktop:mt-0 desktop:self-end">
+			{messages.artistIdentification}
+		</p>
+	</section>
+</BaseLayout>

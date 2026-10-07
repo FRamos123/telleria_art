@@ -1,0 +1,25 @@
+{
+  "name": "af-telleria-portfolio",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check": "tsc --noEmit",
+    "build": "astro build",
+    "test": "vitest run --passWithNoTests",
+    "verify": "pnpm run lint && pnpm run check && pnpm run build && pnpm run test"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.3.6"
+  },
+  "devDependencies": {
+    "eslint": "9.39.4",
+    "typescript": "7.0.2",
+    "vitest": "4.1.0"
+  }
+}
