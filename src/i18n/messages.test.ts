@@ -33,6 +33,6 @@ describe('foundation translations', () => {
 		expect(getMessages(getLocaleFromPath('/')!).artistIdentification).toBe('Pintor · Vigo, Galicia');
 		expect(getMessages(getLocaleFromPath('/en/')!).artistIdentification).toBe('Painter · Vigo, Galicia');
 		expect(getLocaleFromPath('/es/')).toBeUndefined();
-		expect(getLocaleFromPath('/unknown/')).toBeUndefined();
+		expect(getLocaleFromPath('/unknown/')).toBe('en');
 	});
 });
