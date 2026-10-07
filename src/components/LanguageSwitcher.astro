@@ -17,7 +17,7 @@ const { locale, messages } = Astro.props;
 		]}
 		href="/"
 		lang="es"
-		aria-label={messages.spanishLanguage}
+		aria-label={`ES, ${messages.spanishLanguage}`}
 		aria-current={locale === 'es' ? 'page' : undefined}
 	>
 		ES
@@ -30,7 +30,7 @@ const { locale, messages } = Astro.props;
 		]}
 		href="/en/"
 		lang="en"
-		aria-label={messages.englishLanguage}
+		aria-label={`EN, ${messages.englishLanguage}`}
 		aria-current={locale === 'en' ? 'page' : undefined}
 	>
 		EN

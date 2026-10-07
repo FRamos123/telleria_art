@@ -23,11 +23,13 @@ Ordenadas por dependencia. Cada tarea está dimensionada para 20–30 minutos co
 - [x] **T7. Crear la 404 bilingüe y validar las páginas del build.** RF-15, RF-18, RF-23; RNF-2, RNF-5.
   - Hecho cuando: una ruta desconocida o idioma no admitido devuelve HTTP 404, muestra contenido ES/EN dentro del layout y enlaza ambas homes; además, `pnpm verify` comprueba tras el build que `dist/` contiene home ES, home EN y 404, y falla si falta alguna.
 
-- [ ] **T8. Configurar la publicación automática desde la rama principal.** RF-14, RF-16, RF-24, RF-25.
+- [x] **T8. Configurar la publicación automática desde la rama principal.** RF-14, RF-16, RF-24, RF-25.
   - Hecho cuando: Cloudflare Pages ejecuta `pnpm verify` como comando de build al actualizarse la rama principal y publica el resultado estático solo si termina con éxito; el registro muestra los fallos.
 
-- [ ] **T9. Verificar gate fallido y primera publicación.** RF-15, RF-16, RF-25.
+- [x] **T9. Verificar gate fallido y primera publicación.** RF-15, RF-16, RF-25.
   - Hecho cuando: un build incompleto o cualquier fallo de verificación no sustituye la versión activa; el primer fallo no publica versión y queda registrado; tras el primer despliegue se comprueba manualmente que la home ES responde HTTP 200, sin tratarlo como bloqueo ni rollback automático.
+  - Verificado el 2026-10-07: el commit temporal `77900cc` hizo fallar un test; Cloudflare Pages registró el check como `failure` y la home pública continuó respondiendo HTTP 200. El commit `460a10e` revirtió el cambio temporal; Cloudflare registró `success` y la home volvió a comprobarse con HTTP 200. `pnpm verify` pasó tras la reversión. El fallo del primer despliegue no es reproducible retroactivamente: el primer despliegue ya había publicado correctamente, según sus logs.
 
-- [ ] **T10. Completar la revisión visual, accesible y de rendimiento.** RF-21, RF-22; RNF-2, RNF-3, RNF-7.
+- [x] **T10. Completar la revisión visual, accesible y de rendimiento.** RF-21, RF-22; RNF-2, RNF-3, RNF-7.
   - Hecho cuando: Chrome DevTools confirma la checklist de tokens y layout a 375, 768 y ≥1280 px, navegación por teclado, contraste AA y foco ≥3:1; Lighthouse manual en homes ES/EN móvil obtiene rendimiento ≥90, accesibilidad ≥95 y SEO 100.
+  - Verificado el 2026-10-07: revisión MCP a 375, 768 y 1280 px, sin overflow, columnas/márgenes responsive y comparación visual con la referencia de Stitch; selector recorrido con teclado y foco primary 6.52:1 (texto aprobado ≥4.5:1). Corregido el apilado tablet de la identificación y el nombre accesible de los enlaces ES/EN. Homes ES/EN: Lighthouse móvil 100 rendimiento, 100 accesibilidad y 100 SEO en ambas; `pnpm verify` OK. Canonical/hreflang absolutos usan `https://telleria-art.pages.dev` temporalmente.

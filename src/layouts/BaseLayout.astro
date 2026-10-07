@@ -14,6 +14,10 @@ interface Props {
 
 const { locale, title, description, canonicalPath } = Astro.props;
 const messages = getMessages(locale);
+const siteUrl = Astro.site ?? new URL('https://telleria-art.pages.dev');
+const spanishHomeUrl = new URL('/', siteUrl).href;
+const englishHomeUrl = new URL('/en/', siteUrl).href;
+const canonicalUrl = canonicalPath ? new URL(canonicalPath, siteUrl).href : undefined;
 ---
 
 <!doctype html>
@@ -23,9 +27,9 @@ const messages = getMessages(locale);
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{title ?? messages.brandName}</title>
 		{description && <meta name="description" content={description} />}
-		{canonicalPath && <link rel="canonical" href={canonicalPath} />}
-		{canonicalPath && <link rel="alternate" hreflang="es" href="/" />}
-		{canonicalPath && <link rel="alternate" hreflang="en" href="/en/" />}
+		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+		{canonicalUrl && <link rel="alternate" hreflang="es" href={spanishHomeUrl} />}
+		{canonicalUrl && <link rel="alternate" hreflang="en" href={englishHomeUrl} />}
 	</head>
 	<body class="m-0 min-h-screen bg-surface-container-lowest font-body-md text-on-surface">
 		<div class="flex min-h-screen flex-col">
