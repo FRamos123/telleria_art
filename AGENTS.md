@@ -1,6 +1,6 @@
 # AGENTS.md — AF Tellería (portfolio de Alejandro Fernández Tellería)
 
-Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fernández Tellería (Vigo). Presenta su obra por series, con ficha técnica de cada pieza, textos críticos y exposiciones. Su objetivo es dar visibilidad (SEO) y captar consultas de coleccionistas e instituciones. **No es una tienda**: las obras originales no se compran online, se solicitan por formulario.
+Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fernández Tellería (Vigo). Presenta su obra por series, con ficha técnica de cada pieza, textos críticos y exposiciones. Su objetivo es dar visibilidad (SEO), captar consultas de coleccionistas e instituciones y permitir comprar obras originales disponibles o prints configurados mediante pasarela de pago. Los detalles comerciales pendientes deben cerrarse en una spec aprobada antes de implementarse.
 
 ## Principios y flujo de trabajo
 
@@ -13,7 +13,7 @@ Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fe
 - **Astro** (generación estática, TypeScript estricto). Versiones exactas en `package.json`. `[TODO: versión]`
 - **Sanity** (plan gratuito) como CMS headless. El contenido lo edita el artista desde el Studio.
 - **Cloudflare Pages** (hosting) con webhook de Sanity que dispara rebuild al publicar.
-- **Pages Functions** para el formulario de adquisiciones, con **Resend** (email) y **Cloudflare Turnstile** (anti-spam).
+- **Pages Functions** para el formulario de consultas, con **Resend** (email) y **Cloudflare Turnstile** (anti-spam). La integración de compra y pasarela queda pendiente de una spec aprobada; no se ha elegido proveedor.
 - **i18n:** ES (por defecto) y EN, con `hreflang`.
 - **Estilos:** Tailwind CSS v4 con tokens declarados en `@theme` dentro de `src/styles/global.css`.
 
@@ -32,7 +32,7 @@ src/components/            Componentes Astro
 src/pages/                 Rutas (con prefijo de idioma)
 src/i18n/                  Diccionarios ES/EN
 src/styles/global.css      Estilos globales y tokens Tailwind v4 en `@theme`
-functions/                 Pages Functions (formulario)
+functions/                 Pages Functions (formulario y futuras funciones aprobadas)
 sanity/                    Studio y esquemas (con su propio package.json)
 ```
 
@@ -60,8 +60,8 @@ sanity/                    Studio y esquemas (con su propio package.json)
 
 ## Reglas de dominio / trampas conocidas
 
-- **No hay compra online.** El CTA de las obras es "Solicitar información / Adquirir" y abre el formulario con la obra preseleccionada.
-- **`Availability`:** `disponible | reservada | vendida | en colección`. La cambia el artista a mano en Sanity. El botón de adquisición solo aparece si está `disponible`. Cada estado se muestra siempre con etiqueta de texto, nunca solo con color.
+- **Comercio pendiente de especificación.** Se prevén compras de obra original y prints de tamaños por determinar. No implementar carrito, checkout ni pagos hasta aprobar su spec, incluidos proveedor, precios, variantes, logística y políticas.
+- **`Availability`:** `disponible | reservada | vendida | en colección`. La cambia el artista a mano en Sanity. La compra de la obra original solo podrá ofrecerse si está `disponible`; cada estado se muestra siempre con etiqueta de texto, nunca solo con color. No inferir la disponibilidad de prints a partir del estado del original: la regla queda pendiente de la spec comercial.
 - **`InventoryNumber`:** formato `AFT-AAAA-NNN` (ej. `AFT-2023-018`), value object con validación.
 - **`Dimensions`:** siempre en cm (`alto × ancho`). "Formato Figura 60" es una etiqueta de contenido, no se calcula.
 - **Dominio ligero:** modelo tipado, value objects y capa de mapeo desde Sanity. Sin bounded contexts, agregados, repositorios genéricos ni CQRS.
@@ -94,7 +94,7 @@ sanity/                    Studio y esquemas (con su propio package.json)
   - Añadir JavaScript en cliente o servicios externos nuevos.
 - 🚫 **Nunca:**
   - Usar valores arbitrarios de Tailwind.
-  - Añadir backend propio, base de datos, carrito o pasarela de pago.
+  - Añadir o cambiar la pasarela, servicios externos, carrito o tratamiento de pedidos sin aprobación explícita en la spec y el plan. Nunca procesar ni almacenar datos sensibles de tarjetas en el proyecto.
   - Subir secretos o `.env` al repositorio.
   - Modificar contenido de producción en Sanity.
   - Renombrar o borrar IDs de Sanity sin migración acordada.

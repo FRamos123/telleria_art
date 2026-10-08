@@ -7,3 +7,4 @@ A partir de specs/$1/spec.md y specs/$1/plan.md, genera specs/$1/tasks.md siguie
 - Cada una con los RF que cubre y una línea "Hecho cuando:" verificable.
 - Checkboxes.
 - Intenta que no sean más de 10: si salen más, propón dividir la spec.
+- Ordena por dependencias reales: una tarea no puede requerir algo que crea una posterior

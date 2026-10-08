@@ -2,6 +2,8 @@
 
 Estado: aprobada
 
+> **Nota de vigencia (2026-10-07):** esta spec conserva el alcance histórico de la fundación implementada. RF-13 documenta que esa entrega no tenía comercio; no limita las siguientes fases. El brief de producto actualizado prevé compra de originales y prints, que requiere una spec comercial propia aprobada antes de implementarse.
+
 ## Contexto y objetivo
 
 Establecer una primera presencia pública, bilingüe y desplegada del portfolio de Alejandro Fernández Tellería. Esta versión será deliberadamente mínima: debe permitir reconocer el portfolio, navegar entre español e inglés y ofrecer una base visual accesible sobre la que añadir contenido en futuras versiones.

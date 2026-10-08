@@ -2,6 +2,8 @@
 
 **Spec de referencia:** 000-fundacion, aprobada.
 
+> **Nota de vigencia (2026-10-07):** este plan describe únicamente la fundación ya implementada. La ausencia de comercio en esa entrega no limita fases futuras; las compras de originales y prints requieren una spec comercial propia aprobada.
+
 ## Alcance del plan
 
 Publicar una fundación estática y mínima con home ES/EN, layout base, selector, 404 bilingüe y despliegue automático desde la rama principal. No incluye contenido editorial de obras o series, consultas, modelos de dominio ni mappers.
