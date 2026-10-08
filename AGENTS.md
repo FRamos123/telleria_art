@@ -10,12 +10,12 @@ Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fe
 
 ## Stack y estructura
 
-- **Astro** (generación estática, TypeScript estricto). Versiones exactas en `package.json`. `[TODO: versión]`
+- **Astro** (generación estática, TypeScript estricto). Versiones exactas en `web/package.json`.
 - **Sanity** (plan gratuito) como CMS headless. El contenido lo edita el artista desde el Studio.
 - **Cloudflare Pages** (hosting) con webhook de Sanity que dispara rebuild al publicar.
 - **Pages Functions** para el formulario de consultas, con **Resend** (email) y **Cloudflare Turnstile** (anti-spam). La integración de compra y pasarela queda pendiente de una spec aprobada; no se ha elegido proveedor.
 - **i18n:** ES (por defecto) y EN, con `hreflang`.
-- **Estilos:** Tailwind CSS v4 con tokens declarados en `@theme` dentro de `src/styles/global.css`.
+- **Estilos:** Tailwind CSS v4 con tokens declarados en `@theme` dentro de `web/src/styles/global.css`.
 
 Estructura (solo lo no obvio):
 
@@ -26,34 +26,37 @@ specs/<NNN-nombre>/        spec.md, plan.md, tasks.md de cada funcionalidad
 MEMORY.md                  Estado y decisiones entre sesiones
 .agents/skills/sdd/        Skill de SDD
 .opencode/commands/        Comandos /sdd-*
-src/domain/                Modelo de dominio en TypeScript puro
-src/infrastructure/sanity/ Cliente, queries GROQ y mappers Sanity → dominio
-src/components/            Componentes Astro
-src/pages/                 Rutas (con prefijo de idioma)
-src/i18n/                  Diccionarios ES/EN
-src/styles/global.css      Estilos globales y tokens Tailwind v4 en `@theme`
-functions/                 Pages Functions (formulario y futuras funciones aprobadas)
-sanity/                    Studio y esquemas (con su propio package.json)
+web/                       Paquete Astro; incluye `src/`, `public/` y su configuración/dependencias
+web/src/domain/            Modelo de dominio en TypeScript puro
+web/src/infrastructure/sanity/ Cliente, queries GROQ y mappers Sanity → dominio
+web/src/components/        Componentes Astro
+web/src/pages/             Rutas (con prefijo de idioma)
+web/src/i18n/              Diccionarios ES/EN
+web/src/styles/global.css  Estilos globales y tokens Tailwind v4 en `@theme`
+web/functions/             Pages Functions (formulario y futuras funciones aprobadas)
+studio/                    Sanity Studio y esquemas, paquete independiente
 ```
 
 ## Comandos
 
-- Instalar: `pnpm install`
-- Desarrollo: `pnpm dev`
-- Lint: `pnpm lint`
-- Tipos: `pnpm check`
-- Tests: `pnpm test`
-- Build: `pnpm build`
-- Preview del build: `pnpm preview`
-- Verificación completa: `pnpm verify`
-- Sanity Studio: `pnpm --dir sanity dev`
+- Instalar web: `pnpm --dir web install`
+- Desarrollo web: `pnpm --dir web dev`
+- Lint web: `pnpm --dir web lint`
+- Tipos web: `pnpm --dir web check`
+- Tests web: `pnpm --dir web test`
+- Build web: `pnpm --dir web build`
+- Preview del build web: `pnpm --dir web exec astro preview`
+- Verificación completa web: `pnpm --dir web verify`
+- Instalar Studio: `pnpm --dir studio install`
+- Desarrollo Studio: `pnpm --dir studio dev`
+- Build Studio: `pnpm --dir studio build`
 
 ## Convenciones
 
 - Código y nombres en inglés. Comentarios y documentación en español. `[ajustar si se prefiere otro criterio]`
-- Textos de interfaz siempre desde `src/i18n/`, nunca hardcodeados.
+- Textos de interfaz siempre desde `web/src/i18n/`, nunca hardcodeados.
 - Estilos con Tailwind CSS v4 y solo con tokens: prohibidos los valores arbitrarios de Tailwind y los colores, fuentes o espaciados hardcodeados. Texto siempre en colores sólidos, nunca con opacidad.
-- Los valores de `@theme` en `src/styles/global.css` deben coincidir con `design/tokens.md`. Todo cambio de token se hace primero en `design/tokens.md` y después se refleja en `@theme`.
+- Los valores de `@theme` en `web/src/styles/global.css` deben coincidir con `design/tokens.md`. Todo cambio de token se hace primero en `design/tokens.md` y después se refleja en `@theme`.
 - JavaScript en cliente al mínimo: componentes Astro sin hidratación por defecto.
 - Componentes pequeños y con una sola responsabilidad. Sin abstracciones "por si acaso".
 - Archivo de referencia para nuevos componentes y páginas: `[TODO: fijar tras las specs 000/002]`
@@ -82,7 +85,7 @@ sanity/                    Studio y esquemas (con su propio package.json)
 
 - ✅ **Siempre:**
   - Usar tokens de diseño y textos i18n.
-  - Ejecutar `pnpm verify` antes de dar algo por terminado.
+  - Ejecutar `pnpm --dir web verify` antes de dar algo por terminado.
   - Mantener accesibilidad y SEO en cada página nueva.
   - Mantener actualizados `tasks.md` y `MEMORY.md`.
 - ⚠️ **Preguntar antes:**
@@ -105,7 +108,7 @@ sanity/                    Studio y esquemas (con su propio package.json)
 
 Un cambio no está terminado hasta que:
 
-1. `pnpm verify` pasa (lint, tipos, tests y build).
+1. `pnpm --dir web verify` pasa (lint, tipos, tests y build).
 2. La página afectada se revisa en el preview en móvil (375 px) y escritorio, comparada con las capturas de `design/`.
 3. En páginas de contenido: JSON-LD válido, `hreflang` correcto y contenido presente en el HTML sin ejecutar JS.
 4. Lighthouse (manual) en la página afectada: Rendimiento ≥ 90, Accesibilidad ≥ 95, SEO 100. `[ajustar si hace falta]`

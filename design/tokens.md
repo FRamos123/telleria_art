@@ -5,6 +5,7 @@
 - **2026-10-07:** decisiones acordadas: acento canónico `#c48b3c`, radios `0`, breakpoints mobile-first de `DESIGN.md`, texto siempre sólido, inventario con placa opaca y contraste AA, carmín limitado a bordes/superficies, y estados de obra con etiqueta textual y colores verificados.
 - **2026-10-07:** se documentan como estimados los patrones base de cabecera y pie; se explicitan los tres rangos responsive mobile-first, incluido tablet.
 - **2026-10-07:** se añade el mapeo normativo a variables `@theme` de Tailwind CSS v4; los nombres semánticos conservan los del export de Stitch y los valores siguen las decisiones vigentes.
+- **2026-10-08:** se actualiza la ruta del tema de Tailwind tras separar el repositorio en `web/` y `studio/`.
 
 ## Fuentes y criterio
 
@@ -118,7 +119,7 @@ Ratios calculados con la fórmula WCAG 2.x y colores sólidos. AA exige `4.5:1` 
 
 ## 7. Mapeo a Tailwind CSS v4
 
-Este mapeo es la fuente normativa para `@theme`. Los nombres semánticos de color y tipografía siguen los del export de Stitch; cuando una decisión posterior cambió un valor, prevalece el valor canónico de este documento. No se deben recrear con utilidades arbitrarias ni valores hardcodeados.
+Este mapeo es la fuente normativa para `@theme` de `web/src/styles/global.css`. Los nombres semánticos de color y tipografía siguen los del export de Stitch; cuando una decisión posterior cambió un valor, prevalece el valor canónico de este documento. No se deben recrear con utilidades arbitrarias ni valores hardcodeados.
 
 ### Colores
 
