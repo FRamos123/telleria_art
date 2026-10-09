@@ -112,6 +112,10 @@ El proyecto parte de cero, sin esquemas ni contenido de producción que preserva
 - [ ] Las reglas de existencia, obligatoriedad, texto alternativo y formato/tamaño de imágenes están delimitadas.
 - [ ] No se incluye contenido de ejemplo que pueda confundirse con contenido real ni se altera contenido de producción.
 
+## Decisiones cerradas
+
+- «Distinta» (RF-4 y Fuera de alcance) significa campo y concepto independientes: la descripción editorial es contenido que edita el artista; la descripción SEO es un valor derivado, no editable. Que la SEO se derive de la editorial no contradice esa distinción, según RNF-2.
+
 ## Dudas abiertas
 
 - Ninguna pendiente de esta clarificación.

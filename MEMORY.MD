@@ -7,6 +7,7 @@ aporte.
 - Diseño Stitch exportado y documentado en `design/tokens.md`.
 - Cambio de dirección solicitado el 2026-10-07: el producto ofrecerá compra de originales disponibles y prints mediante pasarela. Brief actualizado; proveedor, tamaños, precios, logística, políticas y reglas de stock siguen pendientes. No implementar hasta aprobar una spec comercial.
 ## Decisiones (y por qué)
+- «Distinta» entre descripción editorial de serie y descripción SEO significa campos/conceptos independientes; la SEO es derivada y no editable, y puede derivarse de la editorial (aclaración añadida a Spec 001 conforme a RNF-2).
 - Astro estático + Sanity (plan gratuito) + Cloudflare Pages: contenido casi estático, SEO
   como prioridad, coste cero.
 - Sin backend ni base de datos: el flujo de consultas se resuelve con función serverless +
@@ -24,8 +25,10 @@ aporte.
 ## Aprendizajes y errores a evitar
 - (vacío por ahora)
 ## Próximos pasos
+- Spec 002 — Catálogo de obras y series: spec aprobada; plan y `tasks.md` redactados. Las 17 tareas proponen separar navegación de catálogo/series de indexación e integración de fichas. T10 depende de aprobar/planificar Spec 003.
+- Spec 003 — Fichas individuales de obra: spec redactada como borrador, pendiente de aprobación; se omite la meta description SEO ausente y EN requiere serie y alt traducidos, sin fallback. Sin alcance comercial.
 - Spec 000 completada y conservada como registro de la fundación sin comercio; RF-13 solo describe esa entrega histórica.
-- Spec 001 — Gestión editorial: spec, plan y `tasks.md` aprobados para ejecutarse como una única spec (28 tareas). T28 sigue bloqueada: `web verify` pasa, pero el build solo crea `/`, `/en/` y `/404`; la revisión Chrome de componentes depende de rutas de una spec de páginas. RF-10 se garantiza en el catálogo público mediante build, no por unicidad transaccional de Content Lake.
+- Spec 001 — Gestión editorial: spec, plan y `tasks.md` aprobados para ejecutarse como una única spec (28 tareas). Aclaración: descripción editorial y SEO son conceptos/campos independientes; SEO es derivada y no editable, y puede derivarse de la editorial según RNF-2. T28 sigue bloqueada: `web verify` pasa, pero el build solo crea `/`, `/en/` y `/404`; la revisión Chrome de componentes depende de rutas de una spec de páginas. RF-10 se garantiza en el catálogo público mediante build, no por unicidad transaccional de Content Lake.
 - T1 de Spec 001 completada: el usuario aprobó explícitamente dependencias de Sanity/imagen/Studio, schemas y validaciones Sanity, y tipos públicos/value objects de dominio para las tareas futuras; no se inició ninguna de ellas.
 - T2 de Spec 001 completada: Studio independiente con dependencias y lockfile fijados, configuración sin secretos ni proyecto/dataset de producción y arranque local verificado; `pnpm --dir web verify` pasó. La versión Sanity 6.18 requiere `studio/sanity.cli.ts`; web lint solo analiza el paquete `web/`.
 - T3 de Spec 001 completada: `Availability` y `Dimensions` implementados con TDD; API elegida y casos cubiertos documentados en `tasks.md` (RF-9, RF-12).
