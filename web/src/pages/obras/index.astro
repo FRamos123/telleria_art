@@ -1,0 +1,47 @@
+---
+import ArtworkCatalog from '../../components/ArtworkCatalog.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getMessages } from '../../i18n';
+import { sortArtworksForCatalog } from '../../domain/catalog-presentation';
+import { createResponsiveImage } from '../../infrastructure/sanity/image-url';
+import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+
+const locale = 'es';
+const messages = getMessages(locale);
+const catalog = await loadCatalogContent();
+const artworks = sortArtworksForCatalog(
+	catalog.artworks.filter((artwork) => artwork.translations[locale] !== undefined),
+);
+const imageOptions = {
+	projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
+	dataset: import.meta.env.SANITY_DATASET ?? '',
+};
+const cards = artworks.map((artwork) => ({
+	artwork,
+	image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+	href: `/obra/${encodeURIComponent(artwork.id)}/`,
+}));
+const visibleSeries = catalog.series
+	.flatMap((series) => {
+		const translation = series.translations[locale];
+		return translation
+			? [{
+				id: series.id,
+				name: translation.name,
+				href: `/series/${encodeURIComponent(series.id)}/`,
+			}]
+			: [];
+	})
+	.sort((first, second) =>
+		first.name.localeCompare(second.name, locale) || first.id.localeCompare(second.id),
+	);
+---
+
+<BaseLayout
+	locale={locale}
+	title={messages.catalogTitle}
+	canonicalPath="/obras/"
+	alternatePaths={{ en: '/en/works/' }}
+>
+	<ArtworkCatalog locale={locale} artworks={cards} visibleSeries={visibleSeries} />
+</BaseLayout>

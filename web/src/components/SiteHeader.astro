@@ -5,9 +5,10 @@ import LanguageSwitcher from './LanguageSwitcher.astro';
 interface Props {
 	locale: Locale;
 	messages: Messages;
+	languagePaths: Partial<Record<Locale, string>>;
 }
 
-const { locale, messages } = Astro.props;
+const { locale, messages, languagePaths } = Astro.props;
 ---
 
 <header class="border-b border-surface-variant bg-surface-container-lowest">
@@ -15,6 +16,6 @@ const { locale, messages } = Astro.props;
 		<p class="m-0 font-label-technical text-label-caption uppercase text-on-surface">
 			{messages.brandName}
 		</p>
-		<LanguageSwitcher locale={locale} messages={messages} />
+		<LanguageSwitcher locale={locale} messages={messages} languagePaths={languagePaths} />
 	</div>
 </header>

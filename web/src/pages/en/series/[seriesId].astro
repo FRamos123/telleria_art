@@ -1,0 +1,81 @@
+---
+import SeriesContent from '../../../components/SeriesContent.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { deriveSeriesMetaDescription, sortArtworksForCatalog } from '../../../domain/catalog-presentation';
+import { getMessages, type Locale } from '../../../i18n';
+import { createResponsiveImage } from '../../../infrastructure/sanity/image-url';
+import { loadCatalogContent } from '../../../infrastructure/sanity/catalog-content';
+
+const locale: Locale = 'en';
+
+export async function getStaticPaths() {
+	const catalog = await loadCatalogContent();
+	const imageOptions = {
+		projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
+		dataset: import.meta.env.SANITY_DATASET ?? '',
+	};
+
+	return catalog.series.flatMap((series) => {
+		const translation = series.translations[locale];
+		if (!translation) return [];
+
+		const visibleArtworks = sortArtworksForCatalog(
+			catalog.artworks.filter((artwork) =>
+				artwork.seriesId === series.id && artwork.translations[locale] !== undefined,
+			),
+		).map((artwork) => ({
+			artwork,
+			image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+			href: `/en/work/${encodeURIComponent(artwork.id)}/`,
+		}));
+		const imageProjection = catalog.seriesImageProjections.get(series.id);
+		const image = translation.image && imageProjection
+			? {
+				assetId: translation.image.assetId,
+				responsive: createResponsiveImage(imageProjection, imageOptions),
+			}
+			: undefined;
+
+		return [{
+			params: { seriesId: series.id },
+			props: { series, visibleArtworks, image },
+		}];
+	});
+}
+
+const { series, visibleArtworks, image } = Astro.props;
+const messages = getMessages(locale);
+const translation = series.translations[locale];
+const seriesPath = `/en/series/${encodeURIComponent(series.id)}/`;
+const catalogHref = '/en/works/';
+const alternatePaths: Partial<Record<Locale, string>> = {
+	...(series.translations.es ? { es: `/series/${encodeURIComponent(series.id)}/` } : {}),
+	...(series.translations.en ? { en: seriesPath } : {}),
+};
+const siteUrl = Astro.site ?? new URL('https://telleria-art.pages.dev');
+const canonicalUrl = new URL(seriesPath, siteUrl).href;
+const title = `${translation.name} — ${messages.series} — ${messages.brandName}`;
+const description = deriveSeriesMetaDescription({
+	editorialDescription: translation.description,
+	seriesName: translation.name,
+	artistName: messages.artistName,
+	template: messages.seriesMetaDescriptionTemplate,
+});
+---
+
+<BaseLayout
+	locale={locale}
+	title={title}
+	description={description}
+	canonicalPath={seriesPath}
+	alternatePaths={alternatePaths}
+>
+	<SeriesContent
+		series={series}
+		locale={locale}
+		visibleArtworks={visibleArtworks}
+		image={image}
+		catalogHref={catalogHref}
+		canonicalUrl={canonicalUrl}
+	/>
+</BaseLayout>

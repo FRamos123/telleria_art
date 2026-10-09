@@ -6,6 +6,7 @@
 - **2026-10-07:** se documentan como estimados los patrones base de cabecera y pie; se explicitan los tres rangos responsive mobile-first, incluido tablet.
 - **2026-10-07:** se añade el mapeo normativo a variables `@theme` de Tailwind CSS v4; los nombres semánticos conservan los del export de Stitch y los valores siguen las decisiones vigentes.
 - **2026-10-08:** se actualiza la ruta del tema de Tailwind tras separar el repositorio en `web/` y `studio/`.
+- **2026-10-09:** se documenta el patrón aprobado para tarjetas de obra y directorio de series de Spec 002 (T7), sin añadir ni cambiar tokens.
 
 ## Fuentes y criterio
 
@@ -86,6 +87,7 @@ Usos complementarios visibles: el autor y citas pueden ir en cursiva; el nombre 
 - **Ficha técnica:** bloque en `surface-low` con padding `space-md`; título/índice en Geist; filas etiqueta/valor, etiquetas en `text-muted` sólido y valores en Newsreader cursiva `on-surface`. El HTML del catálogo separa filas con borde inferior; el detalle usa filas alternas sobre `surface-lowest/40`. `DESIGN.md` la llama bloque sin borde y propone valores `0.9375rem`; queda anotada la diferencia. No reducir opacidad de etiquetas.
 - **Etiqueta de número de inventario:** sobreimpresa arriba a la derecha de la imagen; fondo **opaco** `#0e0e10`, texto `on-surface #e5e1e4`, borde sólido `carmine-border #ffb3ad` de 1 px, padding horizontal `0.625rem` y vertical `0.25rem`, Geist caption uppercase. La placa opaca desacopla el contraste del contenido de la obra.
 - **Bloque de anotación del cuaderno:** panel oscuro (`surface-container` para la anotación del visor; `surface-lowest` para la hoja de cuaderno), padding `space-md` o `space-lg`; cabecera Geist caption/technical y fecha, título Bodoni `headline-sm`, cita Newsreader `body-md` cursiva `on-surface-variant`. El control “Siguiente [+]” permanece como etiqueta Geist pequeña.
+- **Tarjeta de obra y directorio de series (Spec 002, T7):** la tarjeta enlaza como una unidad a la ficha publicada y contiene únicamente imagen principal, título, año y etiqueta textual de disponibilidad. La imagen usa `surface-container-low`, `EditorialImage` (alt/dimensiones explícitos y carga lazy por defecto); título y metadatos usan `headline-sm`, `label-technical`, `on-surface`, `on-surface-variant` y `space-sm`/`space-md`. La tarjeta ocupa una columna en móvil y cuatro de las ocho/doce columnas de tablet/escritorio; enlace con foco visible. El directorio aparece antes de la cuadrícula, como enlaces identificables con nombre de serie localizado, `label-technical`, `on-surface`/`accent`, `surface-container-lowest` y espaciado existente. No incorpora filtros ni acciones comerciales. Usa exclusivamente tokens existentes; no define valores nuevos.
 
 ## 5. Breakpoints y comportamiento responsive
 

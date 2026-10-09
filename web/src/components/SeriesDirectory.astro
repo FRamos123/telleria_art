@@ -1,0 +1,39 @@
+---
+import { getMessages, type Locale } from '../i18n';
+
+interface Props {
+	locale: Locale;
+	visibleSeries: readonly { id: string; name: string; href: string }[];
+}
+
+const { locale, visibleSeries } = Astro.props;
+const messages = getMessages(locale);
+const links = visibleSeries.flatMap((series) => {
+	const id = series.id.trim();
+	const name = series.name.trim();
+	const href = series.href.trim();
+	return id && name && href.startsWith('/') && !href.startsWith('//')
+		? [{ id, name, href }]
+		: [];
+});
+---
+
+{links.length > 0 && (
+	<section aria-labelledby="series-directory-heading" class="mb-space-lg bg-surface-container-lowest p-space-md">
+		<h2 id="series-directory-heading" class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
+			{messages.series}
+		</h2>
+		<ul class="m-0 flex list-none flex-wrap gap-x-space-lg gap-y-space-sm p-0">
+			{links.map((series) => (
+				<li>
+					<a
+						class="font-label-technical text-label-technical text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						href={series.href}
+					>
+						{series.name}
+					</a>
+				</li>
+			))}
+		</ul>
+	</section>
+)}

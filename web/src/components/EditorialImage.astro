@@ -6,10 +6,11 @@ interface Props {
 	image: ResponsiveImage;
 	altText: string;
 	className?: string;
+	loading?: 'lazy' | 'eager';
 	sizes?: string;
 }
 
-const { image, altText, className, sizes = '100vw' } = Astro.props;
+const { image, altText, className, loading = 'lazy', sizes = '100vw' } = Astro.props;
 
 if (!isValidAlternativeText(altText)) {
 	throw new Error('Editorial images require valid alternative text.');
@@ -36,4 +37,5 @@ if (
 	alt={altText.trim()}
 	class={className}
 	decoding="async"
+	loading={loading}
 />

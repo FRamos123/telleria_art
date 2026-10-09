@@ -1,0 +1,45 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import ArtworkCard from './ArtworkCard.astro';
+import SeriesDirectory from './SeriesDirectory.astro';
+
+interface CatalogCard {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	href: string;
+}
+
+interface Props {
+	locale: Locale;
+	artworks: readonly CatalogCard[];
+	visibleSeries: readonly { id: string; name: string; href: string }[];
+}
+
+const { locale, artworks, visibleSeries } = Astro.props;
+const messages = getMessages(locale);
+---
+
+<section
+	aria-labelledby="artwork-catalog-title"
+	class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter"
+>
+	<h1
+		id="artwork-catalog-title"
+		class="mb-space-lg mt-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+	>
+		{messages.catalogTitle}
+	</h1>
+	<SeriesDirectory locale={locale} visibleSeries={visibleSeries} />
+	{artworks.length === 0 ? (
+		<p class="m-0 font-body-md text-body-md text-on-surface-variant">{messages.catalogEmpty}</p>
+	) : (
+		<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
+			{artworks.map(({ artwork, image, href }) => (
+				<ArtworkCard artwork={artwork} image={image} href={href} locale={locale} />
+			))}
+		</ul>
+	)}
+</section>

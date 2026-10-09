@@ -2,26 +2,35 @@
 import { isValidAlternativeText } from '../domain/completeness';
 import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
-import type { MappedSeries } from '../infrastructure/sanity/mappers';
+import type { MappedArtwork, MappedSeries } from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import ArtworkCard from './ArtworkCard.astro';
 import EditorialImage from './EditorialImage.astro';
+
+interface CatalogArtworkCard {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	href: string;
+}
 
 interface Props {
 	series: MappedSeries;
 	locale: Locale;
-	visibleArtworks: readonly { id: string; title: string; href: string }[];
+	visibleArtworks: readonly CatalogArtworkCard[];
 	image?: { assetId: string; responsive: ResponsiveImage };
+	catalogHref: string;
+	canonicalUrl: string;
 }
 
-const { series, locale, visibleArtworks, image } = Astro.props;
+const { series, locale, visibleArtworks, image, catalogHref, canonicalUrl } = Astro.props;
 const translation = series.translations[locale];
 const name = translation?.name.trim();
 const description = translation?.description?.trim();
 const artworks = visibleArtworks.flatMap((artwork) => {
-	const title = artwork.title.trim();
+	const title = artwork.artwork.translations[locale]?.title.trim();
 	const href = artwork.href.trim();
-	return artwork.id.trim() && title && href.startsWith('/') && !href.startsWith('//')
-		? [{ ...artwork, title, href }]
+	return artwork.artwork.id.trim() && title && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...artwork, href }]
 		: [];
 });
 const messages = getMessages(locale);
@@ -39,16 +48,40 @@ const responsiveImage = image
 	&& isValidAlternativeText(seriesImage.altText, name)
 	? image.responsive
 	: undefined;
+const collectionPage = {
+	'@context': 'https://schema.org',
+	'@type': 'CollectionPage',
+	'@id': canonicalUrl,
+	url: canonicalUrl,
+	name,
+	inLanguage: locale,
+	mainEntity: {
+		'@type': 'ItemList',
+		itemListElement: artworks.map(({ artwork, href }, index) => ({
+			'@type': 'ListItem',
+			position: index + 1,
+			item: {
+				'@type': 'VisualArtwork',
+				name: artwork.translations[locale]?.title,
+				url: new URL(href, canonicalUrl).href,
+			},
+		})),
+	},
+};
+const collectionPageJsonLd = JSON.stringify(collectionPage).replaceAll('<', '\\u003c');
 ---
 
 {translation && name && artworks.length > 0 && (
-	<article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
+	<>
+		<script type="application/ld+json" set:html={collectionPageJsonLd} />
+		<article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
 		{responsiveImage && seriesImage && (
 			<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
 				<EditorialImage
 					image={responsiveImage}
 					altText={seriesImage.altText}
 					className="h-auto w-full object-contain"
+					loading="eager"
 					sizes="(min-width: 1280px) 58vw, 100vw"
 				/>
 			</figure>
@@ -67,22 +100,21 @@ const responsiveImage = image
 						{description}
 					</p>
 				)}
+				<a class="mt-space-md inline-block w-fit font-label-technical text-label-technical text-on-surface underline decoration-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={catalogHref}>
+					{messages.backToCatalog}
+				</a>
 			</header>
-
-			<section aria-labelledby={`series-${series.id}-works-title`}>
-				<h2 id={`series-${series.id}-works-title`} class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
-					{messages.seriesWorks}
-				</h2>
-				<ul class="m-0 grid list-none grid-cols-1 gap-x-space-lg p-0 tablet:grid-cols-2">
-					{artworks.map((artwork) => (
-						<li class="border-b border-surface-variant py-space-sm">
-							<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={artwork.href}>
-								{artwork.title}
-							</a>
-						</li>
-					))}
-				</ul>
-			</section>
 		</div>
-	</article>
+		<section aria-labelledby={`series-${series.id}-works-title`} class="tablet:col-span-8 desktop:col-span-12">
+			<h2 id={`series-${series.id}-works-title`} class="mb-space-lg mt-0 font-label-technical text-label-technical text-on-surface">
+				{messages.seriesWorks}
+			</h2>
+			<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
+				{artworks.map((artwork) => (
+					<ArtworkCard artwork={artwork.artwork} image={artwork.image} href={artwork.href} locale={locale} />
+				))}
+			</ul>
+		</section>
+		</article>
+	</>
 )}

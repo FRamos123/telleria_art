@@ -14,9 +14,15 @@ const messageKey: Record<Availability, keyof Messages> = {
 	vendida: 'availabilitySold',
 	'en colección': 'availabilityInCollection',
 };
+const statusClass: Record<Availability, string> = {
+	disponible: 'text-primary',
+	reservada: 'text-status-reserved',
+	vendida: 'text-status-sold',
+	'en colección': 'text-status-collection',
+};
 const label = getMessages(locale)[messageKey[availability]];
 ---
 
-<span class="font-label-technical text-label-technical text-on-surface-variant">
+<span class:list={['font-label-technical text-label-technical', statusClass[availability]]}>
 	{label}
 </span>

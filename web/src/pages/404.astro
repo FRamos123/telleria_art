@@ -6,7 +6,7 @@ const spanish = getMessages('es');
 const english = getMessages('en');
 ---
 
-<BaseLayout locale="es">
+<BaseLayout locale="es" alternatePaths={{ es: '/', en: '/en/' }}>
 	<section
 		class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-space-xl px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
 		aria-label={`${spanish.notFoundTitle} / ${english.notFoundTitle}`}

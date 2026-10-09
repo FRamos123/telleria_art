@@ -18,6 +18,30 @@ describe('foundation translations', () => {
 		}
 	});
 
+	it('uses the approved localized labels for all four availability states', () => {
+		expect([
+			es.availabilityAvailable,
+			es.availabilityReserved,
+			es.availabilitySold,
+			es.availabilityInCollection,
+		]).toEqual(['Disponible', 'Reservada', 'Vendida', 'En colección']);
+		expect([
+			en.availabilityAvailable,
+			en.availabilityReserved,
+			en.availabilitySold,
+			en.availabilityInCollection,
+		]).toEqual(['Available', 'Reserved', 'Sold', 'In collection']);
+	});
+
+	it('provides localized catalog-empty messages and a series SEO template', () => {
+		expect(es.catalogTitle).toBe('Obras — Alejandro Fernández Tellería');
+		expect(en.catalogTitle).toBe('Works — Alejandro Fernández Tellería');
+		expect(es.catalogEmpty).toBe('No hay obras que mostrar en este idioma.');
+		expect(en.catalogEmpty).toBe('There are no artworks to show in this language.');
+		expect(es.seriesMetaDescriptionTemplate).toBe('Obras de la serie {seriesName} de {artistName}.');
+		expect(en.seriesMetaDescriptionTemplate).toBe('Works from the {seriesName} series by {artistName}.');
+	});
+
 	it('provides the same message keys in Spanish and English', () => {
 		expect(Object.keys(es).sort()).toEqual(Object.keys(en).sort());
 		expect(Object.values(es).every((message) => message.trim().length > 0)).toBe(true);

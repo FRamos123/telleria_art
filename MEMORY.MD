@@ -25,7 +25,7 @@ aporte.
 ## Aprendizajes y errores a evitar
 - (vacío por ahora)
 ## Próximos pasos
-- Spec 002 — Catálogo de obras y series: spec aprobada; plan y `tasks.md` redactados. Las 17 tareas proponen separar navegación de catálogo/series de indexación e integración de fichas. T10 depende de aprobar/planificar Spec 003.
+- Spec 002 — Catálogo de obras y series: T1–T9 completadas. T5 cubre alternates/metadatos; T6 aplica tokens de Availability e imágenes; T7 crea `ArtworkCard`/`SeriesDirectory`; T8 genera catálogos estáticos ES/EN; T9 genera páginas estáticas de serie, tarjetas ordenadas, regreso localizado, hreflang y JSON-LD `CollectionPage`. `pnpm --dir web verify` pasó con 253 tests usando el dataset development; no tiene series visibles, por lo que la revisión Chrome usó y retiró un fixture temporal (375/1280 px sin overflow). T10 depende de aprobar/planificar Spec 003.
 - Spec 003 — Fichas individuales de obra: spec redactada como borrador, pendiente de aprobación; se omite la meta description SEO ausente y EN requiere serie y alt traducidos, sin fallback. Sin alcance comercial.
 - Spec 000 completada y conservada como registro de la fundación sin comercio; RF-13 solo describe esa entrega histórica.
 - Spec 001 — Gestión editorial: spec, plan y `tasks.md` aprobados para ejecutarse como una única spec (28 tareas). Aclaración: descripción editorial y SEO son conceptos/campos independientes; SEO es derivada y no editable, y puede derivarse de la editorial según RNF-2. T28 sigue bloqueada: `web verify` pasa, pero el build solo crea `/`, `/en/` y `/404`; la revisión Chrome de componentes depende de rutas de una spec de páginas. RF-10 se garantiza en el catálogo público mediante build, no por unicidad transaccional de Content Lake.

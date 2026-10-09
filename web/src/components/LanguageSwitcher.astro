@@ -4,35 +4,50 @@ import type { Locale, Messages } from '../i18n';
 interface Props {
 	locale: Locale;
 	messages: Messages;
+	languagePaths: Partial<Record<Locale, string>>;
 }
 
-const { locale, messages } = Astro.props;
+const { locale, messages, languagePaths } = Astro.props;
+const spanishPath = languagePaths.es;
+const englishPath = languagePaths.en;
 ---
 
 <div class="flex items-center gap-space-sm font-label-technical text-label-technical" role="group" aria-label={messages.languageSelectorLabel}>
-	<a
-		class:list={[
-			'no-underline focus-visible:outline-2 focus-visible:outline-primary',
-			locale === 'es' ? 'text-primary' : 'text-on-surface-variant',
-		]}
-		href="/"
-		lang="es"
-		aria-label={`ES, ${messages.spanishLanguage}`}
-		aria-current={locale === 'es' ? 'page' : undefined}
-	>
-		ES
-	</a>
+	{spanishPath ? (
+		<a
+			class:list={[
+				'no-underline focus-visible:outline-2 focus-visible:outline-primary',
+				locale === 'es' ? 'text-primary' : 'text-on-surface-variant',
+			]}
+			href={spanishPath}
+			lang="es"
+			aria-label={`ES, ${messages.spanishLanguage}`}
+			aria-current={locale === 'es' ? 'page' : undefined}
+		>
+			ES
+		</a>
+	) : (
+		<span class="text-on-surface-variant" lang="es">
+			ES
+		</span>
+	)}
 	<span aria-hidden="true" class="text-on-surface-variant">/</span>
-	<a
-		class:list={[
-			'no-underline focus-visible:outline-2 focus-visible:outline-primary',
-			locale === 'en' ? 'text-primary' : 'text-on-surface-variant',
-		]}
-		href="/en/"
-		lang="en"
-		aria-label={`EN, ${messages.englishLanguage}`}
-		aria-current={locale === 'en' ? 'page' : undefined}
-	>
-		EN
-	</a>
+	{englishPath ? (
+		<a
+			class:list={[
+				'no-underline focus-visible:outline-2 focus-visible:outline-primary',
+				locale === 'en' ? 'text-primary' : 'text-on-surface-variant',
+			]}
+			href={englishPath}
+			lang="en"
+			aria-label={`EN, ${messages.englishLanguage}`}
+			aria-current={locale === 'en' ? 'page' : undefined}
+		>
+			EN
+		</a>
+	) : (
+		<span class="text-on-surface-variant" lang="en">
+			EN
+		</span>
+	)}
 </div>

@@ -48,7 +48,7 @@ const catalogLine = [
 
 <article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
 	<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
-		<EditorialImage image={image} altText={translation.altText} className="h-auto w-full object-contain" sizes="(min-width: 1280px) 58vw, 100vw" />
+		<EditorialImage image={image} altText={translation.altText} className="h-auto w-full object-contain" loading="eager" sizes="(min-width: 1280px) 58vw, 100vw" />
 		<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
 	</figure>
 

@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../i18n';
+import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import AvailabilityLabel from './AvailabilityLabel.astro';
+import EditorialImage from './EditorialImage.astro';
+
+interface Props {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	locale: Locale;
+	href: string;
+}
+
+const { artwork, image, locale, href } = Astro.props;
+const translation = artwork.translations[locale];
+const title = translation?.title.trim();
+const destination = href.trim();
+const validCard = translation
+	&& title
+	&& destination.startsWith('/')
+	&& !destination.startsWith('//');
+---
+
+{validCard && (
+	<li class="min-w-0 list-none tablet:col-span-4 desktop:col-span-4">
+		<a class="group block min-w-0 text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
+			<figure class="m-0 bg-surface-container-low">
+				<EditorialImage
+					image={image}
+					altText={translation.altText}
+					className="h-auto w-full object-contain"
+					sizes="(min-width: 768px) 33vw, 100vw"
+				/>
+			</figure>
+			<div class="mt-space-md flex min-w-0 flex-col gap-space-sm">
+				<h2 class="m-0 break-words font-headline-sm text-headline-sm text-on-surface underline decoration-surface-variant underline-offset-4">
+					{title}
+				</h2>
+				<time class="font-label-technical text-label-technical text-on-surface-variant" datetime={String(artwork.year)}>
+					{artwork.year}
+				</time>
+				<AvailabilityLabel availability={artwork.availability} locale={locale} />
+			</div>
+		</a>
+	</li>
+)}
