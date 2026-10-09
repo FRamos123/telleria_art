@@ -23,6 +23,7 @@ export interface MappedArtworkTranslation {
 	technique: string
 	support: string
 	altText: string
+	workshopNote?: string
 }
 
 export interface MappedArtwork {
@@ -99,10 +100,15 @@ const LANGUAGES: readonly Language[] = ['es', 'en']
 /** Maps published GROQ results to complete, locale-specific domain content. */
 export function mapSanityContent(input: unknown, currentYear: number): MappedSanityContent {
 	const results = asRecord(input)
-	const artworkCandidates = mapArtworkCandidates(results?.artworks, currentYear)
+	const mappedArtworkCandidates = mapArtworkCandidates(results?.artworks, currentYear)
 	const seriesCandidates = mapSeriesCandidates(results?.series)
-	const artworks = artworkCandidates.map(({ content }) => content)
 	const publishedSeriesIds = seriesIdsByLanguage(seriesCandidates)
+	const artworkCandidates = filterArtworkCandidatesBySeriesLanguage(
+		mappedArtworkCandidates,
+		publishedSeriesIds,
+	)
+	const artworks = artworkCandidates.map(({ content }) => content)
+	const allMappedArtworks = mappedArtworkCandidates.map(({ content }) => content)
 	const visibleArtworks = visibleArtworkRelationsByLanguage(artworkCandidates)
 	const visibleSeries = seriesCandidates
 		.map(({ content }) => ({
@@ -122,8 +128,8 @@ export function mapSanityContent(input: unknown, currentYear: number): MappedSan
 		visibleSeriesIds,
 	)
 
-	// The catalog is rejected before callers can generate a new static output.
-	assertUniqueInventoryNumbers(artworks)
+	// Reject duplicates across all complete artwork candidates before generating output.
+	assertUniqueInventoryNumbers(allMappedArtworks)
 
 	return { artworks, series: visibleSeries, exhibitions, criticalTexts }
 }
@@ -147,7 +153,6 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 			widthCm: dimensions?.width,
 			inventoryNumber: raw?.inventoryNumber,
 			availability: raw?.availability,
-			workshopNote: raw?.workshopNote,
 			criticalTextIds: raw?.criticalTextIds,
 		}
 		const translations: Partial<Record<Language, MappedArtworkTranslation>> = {}
@@ -164,8 +169,15 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 			const technique = normalizedText(translation.technique)
 			const support = normalizedText(translation.support)
 			const altText = normalizedText(translation.altText)
+			const workshopNote = normalizedText(translation.workshopNote)
 			if (!title || !technique || !support || !altText) continue
-			translations[language] = { title, technique, support, altText }
+			translations[language] = {
+				title,
+				technique,
+				support,
+				altText,
+				...(workshopNote ? { workshopNote } : {}),
+			}
 			if (language === 'es') optional = completeness.optional
 		}
 
@@ -196,6 +208,25 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 	}
 	return candidates
 }
+
+function filterArtworkCandidatesBySeriesLanguage(
+	artworks: readonly ArtworkCandidate[],
+	publishedSeriesIds: Partial<Record<Language, ReadonlySet<string>>>,
+): ArtworkCandidate[] {
+	const eligible: ArtworkCandidate[] = []
+	for (const artwork of artworks) {
+		const translations = filterTranslations(artwork.content.translations, (language) =>
+			publishedSeriesIds[language]?.has(artwork.relationSeriesId) === true,
+		)
+		if (!translations.es) continue
+		eligible.push({
+			...artwork,
+			content: { ...artwork.content, translations },
+		})
+	}
+	return eligible
+}
+
 function mapSeriesCandidates(value: unknown): SeriesCandidate[] {
 	const candidates: SeriesCandidate[] = []
 	for (const rawValue of asArray(value)) {

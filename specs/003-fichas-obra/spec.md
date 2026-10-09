@@ -1,5 +1,5 @@
 # Spec 003 — Fichas individuales de obra
-Estado: borrador
+Estado: aprobada
 
 ## Contexto y objetivo
 

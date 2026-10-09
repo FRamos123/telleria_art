@@ -27,6 +27,15 @@ describe('published Sanity GROQ queries', () => {
 		expect(artworkQuery).toContain('seriesId')
 	})
 
+	it('projects workshop notes per translation and preserves the legacy artwork field', () => {
+		const translationProjection = artworkQuery.match(
+			/"translations": \*\[_type == "artworkTranslation" && references\(\^\._id\)\] \{([\s\S]*?)\n\t\}/,
+		)?.[1]
+
+		expect(artworkQuery).toContain('\n\tworkshopNote,\n\t"translations"')
+		expect(translationProjection).toContain('\n\t\tworkshopNote')
+	})
+
 	it('contains no draft selectors or credentials', () => {
 		for (const query of queries) {
 			expect(query).not.toMatch(/drafts\.|_drafts|token/i)

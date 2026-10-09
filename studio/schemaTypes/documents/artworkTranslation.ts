@@ -47,5 +47,10 @@ export const artworkTranslationType = defineType({
       ),
     }),
     createLocalizedImageAltField('altText', 'Texto alternativo', 'title', true),
+    defineField({
+      name: 'workshopNote',
+      title: 'Nota del cuaderno de taller',
+      type: 'text',
+    }),
   ],
 })

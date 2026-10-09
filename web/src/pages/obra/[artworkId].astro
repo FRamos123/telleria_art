@@ -1,0 +1,54 @@
+---
+import ArtworkContent from '../../components/ArtworkContent.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getMessages } from '../../i18n';
+import { createResponsiveImage } from '../../infrastructure/sanity/image-url';
+import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+
+const locale = 'es' as const;
+
+export async function getStaticPaths() {
+	const catalog = await loadCatalogContent();
+	const imageOptions = {
+		projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
+		dataset: import.meta.env.SANITY_DATASET ?? '',
+	};
+
+	return catalog.artworks.flatMap((artwork) => {
+		const translation = artwork.translations[locale];
+		const series = catalog.series.find((candidate) => candidate.id === artwork.seriesId);
+		const seriesTranslation = series?.translations[locale];
+		if (!translation || !series || !seriesTranslation) return [];
+
+		return [{
+			params: { artworkId: artwork.id },
+			props: {
+				artwork,
+				criticalTexts: catalog.criticalTexts,
+				image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+				visibleSeries: {
+					id: series.id,
+					name: seriesTranslation.name,
+					href: `/series/${encodeURIComponent(series.id)}/`,
+				},
+			},
+		}];
+	});
+}
+
+const { artwork, criticalTexts, image, visibleSeries } = Astro.props;
+const translation = artwork.translations[locale];
+if (!translation) throw new Error(`Artwork ${artwork.id} has no complete published ${locale} translation.`);
+
+const messages = getMessages(locale);
+const title = `${translation.title} · ${artwork.inventoryNumber} · ${locale.toUpperCase()} — ${messages.brandName}`;
+const canonicalPath = `/obra/${encodeURIComponent(artwork.id)}/`;
+const alternatePaths = artwork.translations.en
+	? { en: `/en/work/${encodeURIComponent(artwork.id)}/` }
+	: {};
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? new URL('https://telleria-art.pages.dev')).href;
+---
+
+<BaseLayout locale={locale} title={title} canonicalPath={canonicalPath} alternatePaths={alternatePaths}>
+	<ArtworkContent artwork={artwork} canonicalUrl={canonicalUrl} criticalTexts={criticalTexts} image={image} locale={locale} visibleSeries={visibleSeries} />
+</BaseLayout>

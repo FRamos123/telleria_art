@@ -20,7 +20,8 @@ export const artworkQuery = `*[_type == "artwork"] {
 		title,
 		technique,
 		support,
-		altText
+		altText,
+		workshopNote
 	}
 }`
 

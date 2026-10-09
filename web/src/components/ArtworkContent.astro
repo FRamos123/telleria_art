@@ -2,21 +2,23 @@
 import { isValidAlternativeText } from '../domain/completeness';
 import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
-import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { MappedArtwork, MappedCriticalText } from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
 import EditorialImage from './EditorialImage.astro';
 import InventoryBadge from './InventoryBadge.astro';
 import ArtworkTechnicalSheet from './ArtworkTechnicalSheet.astro';
+import ArtworkCriticalTexts from './ArtworkCriticalTexts.astro';
 
 interface Props {
 	artwork: MappedArtwork;
+	canonicalUrl: string;
+	criticalTexts: readonly MappedCriticalText[];
 	image: ResponsiveImage;
 	locale: Locale;
-	visibleCriticalTexts?: readonly { id: string; title: string; href: string }[];
-	visibleSeries?: { id: string; name: string; href: string };
+	visibleSeries: { id: string; name: string; href: string };
 }
 
-const { artwork, image, locale, visibleCriticalTexts = [], visibleSeries } = Astro.props;
+const { artwork, canonicalUrl, criticalTexts, image, locale, visibleSeries } = Astro.props;
 const translation = artwork.translations[locale];
 
 if (!translation) {
@@ -29,22 +31,62 @@ if (!translation.title.trim() || !isValidAlternativeText(translation.altText, tr
 
 const messages = getMessages(locale);
 const associatedCriticalTextIds = new Set(artwork.optional.criticalTextIds ?? []);
-const relatedCriticalTexts = visibleCriticalTexts.filter((text) =>
-	associatedCriticalTextIds.has(text.id) && text.title.trim() && text.href.trim(),
-);
-const relatedSeries = visibleSeries?.id === artwork.seriesId && visibleSeries.name.trim() && visibleSeries.href.trim()
-	? visibleSeries
-	: undefined;
-const workshopNote = artwork.optional.workshopNote?.trim();
-const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
-const catalogDimensions = `${numberFormat.format(artwork.heightCm)} × ${numberFormat.format(artwork.widthCm)} cm`;
-const catalogLine = [
-	translation.title,
-	artwork.year,
-	translation.technique,
-	catalogDimensions,
-].join(' · ');
+const relatedCriticalTexts = criticalTexts.flatMap((criticalText) => {
+	if (!associatedCriticalTextIds.has(criticalText.id)) return [];
+
+	const translation = criticalText.translations[locale];
+	const title = translation?.title.trim();
+	const body = translation?.body.trim();
+	const author = translation?.author.trim();
+	return title && body && author
+		? [{ id: criticalText.id, title, body, author }]
+		: [];
+});
+if (
+	visibleSeries.id !== artwork.seriesId
+	|| !visibleSeries.name.trim()
+	|| !visibleSeries.href.trim()
+) {
+	throw new Error('Artwork content requires its localized published series.');
+}
+
+const workshopNote = translation.workshopNote?.trim();
+const visualArtwork = {
+	'@context': 'https://schema.org',
+	'@type': 'VisualArtwork',
+	'@id': canonicalUrl,
+	url: canonicalUrl,
+	name: translation.title,
+	creator: {
+		'@type': 'Person',
+		name: messages.artistName,
+	},
+	identifier: artwork.inventoryNumber,
+	artMedium: translation.technique,
+	artworkSurface: translation.support,
+	height: {
+		'@type': 'QuantitativeValue',
+		value: artwork.heightCm,
+		unitCode: 'CMT',
+		unitText: 'cm',
+	},
+	width: {
+		'@type': 'QuantitativeValue',
+		value: artwork.widthCm,
+		unitCode: 'CMT',
+		unitText: 'cm',
+	},
+	image: image.src,
+	inLanguage: locale,
+	isPartOf: {
+		'@type': 'CreativeWorkSeries',
+		name: visibleSeries.name,
+	},
+};
+const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u003c');
 ---
+
+<script type="application/ld+json" set:html={visualArtworkJsonLd} />
 
 <article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
 	<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
@@ -57,17 +99,12 @@ const catalogLine = [
 			<h1 class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
 				{translation.title}
 			</h1>
-			<p class="mb-space-sm mt-0 break-words font-label-caption text-label-caption text-on-surface-variant">
-				{catalogLine}
+			<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+				{messages.series}:{' '}
+				<a class="text-on-surface underline decoration-surface-variant" href={visibleSeries.href}>
+					{visibleSeries.name}
+				</a>
 			</p>
-			{relatedSeries && (
-				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.series}:{' '}
-					<a class="text-on-surface underline decoration-surface-variant" href={relatedSeries.href}>
-						{relatedSeries.name}
-					</a>
-				</p>
-			)}
 		</header>
 
 		<ArtworkTechnicalSheet
@@ -89,21 +126,6 @@ const catalogLine = [
 			</section>
 		)}
 
-		{relatedCriticalTexts.length > 0 && (
-			<section aria-labelledby="artwork-critical-texts-title">
-				<h2 id="artwork-critical-texts-title" class="mb-space-sm mt-0 font-headline-sm text-headline-sm text-on-surface">
-					{messages.criticalTexts}
-				</h2>
-				<ul class="m-0 list-none space-y-space-sm p-0">
-					{relatedCriticalTexts.map((text) => (
-						<li>
-							<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={text.href}>
-								{text.title}
-							</a>
-						</li>
-					))}
-				</ul>
-			</section>
-		)}
+		<ArtworkCriticalTexts texts={relatedCriticalTexts} locale={locale} />
 	</div>
 </article>

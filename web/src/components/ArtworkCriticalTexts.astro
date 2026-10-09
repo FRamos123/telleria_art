@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+
+interface CriticalTextEntry {
+	id: string;
+	title: string;
+	body: string;
+	author: string;
+}
+
+interface Props {
+	locale: Locale;
+	texts: readonly CriticalTextEntry[];
+}
+
+const { locale, texts } = Astro.props;
+const messages = getMessages(locale);
+---
+
+{texts.length > 0 && (
+	<section aria-labelledby="artwork-critical-texts-title" class="border-t border-surface-variant pt-space-md">
+		<h2 id="artwork-critical-texts-title" class="mb-space-md mt-0 font-headline-sm text-headline-sm text-on-surface">
+			{messages.criticalTexts}
+		</h2>
+		<ul class="m-0 list-none space-y-space-md p-0">
+			{texts.map((text) => (
+				<li class="border-b border-surface-variant pb-space-md">
+					<article aria-labelledby={`artwork-critical-text-${text.id}-title`}>
+						<h3
+							id={`artwork-critical-text-${text.id}-title`}
+							class="mb-space-xs mt-0 font-headline-sm text-headline-sm text-on-surface"
+						>
+							{text.title}
+						</h3>
+						<p class="mb-space-sm mt-0 font-body-md text-body-md italic text-on-surface-variant">
+							{text.author}
+						</p>
+						<div class="whitespace-pre-line font-body-md text-body-md text-on-surface-variant">
+							{text.body}
+						</div>
+					</article>
+				</li>
+			))}
+		</ul>
+	</section>
+)}

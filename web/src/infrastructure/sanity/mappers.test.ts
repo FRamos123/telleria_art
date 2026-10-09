@@ -154,7 +154,7 @@ describe('Sanity GROQ result mappers', () => {
 				es: { title: 'Figura en reposo', technique: 'Óleo', support: 'Lienzo' },
 				en: { title: 'Figure at rest', technique: 'Oil', support: 'Canvas' },
 			},
-			optional: { workshopNote: 'Apunte de taller', criticalTextIds: ['critical-1'] },
+			optional: { criticalTextIds: ['critical-1'] },
 		})
 		expect(catalog.series[0]).toMatchObject({
 			id: 'series-1',
@@ -180,6 +180,80 @@ describe('Sanity GROQ result mappers', () => {
 				en: { title: 'The figure and the space', author: 'Test author' },
 			},
 		})
+	})
+
+	it('blocks artworks in both languages when the Spanish series translation is absent or incomplete', async () => {
+		const missingSpanish = validQueryResults()
+		missingSpanish.series[0]!.translations = [missingSpanish.series[0]!.translations[1]!]
+		const incompleteSpanish = validQueryResults()
+		incompleteSpanish.series[0]!.translations[0]!.name = '   '
+
+		const withoutSpanishSeries = await mapResults(missingSpanish)
+		const withIncompleteSpanishSeries = await mapResults(incompleteSpanish)
+
+		expect(withoutSpanishSeries.artworks).toEqual([])
+		expect(withIncompleteSpanishSeries.artworks).toEqual([])
+		expect(withoutSpanishSeries.series).toEqual([])
+		expect(withIncompleteSpanishSeries.series).toEqual([])
+	})
+
+	it('keeps Spanish artworks but removes English when the English series translation is absent or incomplete', async () => {
+		const missingEnglish = validQueryResults()
+		missingEnglish.series[0]!.translations = [missingEnglish.series[0]!.translations[0]!]
+		const incompleteEnglish = validQueryResults()
+		incompleteEnglish.series[0]!.translations[1]!.name = '   '
+
+		for (const input of [missingEnglish, incompleteEnglish]) {
+			const catalog = await mapResults(input)
+			expect(catalog.artworks).toHaveLength(1)
+			expect(catalog.artworks[0]?.translations).toHaveProperty('es')
+			expect(catalog.artworks[0]?.translations).not.toHaveProperty('en')
+			expect(catalog.series[0]?.translations).toHaveProperty('es')
+			expect(catalog.series[0]?.translations).not.toHaveProperty('en')
+		}
+	})
+
+	it('keeps both artwork versions when both localized series translations are valid', async () => {
+		const catalog = await mapResults(validQueryResults())
+
+		expect(catalog.artworks[0]?.translations).toHaveProperty('es')
+		expect(catalog.artworks[0]?.translations).toHaveProperty('en')
+		expect(catalog.series[0]?.translations).toHaveProperty('es')
+		expect(catalog.series[0]?.translations).toHaveProperty('en')
+	})
+
+	it('maps Spanish and English workshop notes independently', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { workshopNote: '  Nota en español  ' })
+		Object.assign(input.artworks[0]!.translations[1]!, { workshopNote: '  Note in English  ' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).toMatchObject({ workshopNote: 'Nota en español' })
+		expect(artwork?.translations.en).toMatchObject({ workshopNote: 'Note in English' })
+		expect(artwork?.optional).not.toHaveProperty('workshopNote')
+	})
+
+	it('does not fall back from a Spanish note or the unconfirmed legacy value to English', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { workshopNote: 'Nota solo en español' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).toMatchObject({ workshopNote: 'Nota solo en español' })
+		expect(artwork?.translations.en).not.toHaveProperty('workshopNote')
+		expect(artwork?.optional).not.toHaveProperty('workshopNote')
+	})
+
+	it('omits blank and missing localized workshop notes', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { workshopNote: '  ' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).not.toHaveProperty('workshopNote')
+		expect(artwork?.translations.en).not.toHaveProperty('workshopNote')
+		expect(artwork?.optional).not.toHaveProperty('workshopNote')
 	})
 
 	it('drops artworks with a missing series reference or required image asset', async () => {

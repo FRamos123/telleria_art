@@ -71,7 +71,7 @@ describe('loadCatalogContent', () => {
 		expect(fetch).toHaveBeenNthCalledWith(1, artworkQuery)
 		expect(fetch).toHaveBeenNthCalledWith(2, seriesQuery)
 		expect(catalog.artworks).toHaveLength(2)
-		expect(catalog.artworks[0]?.translations).toHaveProperty('en')
+		expect(catalog.artworks[0]?.translations).not.toHaveProperty('en')
 		expect(catalog.artworks[0]?.seriesId).toBe('series-1')
 		expect(catalog.artworks[1]?.translations).not.toHaveProperty('en')
 		expect(catalog.artworks[1]?.seriesId).toBe('series-1')
