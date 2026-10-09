@@ -3,6 +3,7 @@ import {
   createEditorialImageField,
   createReferenceListField,
 } from '../fields'
+import { isEmptyValue, isValidExhibitionDateRange, validationMessages } from '../validation'
 
 export const exhibitionType = defineType({
   name: 'exhibition',
@@ -13,12 +14,23 @@ export const exhibitionType = defineType({
       name: 'startDate',
       title: 'Fecha de inicio',
       type: 'date',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value, context) => {
+        if (isEmptyValue(value)) return true
+        const document = context.document as { endDate?: unknown } | undefined
+        return isValidExhibitionDateRange(value, document?.endDate)
+          || validationMessages.exhibitionDate
+      }),
     }),
     defineField({
       name: 'endDate',
       title: 'Fecha de fin',
       type: 'date',
+      validation: (Rule) => Rule.custom((value, context) => {
+        if (isEmptyValue(value)) return true
+        const document = context.document as { startDate?: unknown } | undefined
+        return isValidExhibitionDateRange(document?.startDate, value)
+          || validationMessages.exhibitionDate
+      }),
     }),
     createEditorialImageField('image', 'Imagen de la exposición'),
     createReferenceListField('artworkIds', 'Obras relacionadas', ['artwork']),

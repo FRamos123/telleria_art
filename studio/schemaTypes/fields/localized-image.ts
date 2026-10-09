@@ -1,5 +1,6 @@
 import { defineField } from 'sanity'
-import { isValidAlternativeText } from '../../../src/domain/completeness'
+import { isValidAlternativeText } from '../../../web/src/domain/completeness'
+import { hasImageAsset, isEmptyValue, validationMessages } from '../validation'
 
 export function createEditorialImageField(name: string, title: string, required = false) {
   return defineField({
@@ -7,7 +8,13 @@ export function createEditorialImageField(name: string, title: string, required 
     title,
     type: 'image',
     options: { hotspot: true },
-    validation: (Rule) => required ? Rule.required() : Rule,
+    validation: (Rule) => {
+      const assetRule = Rule.custom((value) => {
+        if (value === undefined || value === null) return true
+        return hasImageAsset(value) || validationMessages.imageAsset
+      })
+      return required ? assetRule.required() : assetRule.warning()
+    },
   })
 }
 
@@ -23,11 +30,11 @@ export function createLocalizedImageAltField(
     type: 'string',
     validation: (Rule) => {
       const alternativeTextRule = Rule.custom((value, context) => {
-        if (!required && (value === undefined || value === null || value === '')) return true
+        if (isEmptyValue(value)) return true
 
         const document = context.document as Record<string, unknown> | undefined
         return isValidAlternativeText(value, document?.[titleFieldName])
-          || 'El texto alternativo debe ser distinto del título y tener entre 1 y 150 caracteres.'
+          || validationMessages.alternativeText
       })
 
       return required ? alternativeTextRule.required() : alternativeTextRule.warning()

@@ -1,0 +1,109 @@
+---
+import { isValidAlternativeText } from '../domain/completeness';
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import EditorialImage from './EditorialImage.astro';
+import InventoryBadge from './InventoryBadge.astro';
+import ArtworkTechnicalSheet from './ArtworkTechnicalSheet.astro';
+
+interface Props {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	locale: Locale;
+	visibleCriticalTexts?: readonly { id: string; title: string; href: string }[];
+	visibleSeries?: { id: string; name: string; href: string };
+}
+
+const { artwork, image, locale, visibleCriticalTexts = [], visibleSeries } = Astro.props;
+const translation = artwork.translations[locale];
+
+if (!translation) {
+	throw new Error(`Artwork ${artwork.id} has no complete published ${locale} translation.`);
+}
+
+if (!translation.title.trim() || !isValidAlternativeText(translation.altText, translation.title)) {
+	throw new Error('Artwork content requires a title and valid localized alternative text.');
+}
+
+const messages = getMessages(locale);
+const associatedCriticalTextIds = new Set(artwork.optional.criticalTextIds ?? []);
+const relatedCriticalTexts = visibleCriticalTexts.filter((text) =>
+	associatedCriticalTextIds.has(text.id) && text.title.trim() && text.href.trim(),
+);
+const relatedSeries = visibleSeries?.id === artwork.seriesId && visibleSeries.name.trim() && visibleSeries.href.trim()
+	? visibleSeries
+	: undefined;
+const workshopNote = artwork.optional.workshopNote?.trim();
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const catalogDimensions = `${numberFormat.format(artwork.heightCm)} × ${numberFormat.format(artwork.widthCm)} cm`;
+const catalogLine = [
+	translation.title,
+	artwork.year,
+	translation.technique,
+	catalogDimensions,
+].join(' · ');
+---
+
+<article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
+	<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
+		<EditorialImage image={image} altText={translation.altText} className="h-auto w-full object-contain" sizes="(min-width: 1280px) 58vw, 100vw" />
+		<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
+	</figure>
+
+	<div class="flex min-w-0 flex-col gap-space-lg tablet:col-span-8 desktop:col-span-5">
+		<header>
+			<h1 class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+				{translation.title}
+			</h1>
+			<p class="mb-space-sm mt-0 break-words font-label-caption text-label-caption text-on-surface-variant">
+				{catalogLine}
+			</p>
+			{relatedSeries && (
+				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.series}:{' '}
+					<a class="text-on-surface underline decoration-surface-variant" href={relatedSeries.href}>
+						{relatedSeries.name}
+					</a>
+				</p>
+			)}
+		</header>
+
+		<ArtworkTechnicalSheet
+			availability={artwork.availability}
+			heightCm={artwork.heightCm}
+			locale={locale}
+			support={translation.support}
+			technique={translation.technique}
+			widthCm={artwork.widthCm}
+			year={artwork.year}
+		/>
+
+		{workshopNote && (
+			<section aria-labelledby="artwork-workshop-note-title" class="bg-surface-container p-space-md">
+				<h2 id="artwork-workshop-note-title" class="mb-space-sm mt-0 font-headline-sm text-headline-sm text-on-surface">
+					{messages.workshopNote}
+				</h2>
+				<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">{workshopNote}</p>
+			</section>
+		)}
+
+		{relatedCriticalTexts.length > 0 && (
+			<section aria-labelledby="artwork-critical-texts-title">
+				<h2 id="artwork-critical-texts-title" class="mb-space-sm mt-0 font-headline-sm text-headline-sm text-on-surface">
+					{messages.criticalTexts}
+				</h2>
+				<ul class="m-0 list-none space-y-space-sm p-0">
+					{relatedCriticalTexts.map((text) => (
+						<li>
+							<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={text.href}>
+								{text.title}
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		)}
+	</div>
+</article>

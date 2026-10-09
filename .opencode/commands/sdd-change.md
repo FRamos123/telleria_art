@@ -8,3 +8,4 @@ NO toques código. Usa la skill sdd.
 2. Indica qué partes de plan.md y tasks.md habría que cambiar después.
 3. Si el cambio afecta al diseño, indica qué habría que actualizar en design/tokens.md.
 4. Muéstrame el diff de la spec y espera mi aprobación.
+ 

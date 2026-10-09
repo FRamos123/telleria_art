@@ -1,0 +1,49 @@
+---
+import type { Availability } from '../domain/availability';
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import AvailabilityLabel from './AvailabilityLabel.astro';
+
+interface Props {
+	availability: Availability;
+	heightCm: number;
+	locale: Locale;
+	support: string;
+	technique: string;
+	widthCm: number;
+	year: number;
+}
+
+const { availability, heightCm, locale, support, technique, widthCm, year } = Astro.props;
+const messages = getMessages(locale);
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const dimensions = `${numberFormat.format(heightCm)} × ${numberFormat.format(widthCm)} cm`;
+---
+
+<section aria-labelledby="artwork-technical-sheet-title" class="bg-surface-container-low p-space-md">
+	<h2 id="artwork-technical-sheet-title" class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
+		{messages.technicalSheet}
+	</h2>
+	<dl class="m-0">
+		<div class="flex flex-col gap-space-xs border-b border-surface-variant py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
+			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.technique}</dt>
+			<dd class="m-0 font-body-md text-body-md italic text-on-surface tablet:text-right">{technique}</dd>
+		</div>
+		<div class="flex flex-col gap-space-xs border-b border-surface-variant py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
+			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.support}</dt>
+			<dd class="m-0 font-body-md text-body-md italic text-on-surface tablet:text-right">{support}</dd>
+		</div>
+		<div class="flex flex-col gap-space-xs border-b border-surface-variant py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
+			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.dimensions}</dt>
+			<dd class="m-0 font-body-md text-body-md italic text-on-surface tablet:text-right">{dimensions}</dd>
+		</div>
+		<div class="flex flex-col gap-space-xs py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
+			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.year}</dt>
+			<dd class="m-0 font-body-md text-body-md italic text-on-surface tablet:text-right">{year}</dd>
+		</div>
+		<div class="flex flex-col gap-space-xs border-t border-surface-variant py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
+			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.availability}</dt>
+			<dd class="m-0"><AvailabilityLabel availability={availability} locale={locale} /></dd>
+		</div>
+	</dl>
+</section>

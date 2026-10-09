@@ -3,6 +3,7 @@ import {
   createLocalizedImageAltField,
   createReferenceField,
 } from '../fields'
+import { hasRequiredText, isEditorialLanguage, isEmptyValue, validationMessages } from '../validation'
 
 export const seriesTranslationType = defineType({
   name: 'seriesTranslation',
@@ -20,13 +21,17 @@ export const seriesTranslationType = defineType({
           { title: 'Inglés (EN)', value: 'en' },
         ],
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || isEditorialLanguage(value) || validationMessages.language,
+      ),
     }),
     defineField({
       name: 'name',
       title: 'Nombre',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
+      ),
     }),
     defineField({
       name: 'description',

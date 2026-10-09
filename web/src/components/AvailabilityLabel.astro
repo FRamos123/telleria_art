@@ -1,0 +1,22 @@
+---
+import type { Availability } from '../domain/availability';
+import { getMessages, type Locale, type Messages } from '../i18n';
+
+interface Props {
+	availability: Availability;
+	locale: Locale;
+}
+
+const { availability, locale } = Astro.props;
+const messageKey: Record<Availability, keyof Messages> = {
+	disponible: 'availabilityAvailable',
+	reservada: 'availabilityReserved',
+	vendida: 'availabilitySold',
+	'en colección': 'availabilityInCollection',
+};
+const label = getMessages(locale)[messageKey[availability]];
+---
+
+<span class="font-label-technical text-label-technical text-on-surface-variant">
+	{label}
+</span>

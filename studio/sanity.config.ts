@@ -1,4 +1,5 @@
 import { defineConfig } from 'sanity'
+import { structureTool } from 'sanity/structure'
 import { schemaTypes } from './schemaTypes'
 
 export default defineConfig({
@@ -6,6 +7,7 @@ export default defineConfig({
   title: 'AF Tellería — Studio',
   projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? 'local-project',
   dataset: process.env.SANITY_STUDIO_DATASET ?? 'local',
+  plugins: [structureTool()],
   schema: {
     types: schemaTypes,
   },

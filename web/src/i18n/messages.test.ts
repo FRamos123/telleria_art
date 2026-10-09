@@ -4,6 +4,20 @@ import { en } from './en';
 import { es } from './es';
 
 describe('foundation translations', () => {
+	it('provides non-empty localized labels for every artwork availability state', () => {
+		const availabilityKeys = [
+			'availabilityAvailable',
+			'availabilityReserved',
+			'availabilitySold',
+			'availabilityInCollection',
+		] as const;
+
+		for (const key of availabilityKeys) {
+			expect(es[key].trim().length, `Spanish ${key}`).toBeGreaterThan(0);
+			expect(en[key].trim().length, `English ${key}`).toBeGreaterThan(0);
+		}
+	});
+
 	it('provides the same message keys in Spanish and English', () => {
 		expect(Object.keys(es).sort()).toEqual(Object.keys(en).sort());
 		expect(Object.values(es).every((message) => message.trim().length > 0)).toBe(true);

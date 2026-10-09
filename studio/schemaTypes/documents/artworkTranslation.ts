@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { createLocalizedImageAltField, createReferenceField } from '../fields'
+import { hasRequiredText, isEditorialLanguage, isEmptyValue, validationMessages } from '../validation'
 
 export const artworkTranslationType = defineType({
   name: 'artworkTranslation',
@@ -17,25 +18,33 @@ export const artworkTranslationType = defineType({
           { title: 'Inglés (EN)', value: 'en' },
         ],
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || isEditorialLanguage(value) || validationMessages.language,
+      ),
     }),
     defineField({
       name: 'title',
       title: 'Título',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
+      ),
     }),
     defineField({
       name: 'technique',
       title: 'Técnica',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
+      ),
     }),
     defineField({
       name: 'support',
       title: 'Soporte',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
+      ),
     }),
     createLocalizedImageAltField('altText', 'Texto alternativo', 'title', true),
   ],

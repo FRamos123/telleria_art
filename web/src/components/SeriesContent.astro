@@ -1,0 +1,88 @@
+---
+import { isValidAlternativeText } from '../domain/completeness';
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedSeries } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import EditorialImage from './EditorialImage.astro';
+
+interface Props {
+	series: MappedSeries;
+	locale: Locale;
+	visibleArtworks: readonly { id: string; title: string; href: string }[];
+	image?: { assetId: string; responsive: ResponsiveImage };
+}
+
+const { series, locale, visibleArtworks, image } = Astro.props;
+const translation = series.translations[locale];
+const name = translation?.name.trim();
+const description = translation?.description?.trim();
+const artworks = visibleArtworks.flatMap((artwork) => {
+	const title = artwork.title.trim();
+	const href = artwork.href.trim();
+	return artwork.id.trim() && title && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...artwork, title, href }]
+		: [];
+});
+const messages = getMessages(locale);
+const seriesImage = translation?.image;
+const responsiveImage = image
+	&& seriesImage
+	&& image.assetId.trim()
+	&& image.assetId === seriesImage.assetId
+	&& image.responsive.src.trim()
+	&& image.responsive.srcSet.trim()
+	&& Number.isInteger(image.responsive.width)
+	&& image.responsive.width > 0
+	&& Number.isInteger(image.responsive.height)
+	&& image.responsive.height > 0
+	&& isValidAlternativeText(seriesImage.altText, name)
+	? image.responsive
+	: undefined;
+---
+
+{translation && name && artworks.length > 0 && (
+	<article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
+		{responsiveImage && seriesImage && (
+			<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
+				<EditorialImage
+					image={responsiveImage}
+					altText={seriesImage.altText}
+					className="h-auto w-full object-contain"
+					sizes="(min-width: 1280px) 58vw, 100vw"
+				/>
+			</figure>
+		)}
+
+		<div class:list={[
+			'flex min-w-0 flex-col gap-space-lg tablet:col-span-8',
+			responsiveImage ? 'desktop:col-span-5' : 'desktop:col-span-12',
+		]}>
+			<header>
+				<h1 class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+					{name}
+				</h1>
+				{description && (
+					<p class="m-0 whitespace-pre-line font-body-md text-body-md text-on-surface-variant">
+						{description}
+					</p>
+				)}
+			</header>
+
+			<section aria-labelledby={`series-${series.id}-works-title`}>
+				<h2 id={`series-${series.id}-works-title`} class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
+					{messages.seriesWorks}
+				</h2>
+				<ul class="m-0 grid list-none grid-cols-1 gap-x-space-lg p-0 tablet:grid-cols-2">
+					{artworks.map((artwork) => (
+						<li class="border-b border-surface-variant py-space-sm">
+							<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={artwork.href}>
+								{artwork.title}
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
+		</div>
+	</article>
+)}

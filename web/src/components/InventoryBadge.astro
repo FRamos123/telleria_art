@@ -1,0 +1,13 @@
+---
+import type { InventoryNumber } from '../domain/inventory-number';
+
+interface Props {
+	inventoryNumber: InventoryNumber;
+}
+
+const { inventoryNumber } = Astro.props;
+---
+
+<span class="absolute right-space-md top-space-md border border-carmine-border bg-surface-container-lowest px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface">
+	{inventoryNumber}
+</span>

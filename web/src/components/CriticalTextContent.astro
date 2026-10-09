@@ -1,0 +1,105 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedCriticalText } from '../infrastructure/sanity/mappers';
+
+interface RelatedDestination {
+	id: string;
+	title: string;
+	href: string;
+}
+
+interface Props {
+	criticalText: MappedCriticalText;
+	locale: Locale;
+	visibleArtworks?: readonly RelatedDestination[];
+	visibleSeries?: readonly RelatedDestination[];
+}
+
+const {
+	criticalText,
+	locale,
+	visibleArtworks = [],
+	visibleSeries = [],
+} = Astro.props;
+const translation = criticalText.translations[locale];
+const title = translation?.title.trim();
+const body = translation?.body.trim();
+const author = translation?.author.trim();
+const messages = getMessages(locale);
+const artworkIds = new Set(translation?.artworkIds ?? []);
+const seriesIds = new Set(translation?.seriesIds ?? []);
+const relatedArtworks = visibleArtworks.flatMap((artwork) => {
+	const id = artwork.id.trim();
+	const text = artwork.title.trim();
+	const href = artwork.href.trim();
+	return id && artworkIds.has(id) && text && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...artwork, id, title: text, href }]
+		: [];
+});
+const relatedSeries = visibleSeries.flatMap((series) => {
+	const id = series.id.trim();
+	const text = series.title.trim();
+	const href = series.href.trim();
+	return id && seriesIds.has(id) && text && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...series, id, title: text, href }]
+		: [];
+});
+---
+
+{translation && title && body && author && (
+	<article
+		class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
+		aria-labelledby={`critical-text-${criticalText.id}-title`}
+	>
+		<div class="flex min-w-0 flex-col gap-space-lg tablet:col-span-8 desktop:col-start-3 desktop:col-span-8">
+			<header>
+				<h1
+					id={`critical-text-${criticalText.id}-title`}
+					class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+				>
+					{title}
+				</h1>
+				<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">{author}</p>
+			</header>
+
+			<div class="whitespace-pre-line font-body-lg text-body-lg text-on-surface-variant">
+				{body}
+			</div>
+
+			{relatedArtworks.length > 0 && (
+				<section aria-labelledby={`critical-text-${criticalText.id}-artworks-title`}>
+					<h2 id={`critical-text-${criticalText.id}-artworks-title`} class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
+						{messages.criticalTextArtworks}
+					</h2>
+					<ul class="m-0 grid list-none grid-cols-1 gap-x-space-lg p-0 tablet:grid-cols-2">
+						{relatedArtworks.map((artwork) => (
+							<li class="border-b border-surface-variant py-space-sm">
+								<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={artwork.href}>
+									{artwork.title}
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+
+			{relatedSeries.length > 0 && (
+				<section aria-labelledby={`critical-text-${criticalText.id}-series-title`}>
+					<h2 id={`critical-text-${criticalText.id}-series-title`} class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
+						{messages.criticalTextSeries}
+					</h2>
+					<ul class="m-0 grid list-none grid-cols-1 gap-x-space-lg p-0 tablet:grid-cols-2">
+						{relatedSeries.map((series) => (
+							<li class="border-b border-surface-variant py-space-sm">
+								<a class="font-body-md text-body-md text-on-surface underline decoration-surface-variant" href={series.href}>
+									{series.title}
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+		</div>
+	</article>
+)}

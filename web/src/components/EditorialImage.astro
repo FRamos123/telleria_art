@@ -1,0 +1,39 @@
+---
+import { isValidAlternativeText } from '../domain/completeness';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+
+interface Props {
+	image: ResponsiveImage;
+	altText: string;
+	className?: string;
+	sizes?: string;
+}
+
+const { image, altText, className, sizes = '100vw' } = Astro.props;
+
+if (!isValidAlternativeText(altText)) {
+	throw new Error('Editorial images require valid alternative text.');
+}
+
+if (
+	!image.src.trim()
+	|| !image.srcSet.trim()
+	|| !Number.isInteger(image.width)
+	|| image.width <= 0
+	|| !Number.isInteger(image.height)
+	|| image.height <= 0
+) {
+	throw new Error('Editorial images require a source and positive pixel dimensions.');
+}
+---
+
+<img
+	src={image.src}
+	srcset={image.srcSet}
+	sizes={sizes}
+	width={image.width}
+	height={image.height}
+	alt={altText.trim()}
+	class={className}
+	decoding="async"
+/>

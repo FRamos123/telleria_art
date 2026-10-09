@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { createReferenceListField } from '../fields'
+import { isEditorialLanguage, isEmptyValue, validationMessages } from '../validation'
 
 export const criticalTextType = defineType({
   name: 'criticalText',
@@ -16,7 +17,9 @@ export const criticalTextType = defineType({
           { title: 'Inglés (EN)', value: 'en' },
         ],
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || isEditorialLanguage(value) || validationMessages.language,
+      ),
     }),
     createReferenceListField('artworkIds', 'Obras relacionadas', ['artwork']),
     createReferenceListField('seriesIds', 'Series relacionadas', ['series']),

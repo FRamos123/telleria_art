@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
-import { AVAILABILITY_VALUES, isAvailability } from '../../../src/domain/availability'
+import { AVAILABILITY_VALUES, isAvailability } from '../../../web/src/domain/availability'
+import { isEmptyValue } from '../validation'
 
 export const availabilityType = defineType({
   name: 'availability',
@@ -8,8 +9,8 @@ export const availabilityType = defineType({
   options: {
     list: AVAILABILITY_VALUES.map((value) => ({ title: value, value })),
   },
-  validation: (Rule) => Rule.custom((value) =>
-    isAvailability(value) || 'Selecciona uno de los estados permitidos.',
+  validation: (Rule) => Rule.required().custom((value) =>
+    isEmptyValue(value) || isAvailability(value) || 'Selecciona uno de los estados permitidos.',
   ),
 })
 

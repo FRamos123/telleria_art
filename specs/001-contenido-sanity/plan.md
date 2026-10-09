@@ -7,43 +7,43 @@ Spec aprobada: `spec.md`. Este plan cubre modelo editorial, validación, publica
 - Sanity Studio será la interfaz editorial; Astro consultará Sanity solo durante el build y emitirá HTML estático. No habrá consultas ni JavaScript de Sanity en el navegador.
 - Las páginas públicas solo recibirán versiones publicadas y completas. La creación de rutas, sus slugs y el contrato SEO/JSON-LD/sitemap pertenecen a las specs de páginas indicadas en la spec; este plan prepara los datos y componentes, pero no inventa esas decisiones.
 - La gestión comercial, disponibilidad de prints, checkout, pagos, envíos y políticas quedan fuera de alcance.
-- No se crearán proyectos/datasets ni se publicará o editará contenido en Sanity de producción.
+- No se crearán proyectos ni datasets como parte de estas tareas. Para las pruebas de Studio se usará únicamente el dataset de desarrollo preexistente, administrado por el usuario; nunca se modificará contenido de producción.
 
 ## Archivos previstos y responsabilidad
 
 | Archivo | Responsabilidad | Requisitos |
 |---|---|---|
-| `sanity/package.json`, `sanity/sanity.config.ts` | Studio independiente, configuración del proyecto y registro de esquemas. La conexión usa configuración local/variables de entorno, nunca secretos versionados. | RF-1–RF-22 |
-| `sanity/schemaTypes/index.ts` | Registro de tipos y objetos de contenido. | RF-1–RF-8 |
-| `sanity/schemaTypes/documents/artwork.ts` | Datos compartidos obligatorios de obra, imagen principal y nota de taller opcional. La referencia a serie y las asociaciones a textos críticos se incorporan en T14 y T15, respectivamente, cuando los tipos de destino están registrados. | RF-1, RF-3, RF-9, RF-10, RF-12, RF-13, RF-20, RF-22 |
-| `sanity/schemaTypes/documents/artworkTranslation.ts` | Referencia a la obra y versión ES o EN de título, técnica, soporte y alt; cada idioma es un documento independiente con ciclo de borrador/publicación propio. | RF-2, RF-11, RF-14–RF-17 |
-| `sanity/schemaTypes/documents/series.ts`, `seriesTranslation.ts` | Datos compartidos e imagen opcional de serie; nombre y descripción editorial por idioma. | RF-4, RF-5, RF-13–RF-18, RNF-2 |
-| `sanity/schemaTypes/documents/exhibition.ts`, `exhibitionTranslation.ts` | Fechas, imagen y relaciones compartidas; título, lugar y alt por idioma. | RF-6, RF-7, RF-11, RF-13–RF-19 |
-| `sanity/schemaTypes/documents/criticalText.ts`, `criticalTextTranslation.ts` | Idioma original y asociaciones; título, cuerpo y autor independientes por idioma. La traducción se modela como documento opcional; nunca se copia la pieza original para cubrir otro idioma. | RF-3, RF-7, RF-8, RF-13, RF-16–RF-19 |
-| `sanity/schemaTypes/fields/*.ts` | Campos reutilizables de dimensiones, disponibilidad, referencias e imágenes localizadas, sin lógica de dominio duplicada. | RF-1, RF-6, RF-9, RF-11–RF-13 |
-| `sanity/schemaTypes/validation.ts` | Validaciones y mensajes editoriales de Studio; async check del inventario duplicado y referencias existentes. | RF-1, RF-4, RF-6, RF-9–RF-15 |
-| `src/domain/content.ts` | Tipos puros de obra, serie, exposición, texto crítico, traducciones, relaciones y estados de publicación. No importa Astro ni Sanity. | RF-1–RF-8, RF-12, RF-14–RF-22 |
-| `src/domain/availability.ts`, `inventory-number.ts`, `dimensions.ts`, `calendar-date.ts` | Value objects y validadores deterministas. El año actual se recibe como argumento para poder probar límites sin depender del reloj. | RF-9–RF-12 |
-| `src/domain/completeness.ts` | Completitud de entidad/idioma; campos inválidos obligatorios generan errores, y opcionales inválidos se normalizan a ausentes. | RF-1–RF-8, RF-11–RF-17 |
-| `src/domain/visibility.ts` | Reglas puras de visibilidad por idioma, asociaciones y disponibilidad. | RF-5, RF-17–RF-20 |
-| `src/domain/catalog-validation.ts` | Comprobación global de unicidad de inventarios para el catálogo recibido durante el build. | RF-10 |
-| `src/domain/*.test.ts` | Pruebas Vitest de value objects, completitud, visibilidad, relaciones, retirada/reaparición y límites de fechas/años. | RF-1–RF-22 |
-| `src/infrastructure/sanity/client.ts` | Cliente de lectura para build con perspectiva `published`; configuración mediante variables de entorno. | RF-14–RF-19, RNF-1 |
-| `src/infrastructure/sanity/queries.ts` | GROQ para documentos publicados, traducciones publicadas, relaciones y assets. Los borradores no entran en las páginas estáticas. | RF-5, RF-7, RF-14–RF-19 |
-| `src/infrastructure/sanity/mappers.ts` | Mapeo defensivo de GROQ a dominio; verifica invariantes, normaliza opcionales, descarta traducciones incompletas y no inventa datos. | RF-1–RF-22, RNF-4 |
-| `src/infrastructure/sanity/image-url.ts` | Generación de URL transformada, `srcset` responsive, `width`/`height` explícitos y formato WebP, con ancho servido máximo de 2000 px. | RF-1, RF-4, RF-6, RF-11, RNF-3 |
-| `src/infrastructure/sanity/*.test.ts` | Fixtures GROQ y pruebas Vitest de mappers, traducciones, relaciones, valores nulos e imágenes opcionales rotas/inválidas. | RF-1–RF-22 |
-| `src/i18n/es.ts`, `src/i18n/en.ts` | Añadir etiquetas localizadas para los cuatro estados de disponibilidad y etiquetas catalográficas utilizadas por componentes. | RF-12, RF-20 |
-| `src/i18n/messages.test.ts` | Verificar paridad y presencia no vacía de las cuatro claves de disponibilidad en ambos idiomas. | RF-12 |
-| `src/components/EditorialImage.astro` | Imagen accesible con `srcset`, dimensiones explícitas y alt validado. | RF-1, RF-4, RF-6, RF-11, RNF-3 |
-| `src/components/ArtworkTechnicalSheet.astro`, `InventoryBadge.astro`, `AvailabilityLabel.astro` | Datos catalográficos, inventario y etiqueta textual localizada del estado del original. No representan ni infieren disponibilidad de prints. | RF-1, RF-9, RF-10, RF-12, RF-20, RF-21 |
-| `src/components/ArtworkContent.astro` | Título, imagen principal, ficha, nota opcional, asociaciones críticas y relación visible a serie. | RF-1–RF-3, RF-5, RF-7, RF-18, RF-21, RF-22 |
-| `src/components/SeriesContent.astro` | Nombre/descripción por idioma, imagen opcional y obras visibles; no renderiza una serie sin obras visibles en ese idioma. | RF-4, RF-5, RF-13, RF-18, RF-22 |
-| `src/components/ExhibitionContent.astro` | Título/lugar traducidos, fechas, imagen y relaciones visibles. | RF-6, RF-7, RF-13, RF-18, RF-22 |
-| `src/components/CriticalTextContent.astro` | Texto en su idioma original o traducción publicada completa; relaciones opcionales filtradas por idioma. | RF-3, RF-7, RF-8, RF-16–RF-18, RF-22 |
-| `package.json`, `pnpm-lock.yaml`, `sanity/pnpm-lock.yaml` | Incorporar y fijar las dependencias de cliente/imagen Sanity y Studio cuando se autorice su instalación. | RF-1–RF-22, RNF-3 |
+| `studio/package.json`, `studio/sanity.config.ts` | Studio independiente, configuración del proyecto, herramienta estándar `structureTool()` y registro de esquemas. La conexión usa configuración local/variables de entorno, nunca secretos versionados. | RF-1–RF-22 |
+| `studio/schemaTypes/index.ts` | Registro de tipos y objetos de contenido. | RF-1–RF-8 |
+| `studio/schemaTypes/documents/artwork.ts` | Datos compartidos obligatorios de obra, imagen principal y nota de taller opcional. La referencia a serie y las asociaciones a textos críticos se incorporan en T14 y T15, respectivamente, cuando los tipos de destino están registrados. | RF-1, RF-3, RF-9, RF-10, RF-12, RF-13, RF-20, RF-22 |
+| `studio/schemaTypes/documents/artworkTranslation.ts` | Referencia a la obra y versión ES o EN de título, técnica, soporte y alt; cada idioma es un documento independiente con ciclo de borrador/publicación propio. | RF-2, RF-11, RF-14–RF-17 |
+| `studio/schemaTypes/documents/series.ts`, `seriesTranslation.ts` | Datos compartidos e imagen opcional de serie; nombre y descripción editorial por idioma. | RF-4, RF-5, RF-13–RF-18, RNF-2 |
+| `studio/schemaTypes/documents/exhibition.ts`, `exhibitionTranslation.ts` | Fechas, imagen y relaciones compartidas; título, lugar y alt por idioma. | RF-6, RF-7, RF-11, RF-13–RF-19 |
+| `studio/schemaTypes/documents/criticalText.ts`, `criticalTextTranslation.ts` | Idioma original y asociaciones; título, cuerpo y autor independientes por idioma. La traducción se modela como documento opcional; nunca se copia la pieza original para cubrir otro idioma. | RF-3, RF-7, RF-8, RF-13, RF-16–RF-19 |
+| `studio/schemaTypes/fields/*.ts` | Campos reutilizables de dimensiones, disponibilidad, referencias e imágenes localizadas, sin lógica de dominio duplicada. | RF-1, RF-6, RF-9, RF-11–RF-13 |
+| `studio/schemaTypes/validation.ts` | Validaciones y mensajes editoriales de Studio; async check del inventario duplicado y referencias existentes. | RF-1, RF-4, RF-6, RF-9–RF-15 |
+| `web/src/domain/content.ts` | Tipos puros de obra, serie, exposición, texto crítico, traducciones, relaciones y estados de publicación. No importa Astro ni Sanity. | RF-1–RF-8, RF-12, RF-14–RF-22 |
+| `web/src/domain/availability.ts`, `inventory-number.ts`, `dimensions.ts`, `calendar-date.ts` | Value objects y validadores deterministas. El año actual se recibe como argumento para poder probar límites sin depender del reloj. | RF-9–RF-12 |
+| `web/src/domain/completeness.ts` | Completitud de entidad/idioma; campos inválidos obligatorios generan errores, y opcionales inválidos se normalizan a ausentes. | RF-1–RF-8, RF-11–RF-17 |
+| `web/src/domain/visibility.ts` | Reglas puras de visibilidad por idioma, asociaciones y disponibilidad. | RF-5, RF-17–RF-20 |
+| `web/src/domain/catalog-validation.ts` | Comprobación global de unicidad de inventarios para el catálogo recibido durante el build. | RF-10 |
+| `web/src/domain/*.test.ts` | Pruebas Vitest de value objects, completitud, visibilidad, relaciones, retirada/reaparición y límites de fechas/años. | RF-1–RF-22 |
+| `web/src/infrastructure/sanity/client.ts` | Cliente de lectura para build con perspectiva `published`; configuración mediante variables de entorno. | RF-14–RF-19, RNF-1 |
+| `web/src/infrastructure/sanity/queries.ts` | GROQ para documentos publicados, traducciones publicadas, relaciones y assets. Los borradores no entran en las páginas estáticas. | RF-5, RF-7, RF-14–RF-19 |
+| `web/src/infrastructure/sanity/mappers.ts` | Mapeo defensivo de GROQ a dominio; verifica invariantes, normaliza opcionales, descarta traducciones incompletas y no inventa datos. | RF-1–RF-22, RNF-4 |
+| `web/src/infrastructure/sanity/image-url.ts` | Generación de URL transformada, `srcset` responsive, `width`/`height` explícitos y formato WebP, con ancho servido máximo de 2000 px. | RF-1, RF-4, RF-6, RF-11, RNF-3 |
+| `web/src/infrastructure/sanity/*.test.ts` | Fixtures GROQ y pruebas Vitest de mappers, traducciones, relaciones, valores nulos e imágenes opcionales rotas/inválidas. | RF-1–RF-22 |
+| `web/src/i18n/es.ts`, `web/src/i18n/en.ts` | Añadir etiquetas localizadas para los cuatro estados de disponibilidad y etiquetas catalográficas utilizadas por componentes. | RF-12, RF-20 |
+| `web/src/i18n/messages.test.ts` | Verificar paridad y presencia no vacía de las cuatro claves de disponibilidad en ambos idiomas. | RF-12 |
+| `web/src/components/EditorialImage.astro` | Imagen accesible con `srcset`, dimensiones explícitas y alt validado. | RF-1, RF-4, RF-6, RF-11, RNF-3 |
+| `web/src/components/ArtworkTechnicalSheet.astro`, `InventoryBadge.astro`, `AvailabilityLabel.astro` | Datos catalográficos, inventario y etiqueta textual localizada del estado del original. No representan ni infieren disponibilidad de prints. | RF-1, RF-9, RF-10, RF-12, RF-20, RF-21 |
+| `web/src/components/ArtworkContent.astro` | Título, imagen principal, ficha, nota opcional, asociaciones críticas y relación visible a serie. | RF-1–RF-3, RF-5, RF-7, RF-18, RF-21, RF-22 |
+| `web/src/components/SeriesContent.astro` | Nombre/descripción por idioma, imagen opcional y obras visibles; no renderiza una serie sin obras visibles en ese idioma. | RF-4, RF-5, RF-13, RF-18, RF-22 |
+| `web/src/components/ExhibitionContent.astro` | Título/lugar traducidos, fechas, imagen y relaciones visibles. | RF-6, RF-7, RF-13, RF-18, RF-22 |
+| `web/src/components/CriticalTextContent.astro` | Texto en su idioma original o traducción publicada completa; relaciones opcionales filtradas por idioma. | RF-3, RF-7, RF-8, RF-16–RF-18, RF-22 |
+| `web/package.json`, `web/pnpm-lock.yaml`, `studio/package.json`, `studio/pnpm-lock.yaml` | Dependencias fijadas por separado para el sitio Astro y el Studio Sanity. | RF-1–RF-22, RNF-3 |
 
-No se modifica `src/styles/global.css`: el plan usa los tokens vigentes. Las rutas y `BaseLayout.astro` quedan para la spec de páginas/SEO; esta spec excluye decidir slugs, metadatos, JSON-LD y sitemaps.
+No se modifica `web/src/styles/global.css`: el plan usa los tokens vigentes. Las rutas y `web/src/layouts/BaseLayout.astro` quedan para la spec de páginas/SEO; esta spec excluye decidir slugs, metadatos, JSON-LD y sitemaps.
 
 ## Modelo de dominio y mappers
 
@@ -118,15 +118,15 @@ Referencias de plataforma: [documentos y borradores](https://www.sanity.io/docs/
 Antes de implementación, pedir aprobación explícita para:
 
 1. Añadir dependencias de cliente Sanity, image-url y Studio; fijar versiones e instalar/actualizar lockfiles.
-2. Crear schemas en `sanity/` y cambiar tipos públicos/value objects de `src/domain/`.
+2. Crear schemas en `studio/` y cambiar tipos públicos/value objects de `web/src/domain/`.
 3. Añadir componentes/patrones visuales nuevos. Este plan limita su composición a patrones/tokens ya documentados; no modifica `@theme`, paleta, tipografía ni layout existente.
-4. Añadir configuración de proyecto/dataset o servicios externos no existentes. No crear datasets ni tocar producción bajo este plan.
+4. Añadir configuración de proyecto/dataset o servicios externos no existentes. Las pruebas usan el dataset de desarrollo existente y administrado por el usuario; no se crean datasets ni se toca producción bajo este plan.
 
 ## Estrategia de verificación
 
 1. **Vitest, primero para dominio y mappers:** pruebas de formato/rangos y bordes de año actual; dimensiones con 0/1 decimal y rechazos; fechas reales/fin anterior; alt vacío, >150 e igual al título; opcionales inválidos omitidos; las cuatro disponibilidades; publicaciones por idioma; independencia de borradores/publicados; series sin obras; relaciones ausentes/reaparecidas; crítico EN sin ES; traducción retirada; inventario duplicado; fixtures GROQ con assets/referencias faltantes. No requiere acceso a Sanity.
 2. **Studio:** comprobar en dataset local/no productivo los mensajes de validación, asociación entre documentos, borrador que no altera la traducción publicada, publicar/despublicar por idioma y feedback de campo faltante. Verificar manualmente el caso límite de inventario duplicado y documentar la limitación transaccional indicada arriba.
-3. **Build:** ejecutar `pnpm verify`; inspeccionar que consultas usan `published`, que la salida HTML contiene solo contenido aprobado, que documento/referencia incompletos no producen enlaces y que duplicados de inventario bloquean la nueva salida. Comprobar imágenes emitidas en WebP, todos los anchos `<=2000` y dimensiones explícitas.
+3. **Build:** ejecutar `pnpm --dir studio build` y `pnpm --dir web verify`; inspeccionar que consultas usan `published`, que la salida HTML contiene solo contenido aprobado, que documento/referencia incompletos no producen enlaces y que duplicados de inventario bloquean la nueva salida. Comprobar imágenes emitidas en WebP, todos los anchos `<=2000` y dimensiones explícitas.
 4. **Chrome DevTools:** en preview estático revisar cada componente en 375 px y escritorio (≥1280 px), comprobar ausencia de overflow, contenido renderizado sin JavaScript, textos alternativos/etiquetas accesibles y enlaces únicamente a destinos visibles. Validar estilos frente a `design/tokens.md`; no atribuir aquí auditoría SEO/JSON-LD a páginas aún no especificadas.
 
 ## Cobertura de requisitos funcionales
@@ -155,4 +155,4 @@ Antes de implementación, pedir aprobación explícita para:
 - Aprobación previa de dependencias, esquemas/tipos y componentes conforme a la sección anterior.
 - La spec 002 debe definir el tratamiento visual final de estados; las specs de páginas/006 deben definir rutas, metadatos y artefactos SEO constitucionales.
 - La condición de RF-10 sobre unicidad en Content Lake requiere decisión si el requisito abarca más que el catálogo público generado.
-- No se considera completa la implementación hasta que `pnpm verify`, la inspección de preview con Chrome DevTools y las comprobaciones de imágenes/datos publicados estén verdes.
+- No se considera completa la implementación hasta que `pnpm --dir studio build`, `pnpm --dir web verify`, la inspección de preview con Chrome DevTools y las comprobaciones de imágenes/datos publicados estén verdes.
