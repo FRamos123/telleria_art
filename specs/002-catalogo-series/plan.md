@@ -1,11 +1,11 @@
 # Plan 002 — Catálogo de obras y series
 
-Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). Este plan propone generar el catálogo y las páginas de serie como contenido estático, usando exclusivamente entidades visibles según la spec 001. No añade compra, checkout, disponibilidad de prints ni contenido del artista.
+Spec de referencia: `spec.md` (**borrador de cambio pendiente de aprobación**). Este plan propone generar el catálogo y las páginas de serie como contenido estático, usando exclusivamente entidades visibles según la spec 001. No añade compra, checkout ni disponibilidad de prints. El cambio propuesto permite al artista mantener descripciones SEO globales y localizadas del catálogo; no redacta el contenido.
 
 ## Alcance y dependencias
 
 - El contenido se consulta durante el build desde la perspectiva publicada de Sanity y se transforma mediante el mapper existente. No habrá consultas a Sanity ni JavaScript de catálogo en el navegador.
-- Se reutilizan los modelos, validadores, consultas de contenido, transformaciones de imagen y etiquetas de disponibilidad ya existentes. No se prevén cambios en esquemas de Sanity ni tipos públicos del dominio.
+- Se reutilizan los modelos, validadores, consultas de contenido, transformaciones de imagen y etiquetas de disponibilidad existentes. Se propone un schema global de Sanity para descripciones SEO opcionales de catálogo ES/EN; no se cambian tipos públicos del dominio ni criterios de visibilidad.
 - Rutas propuestas: catálogo `/obras/` y `/en/works/`; series `/series/<seriesId>/` y `/en/series/<seriesId>/`. Se usan IDs estables existentes para evitar añadir campos de slug.
 - La ficha de obra, requerida como destino de navegación y para `VisualArtwork`, también está definida por la Spec 003, que actualmente sigue en borrador. Este plan establece como contrato propuesto `/obra/<artworkId>/` y `/en/work/<artworkId>/`, pero la creación de esas fichas debe coordinarse y quedar cubierta por un plan de Spec 003 aprobado. Es una dependencia para completar RF-5, RF-6, RF-15, RF-16, RF-17 y la evaluación Lighthouse de ficha.
 - El catálogo se genera aunque no haya obras visibles; una serie solo genera página y enlaces cuando la spec 001 la considera visible en ese idioma.
@@ -19,6 +19,11 @@ Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). Este plan prop
 | **Crear** `web/src/pages/series/[seriesId].astro` | Generar solo las rutas ES de series visibles; mostrar las obras visibles asociadas. | RF-4–RF-8, RF-10–RF-16, RF-18–RF-19 |
 | **Crear** `web/src/pages/en/series/[seriesId].astro` | Equivalente EN; omitir la ruta cuando no exista una serie visible en EN. | RF-4–RF-8, RF-10–RF-16, RF-18–RF-19 |
 | **Crear** `web/src/infrastructure/sanity/catalog-content.ts` | Cargar las consultas existentes durante el build, invocar `mapSanityContent` y entregar obras/series ya filtradas por visibilidad, por idioma. No repetir validaciones editoriales. | RF-1–RF-8, RF-11–RF-13, RF-16 |
+| **Crear** `studio/schemaTypes/documents/siteSettings.ts` | Definir campos opcionales de descripción SEO del catálogo ES y EN en la configuración global, con contenido escrito/aprobado por el artista. | RF-20, RF-14, RNF-1 |
+| **Modificar** `studio/schemaTypes/index.ts`, `studio/sanity.config.ts` | Registrar el schema y exponer en Studio un único documento de configuración global. | RF-20 |
+| **Modificar** `web/src/infrastructure/sanity/queries.ts`, `catalog-content.ts` | Consultar el documento global publicado mediante su ID singleton y exponer la descripción de cada idioma, sin fallback si falta. | RF-20, RF-14, RNF-1 |
+| **Modificar** `web/src/pages/obras/index.astro`, `web/src/pages/en/works/index.astro` | Pasar a `BaseLayout` solo la descripción publicada del idioma actual; si falta, omitir el meta tag. | RF-14, RF-20 |
+| **Modificar** `web/src/infrastructure/sanity/queries.test.ts`, `catalog-content.test.ts`, `web/src/i18n/build-output.test.ts` | Comprobar lectura publicada, separación ES/EN, omisión sin fallback y emisión de meta description en el catálogo correspondiente; el gate de T13 detecta duplicados. | RF-14, RF-20, RNF-1, RNF-5 |
 | **Crear** `web/src/components/ArtworkCatalog.astro` | Componer el bloque de series encima de la cuadrícula y presentar las tarjetas o el estado vacío localizado. | RF-1–RF-3, RF-8–RF-10, RF-18 |
 | **Crear** `web/src/components/SeriesDirectory.astro` | Mostrar un enlace identificable a cada serie visible en el idioma actual. | RF-3, RF-7–RF-8 |
 | **Crear** `web/src/components/ArtworkCard.astro` | Presentar únicamente imagen, título, año y disponibilidad textual; enlazar a la ficha publicada, sin acciones de adquisición. Reutilizable en catálogo y página de serie. | RF-1–RF-2, RF-5, RF-10–RF-12, RF-18–RF-19 |
@@ -35,14 +40,15 @@ Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). Este plan prop
 | **Modificar** `web/src/i18n/messages.test.ts` | Mantener paridad de claves ES/EN y comprobar etiquetas de los cuatro estados. | RF-8, RF-10, RF-19, RNF-1 |
 | **Modificar** `web/src/i18n/build-output.test.ts` | Comprobar que las rutas de catálogo, 404, metadatos, contenido renderizado, alternates, JSON-LD y sitemaps están en la salida estática. | RF-8–RF-9, RF-13–RF-17, RNF-4–RNF-5 |
 | **Reutilizar sin modificar** `web/src/pages/404.astro` | Cloudflare Pages servirá la 404 bilingüe existente para rutas estáticas que no se generen. | RF-17 |
-| **No modificar** `web/src/infrastructure/sanity/queries.ts`, `mappers.ts`, `web/src/domain/availability.ts`, `inventory-number.ts` | Ya proveen campos, publicación, disponibilidad, números de inventario y visibilidad localizada necesarios. Las pruebas de mappers existentes se amplían solo si falta cobertura específica. | RF-1–RF-2, RF-6–RF-12, RF-19 |
+| **No modificar** `web/src/infrastructure/sanity/mappers.ts`, `web/src/domain/availability.ts`, `inventory-number.ts` | Ya proveen disponibilidad, números de inventario y visibilidad localizada; no hace falta ampliar tipos públicos ni alterar reglas de dominio para el ajuste SEO global. | RF-1–RF-2, RF-6–RF-12, RF-19 |
 
 ## Modelo de dominio y mappers
 
 - No se añade modelo editorial. Se reutilizan `MappedArtwork`, `MappedSeries`, `Availability` e `InventoryNumber` existentes.
 - `mapSanityContent` es la única fuente de elegibilidad para los listados: omite obras inválidas, conserva traducciones completas por idioma y entrega series visibles solo si tienen obras visibles asociadas. Las páginas no ejecutan una segunda validación ni alteran relaciones; si la serie no es visible en un idioma, la obra puede permanecer en el catálogo general sin enlace a esa serie.
-- Las proyecciones de imagen de las consultas existentes contienen asset, dimensiones, crop y hotspot. `createResponsiveImage` las transforma en variantes responsive; no se modifican los esquemas de Sanity.
-- Los metadatos SEO no se almacenan en Sanity como campo editable. La descripción editorial de serie se consume como fuente para derivar la meta description conforme a RF-14.
+- Las proyecciones de imagen de las consultas existentes contienen asset, dimensiones, crop y hotspot. `createResponsiveImage` las transforma en variantes responsive; no se modifican los esquemas de imagen.
+- La descripción SEO de serie sigue derivándose de su descripción editorial o de la plantilla localizada de RF-14. La descripción SEO del catálogo es distinta: un texto opcional, global y localizado en `siteSettings`, escrito/aprobado por el artista, no extraído de obras o series. No se añade un campo SEO a `artwork`, `artworkTranslation`, `series` ni `seriesTranslation`.
+- La descripción global se conserva en infraestructura de build, separada de `MappedSanityContent`; si falta el documento o el idioma, el catálogo se genera igualmente sin meta description.
 - `catalog-presentation.ts` acepta los datos ya mapeados y expone ordenación, derivación de descripción y comprobación de unicidad. Se mantiene TypeScript puro, sin importar Astro, Sanity ni componentes.
 
 ## Algoritmo de selección y generación
@@ -50,12 +56,15 @@ Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). Este plan prop
 ```text
 durante el build:
   consultar obras y series publicadas con el cliente existente
+  consultar el documento publicado siteSettings con su ID singleton estable
   mapear los resultados mediante mapSanityContent
 
   generar siempre el catálogo ES y el catálogo EN:
     seleccionar obras con traducción visible en ese idioma
     ordenar por año descendente y, en empate, InventoryNumber ascendente
     seleccionar las series visibles en ese idioma
+    seleccionar solo la descripción SEO global publicada en el idioma actual
+    omitir meta description cuando no exista; nunca usar otro idioma
     generar el bloque de enlaces a series encima de la cuadrícula
     si la lista está vacía, renderizar el mensaje funcional localizado
 
@@ -96,25 +105,25 @@ El orden de la lista de series no está definido en la spec; como decisión de p
 | Usar IDs de serie y obra existentes en las rutas de contenido. | Mantiene unicidad sin añadir slugs a Sanity ni a tipos públicos; las traducciones comparten destino por ID. | Añadir campos de slug traducidos o derivar rutas solo de nombres susceptibles de repetirse/cambiar. |
 | Reusar `mapSanityContent` y `createResponsiveImage`. | Sus salidas ya aplican reglas de publicación, visibilidad, `Availability`, inventario y proyección de imágenes. | Revalidar en cada componente o crear un modelo editorial paralelo. |
 | Generar XML mediante endpoints estáticos nativos del sitio. | El contenido y las alternates se conocen al build y no requieren servicio externo. | Añadir una dependencia/plugin de sitemap sin necesidad funcional. |
-| Derivar SEO en funciones puras y verificar unicidad antes de emitir páginas. | Hace comprobables truncado, plantilla y duplicados con Vitest y permite que los errores detengan el build. | Editar metadatos SEO en el CMS o detectar duplicados solo después del despliegue. |
+| Derivar SEO de series en funciones puras; gestionar la descripción del catálogo como texto global localizado y aprobado por el artista; verificar unicidad antes de emitir páginas. | Mantiene el resumen ligado a la serie y da al artista control de la descripción de la página general sin adjuntarla a una entidad incorrecta. | Derivar el catálogo de una obra/serie, copiar el texto entre idiomas o mantenerlo obligatoriamente en código. |
 | Reutilizar enlaces HTML y etiquetas de disponibilidad existentes, aplicando los tokens asignados. | Evita JavaScript y preserva accesibilidad y coherencia visual. | Filtros en cliente, acciones de adquisición o colores hardcodeados. |
 
 ## Puntos de «⚠️ Preguntar antes» de AGENTS.md
 
 1. **Layout y patrón visual:** `BaseLayout.astro` y `LanguageSwitcher.astro` son compartidos; cambiar sus alternates afecta páginas existentes. El reajuste de `SeriesContent.astro`, el catálogo, la cuadrícula y las tarjetas tampoco está descrito completamente en `design/tokens.md`. Antes de implementarlos, presentar la composición visual propuesta (incluidos los spans de cuatro columnas) y obtener aprobación; si requiere un patrón o token nuevo, actualizar `design/tokens.md` con su changelog antes del código.
-2. **Esquemas y tipos públicos:** no se prevén cambios. Si la elección de slugs exige añadir campos a Sanity o cambiar `MappedArtwork`/`MappedSeries` públicos, pedir aprobación antes.
+2. **Schema Sanity y tipos públicos:** el cambio propuesto necesita schema y configuración singleton global en Studio; pedir aprobación explícita antes del código. No cambia `MappedArtwork`/`MappedSeries`, reglas de publicación ni contenido de producción. El artista debe proporcionar/aprobar el texto ES/EN y editarlo en el dataset de desarrollo antes del Lighthouse final.
 3. **Dependencias:** no se propone ninguna. Si durante el trabajo se decide usar un generador/plugin de sitemap u otra dependencia, pedir aprobación antes.
 4. **JavaScript y servicios externos:** no se proponen. Cualquier necesidad posterior de JavaScript cliente o servicio externo requiere aprobación previa.
 5. **`@theme` y tokens existentes:** no se modifican valores de tema, paleta ni tipografía; los colores de estado ya tienen tokens. Cualquier cambio a esos valores requeriría aprobación previa.
 
-Todos los archivos propuestos quedan dentro de `web/src/pages/`, `components/`, `domain/`, `infrastructure/sanity/` e `i18n/`, estructura existente del proyecto.
+Los archivos propuestos quedan dentro de las estructuras existentes `studio/schemaTypes/` y `web/src/pages/`, `components/`, `domain/`, `infrastructure/sanity/` e `i18n/`.
 
 ## Alcanzabilidad en la plataforma elegida
 
 | Garantía | Evaluación |
 |---|---|
 | HTML estático de catálogo, series y salida sin JavaScript | **Alcanzable:** `astro.config.mjs` ya usa `output: 'static'`; `getStaticPaths` puede emitir cada versión desde datos publicados de Sanity en build. |
-| Consulta de Sanity durante el build | **Alcanzable si Cloudflare Pages tiene `SANITY_PROJECT_ID` y `SANITY_DATASET` configurados:** el cliente actual falla explícitamente si falta cualquiera; el contenido publicado se consulta sin token. |
+| Consulta de Sanity durante el build | **Alcanzable si Cloudflare Pages tiene `SANITY_PROJECT_ID` y `SANITY_DATASET` configurados:** se consulta sin token contenido publicado y el singleton `siteSettings`; si el ajuste o idioma no existe, solo se omite la meta description del catálogo. |
 | Solo contenido publicado/visible y alternates por idioma | **Alcanzable:** el cliente existente usa `perspective: 'published'` y `mapSanityContent` ya filtra traducciones, series y relaciones por idioma. |
 | 404 bilingüe, sin redirecciones | **Alcanzable en Cloudflare Pages:** existe `404.astro` bilingüe y el build estático no genera rutas no visibles. Debe verificarse en preview que una URL profunda ausente devuelve HTTP 404 y no una respuesta 200 de fallback. |
 | Metadatos, JSON-LD y unicidad con fallo de build | **Alcanzable:** Astro permite emitir HTML/JSON-LD y endpoints estáticos; la validación pura puede ejecutarse durante la generación y arrojar error antes de desplegar. |
@@ -127,11 +136,11 @@ Todos los archivos propuestos quedan dentro de `web/src/pages/`, `components/`, 
 ## Estrategia de verificación
 
 1. **Vitest — dominio y presentación:** ordenar por año descendente e inventario ascendente, incluyendo empates; derivar meta description de hasta 155 caracteres y límite de palabra; plantilla localizada sin descripción editorial; detectar títulos/descripciones duplicados; comprobar que una obra con serie no visible conserva su aparición pero no el enlace.
-2. **Vitest — mappers e i18n:** extender `mappers.test.ts`/`queries.test.ts` solo donde falte cobertura para ES/EN incompletos, estado inválido, alt inválido, series invisibles, imagen opcional ausente y relaciones conservadas. Comprobar los cuatro estados en ambos idiomas (8 casos), etiqueta correcta y que la vista de tarjeta no contiene acción de adquisición. Verificar paridad de claves ES/EN.
-3. **Build y salida estática:** ejecutar `pnpm --dir web verify`; inspeccionar HTML en `dist` para ambas páginas de catálogo incluso sin obras, contenido sin JavaScript, canonical, alternates, títulos/descripciones únicos de home/catálogo/series/fichas, JSON-LD parseable, XML de páginas/imágenes y exclusión de rutas no visibles. Confirmar que un duplicado hace fallar el build.
+2. **Sanity y Vitest:** validar en Studio un único `siteSettings` con campos SEO opcionales ES/EN; pruebas de query/build comprueban selección publicada por idioma, ausencia y no-fallback. No hace falta cambiar mappers de dominio.
+3. **Build y salida estática:** con texto de catálogo aprobado y publicado en `development`, ejecutar `pnpm --dir web verify`; inspeccionar HTML en `dist` para meta description solo en el catálogo del idioma correspondiente, omisión si falta, unicidad de home/catálogo/series/fichas, canonical, alternates, JSON-LD, XML y exclusión de rutas no visibles. Confirmar que un duplicado hace fallar el build.
 4. **Chrome DevTools:** en preview del build de producción verificar catálogo ES/EN, página de serie y, tras aprobarse la dependencia, ficha ES; revisar estado vacío, serie sin imagen, enlaces, foco/teclado, ausencia de acciones comerciales e imágenes `srcset`, `width`/`height` y `loading`.
 5. **Responsive:** a 375, 768 y 1280 px, con contenido mínimo y máximo (títulos/nombres largos), comprobar una, ocho y doce columnas según tokens; los cuatro datos de tarjeta deben permanecer visibles sin recortes, solapes ni scroll horizontal.
-6. **Lighthouse manual:** móvil, preview de producción: catálogo ES, una ficha ES y una serie ES. Umbrales: rendimiento ≥ 90, accesibilidad ≥ 95 y SEO = 100. Verificar aparte los pesos orientativos, sin bloquear por superarlos.
+6. **Lighthouse manual:** móvil, preview del build con texto ES aprobado/publicado: catálogo ES, ficha ES y serie ES. Umbrales: rendimiento ≥ 90, accesibilidad ≥ 95 y SEO = 100. La herramienta seleccionada debe entregar puntuación Performance, además de Accesibilidad y SEO. Verificar aparte los pesos orientativos, sin bloquear por superarlos.
 7. **Rutas:** solicitar páginas visibles e inexistentes/retiradas; comprobar que las primeras cargan y las segundas responden HTTP 404 bilingüe, sin redirección.
 
 ## Cobertura de requisitos
@@ -146,6 +155,7 @@ Todos los archivos propuestos quedan dentro de `web/src/pages/`, `components/`, 
 | RF-10, RF-18–RF-19 | `AvailabilityLabel`, `ArtworkCard`, diccionarios y pruebas 4×2; ninguna acción de adquisición. |
 | RF-11–RF-13 | Mapper existente, `EditorialImage`, `SeriesContent` y omisión de contenido opcional sin fallback. |
 | RF-14 | `catalog-presentation.ts`, `BaseLayout` y gate de unicidad en build. |
+| RF-20 | Configuración global localizada en Sanity, consulta publicada y meta description del catálogo en el idioma actual, sin fallback. |
 | RF-15 | `CollectionPage` en serie; `VisualArtwork` en ficha coordinada con Spec 003. |
 | RF-16 | Sitemaps estáticos de páginas/alternates e imágenes. |
 | RF-17 | Salidas estáticas solo para rutas visibles y `404.astro` bilingüe existente. |

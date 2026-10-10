@@ -24,7 +24,7 @@ function artwork(id: string, inventoryNumber: string, englishSupport: string) {
 		criticalTextIds: [],
 		mainImage: image(`${id}-image`),
 		year: 2024,
-		dimensions: { height: 60, width: 45 },
+		dimensions: { heightCm: 60, widthCm: 45 },
 		inventoryNumber,
 		availability: 'disponible',
 		translations: [

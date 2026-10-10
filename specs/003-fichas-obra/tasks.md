@@ -34,6 +34,7 @@ Spec de referencia: `spec.md` (aprobada). Plan de referencia: `plan.md`.
 - [x] **T6. Generar rutas estáticas solo para las versiones elegibles.** RF-5–RF-6, RF-9, RF-12, RNF-1, RNF-5
 - Hecho cuando: se generan `/obra/<id>/` para obras elegibles en ES y `/en/work/<id>/` solo cuando también son elegibles en EN; cada ruta recibe datos de su idioma y no se generan IDs o versiones no publicados.
 - Nota: ambas rutas consumen `loadCatalogContent` (ya filtrado por idioma/serie), y solo emiten páginas si existen la traducción y la serie localizadas. El dataset `development` no contiene obras, por lo que el build verifica las rutas pero no materializa fichas; la revisión visual corresponde a las tareas de QA posteriores.
+- Seguimiento (2026-10-09): después de publicar la obra de prueba bilingüe en `development`, se corrigió el scope de `locale` dentro de cada `getStaticPaths` ES/EN (prueba primero roja). Junto con el ajuste de GROQ/mapper a `dimensions.heightCm` y `dimensions.widthCm` (pruebas de query/mapper rojas primero), `pnpm --dir web verify` generó ambas fichas. Chrome confirmó HTTP 200, imagen/alt y ausencia de overflow a 375×812 y 1280×900; JSON-LD localizado verificado.
 
 - [x] **T7. Componer los datos catalográficos de la ficha.** RF-1–RF-2, RF-4, RF-7, RF-13–RF-14, RNF-2–RNF-3, RNF-5–RNF-6
 - Hecho cuando: `ArtworkContent` muestra los campos obligatorios, dimensiones en cm alto × ancho sin conversión, inventario, los cuatro estados con etiqueta localizada y la imagen optimizada con alt y dimensiones; no presenta acciones ni mensajes comerciales.

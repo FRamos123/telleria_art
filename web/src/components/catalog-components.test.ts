@@ -40,6 +40,19 @@ const availabilityCases = [
 ] as const;
 
 describe('catalog presentation components', () => {
+	it.each([
+		{ locale: 'es', source: spanishSeriesPage },
+		{ locale: 'en', source: englishSeriesPage },
+		{ locale: 'es', source: spanishArtworkPage },
+		{ locale: 'en', source: englishArtworkPage },
+	])('declares the $locale locale inside getStaticPaths for dynamic routes', ({ locale, source }) => {
+		const getStaticPaths = source.match(
+			/export async function getStaticPaths\(\) \{([\s\S]*?)\n\}/,
+		)?.[1] ?? '';
+
+		expect(getStaticPaths).toContain(`const locale = '${locale}' as const;`);
+	});
+
 	it('composes every required catalog field and requires a localized series', () => {
 		expect(artworkContent).toContain('visibleSeries: { id: string; name: string; href: string }');
 		expect(artworkContent).toContain('{translation.title}');
@@ -128,6 +141,7 @@ describe('catalog presentation components', () => {
 		expect(structuredData).toContain("'@context': 'https://schema.org'");
 		expect(structuredData).toContain("'@type': 'VisualArtwork'");
 		expect(structuredData).toContain('translation.title');
+		expect(structuredData).toContain('dateCreated: artwork.year.toString()');
 		expect(structuredData).toContain('messages.artistName');
 		expect(structuredData).toContain('artwork.inventoryNumber');
 		expect(structuredData).toContain('translation.technique');

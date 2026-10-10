@@ -149,8 +149,8 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 			seriesId,
 			mainImage: { assetId: image.assetId },
 			year: raw?.year,
-			heightCm: dimensions?.height,
-			widthCm: dimensions?.width,
+			heightCm: dimensions?.heightCm,
+			widthCm: dimensions?.widthCm,
 			inventoryNumber: raw?.inventoryNumber,
 			availability: raw?.availability,
 			criticalTextIds: raw?.criticalTextIds,
@@ -184,7 +184,7 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 		// Spanish is the base version for artwork visibility; English never fills its gaps.
 		if (!translations.es) continue
 		const year = raw?.year
-		const dimensionsValue = createDimensions(dimensions?.height, dimensions?.width)
+		const dimensionsValue = createDimensions(dimensions?.heightCm, dimensions?.widthCm)
 		const inventoryNumber = createInventoryNumber(raw?.inventoryNumber, currentYear)
 		if (typeof year !== 'number' || !dimensionsValue || !inventoryNumber || !isAvailability(raw?.availability)) {
 			continue

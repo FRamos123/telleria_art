@@ -10,7 +10,7 @@ export const artworkQuery = `*[_type == "artwork"] {
 	"criticalTextIds": coalesce(criticalTextIds[]._ref, []),
 	"mainImage": mainImage${IMAGE_PROJECTION},
 	year,
-	dimensions{height, width},
+	dimensions{heightCm, widthCm},
 	inventoryNumber,
 	availability,
 	workshopNote,

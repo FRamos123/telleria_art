@@ -18,6 +18,7 @@ describe('published Sanity GROQ queries', () => {
 
 	it('selects image assets and stable relation IDs', () => {
 		expect(artworkQuery).toContain('asset->{_id, url, metadata{dimensions{width, height}}}')
+		expect(artworkQuery).toContain('dimensions{heightCm, widthCm}')
 		expect(seriesQuery).toContain('asset->{_id, url, metadata{dimensions{width, height}}}')
 		expect(exhibitionQuery).toContain('artworkIds')
 		expect(exhibitionQuery).toContain('seriesIds')

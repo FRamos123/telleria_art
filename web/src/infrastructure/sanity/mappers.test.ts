@@ -22,7 +22,7 @@ function validQueryResults() {
 				criticalTextIds: ['critical-1'],
 				mainImage: image('artwork-image-1'),
 				year: 2024,
-				dimensions: { height: 60, width: 45 },
+				dimensions: { heightCm: 60, widthCm: 45 },
 				inventoryNumber: 'AFT-2024-001',
 				availability: 'disponible',
 				workshopNote: '  Apunte de taller  ',
@@ -333,13 +333,13 @@ describe('Sanity GROQ result mappers', () => {
 
 	it.each([
 		['year', 1899],
-		['height', 0],
-		['width', 45.55],
+		['heightCm', 0],
+		['widthCm', 45.55],
 		['inventoryNumber', 'AFT-1899-001'],
 		['availability', 'unknown'],
 	])('rejects an artwork with malformed required %s value', async (field, value) => {
 		const input = validQueryResults()
-		if (field === 'height' || field === 'width') {
+		if (field === 'heightCm' || field === 'widthCm') {
 			input.artworks[0]!.dimensions[field] = value as number
 		} else {
 			Object.assign(input.artworks[0], { [field]: value })

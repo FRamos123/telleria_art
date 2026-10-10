@@ -9,6 +9,7 @@ import { loadCatalogContent } from '../../../infrastructure/sanity/catalog-conte
 const locale: Locale = 'en';
 
 export async function getStaticPaths() {
+	const locale = 'en' as const;
 	const catalog = await loadCatalogContent();
 	const imageOptions = {
 		projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
