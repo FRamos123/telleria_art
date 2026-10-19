@@ -2,11 +2,14 @@ import type { SanityClient } from '@sanity/client'
 import type { SanityImageProjection } from './image-url'
 import { mapSanityContent, type MappedSanityContent } from './mappers'
 import { getBuildSanityClient } from './client'
-import { artworkQuery, seriesQuery } from './queries'
+import { artworkQuery, seriesQuery, siteSettingsQuery } from './queries'
+import type { PublicationLanguage } from '../../domain/publication'
 
 export interface CatalogContent extends MappedSanityContent {
 	seriesImageProjections: ReadonlyMap<string, SanityImageProjection>
 }
+
+export type CatalogSeoDescriptions = Partial<Record<PublicationLanguage, string>>
 
 /** Loads published artwork and series, then delegates visibility to the existing mapper. */
 export async function loadCatalogContent(
@@ -38,6 +41,22 @@ export async function loadCatalogContent(
 	}
 
 	return { ...mapped, seriesImageProjections }
+}
+
+/**
+ * Loads the published global settings singleton and returns each language's approved
+ * catalog SEO description. Unpublished or blank texts stay absent, with no fallback.
+ */
+export async function loadCatalogSeoDescriptions(
+	client: SanityClient = getBuildSanityClient(),
+): Promise<CatalogSeoDescriptions> {
+	const settings = asRecord(await client.fetch(siteSettingsQuery))
+	const descriptions: CatalogSeoDescriptions = {}
+	const spanish = normalizedText(settings?.catalogSeoDescriptionEs)
+	const english = normalizedText(settings?.catalogSeoDescriptionEn)
+	if (spanish) descriptions.es = spanish
+	if (english) descriptions.en = english
+	return descriptions
 }
 
 function toImageProjection(value: unknown): SanityImageProjection | undefined {

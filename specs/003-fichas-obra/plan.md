@@ -1,6 +1,6 @@
 # Plan 003 — Fichas individuales de obra
 
-Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). El plan genera fichas estáticas ES/EN solo para versiones completas y publicadas. No incorpora compra, precios, ofertas, checkout ni promesas sobre prints.
+Spec de referencia: `spec.md` (**borrador de cambio pendiente de aprobación** sobre HU-5/RF-8). El plan genera fichas estáticas ES/EN solo para versiones completas y publicadas. No incorpora compra, precios, ofertas, checkout ni promesas sobre prints. El cambio propuesto añade una descripción SEO opcional por traducción de obra, redactada por el artista; no redacta el contenido.
 
 ## Alcance y dependencias
 
@@ -13,7 +13,7 @@ Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). El plan genera
 
 1. **La relación localizada con la serie no está garantizada actualmente por `mapSanityContent`.** El mapper exige `seriesId`, pero puede conservar una traducción de obra aunque no exista una traducción publicada de su serie en ese idioma. Hay que filtrar/bloquear la ficha ES si falta una serie ES válida y descartar solo la traducción EN si falta la serie EN. Es necesario para RF-1, RF-5 y RF-6.
 2. **La nota de taller actual no está localizada.** Sanity la guarda en `artwork.workshopNote`, fuera de `artworkTranslation`; el mapper la coloca como opcional compartida. Mostrarla así en EN incumpliría RF-3. Para ofrecer notas en ambos idiomas sin fallback, el plan añade un campo opcional `workshopNote` a cada documento de traducción, conserva intacto el campo legado compartido y lo presenta solo en ES si se confirma que su contenido es español. No se debe modificar contenido de Sanity de producción.
-3. **No existe un campo de descripción SEO de obra en el schema actual.** RF-8 sí se cumple omitiendo la meta description y generando un título identificador único con título e inventario; no se derivará una descripción de la nota ni de textos críticos. Para admitir una descripción SEO escrita por el artista en el futuro haría falta acordar schema y tipo, fuera del plan actual.
+3. **No existe aún un campo de descripción SEO de obra.** RF-8 (versión aprobada hasta la fecha) se cumple omitiendo la meta description y generando un título identificador único con título e inventario; no se deriva una descripción de la nota ni de textos críticos. El cambio propuesto añade un campo opcional `seoDescription` a cada `artworkTranslation` para que el artista redacte la descripción por idioma; hasta aprobarse e implementarse, la meta description sigue omitiéndose.
 4. Lighthouse es medible en Astro/Cloudflare Pages, pero sus umbrales no son una garantía intrínseca de la plataforma: dependen de contenido, imágenes, fuentes y red. La nota de taller inglesa tampoco es publicable hasta que exista el campo localizado aprobado/editorialmente utilizado.
 
 ## Archivos previstos y responsabilidad
@@ -27,8 +27,12 @@ Spec de referencia: `spec.md` (**aprobada**, sin dudas abiertas). El plan genera
 | **Crear** `web/src/pages/image-sitemap.xml.ts` | Emitir imágenes principales de obras publicadas usando URLs transformadas; coordinar con Spec 002 para incorporar también imágenes públicas de serie y no duplicar su T12. | RF-7, RF-11 |
 | **Modificar** `web/src/components/ArtworkContent.astro` | Componer ficha completa: imagen, título, serie localizada, inventario, ficha técnica, nota de taller solo del idioma actual y textos críticos localizados; no presentar acciones comerciales. | RF-1–RF-4, RF-7, RF-13–RF-14; RNF-1–RNF-3, RNF-5–RNF-6 |
 | **Modificar** `web/src/infrastructure/sanity/queries.ts` | Proyectar `workshopNote` opcional dentro de cada traducción, manteniendo la consulta del campo legado para conservar compatibilidad ES. | RF-3, RF-5–RF-6 |
+| **Modificar** `web/src/infrastructure/sanity/queries.ts` (propuesto) | Proyectar `seoDescription` opcional en la subconsulta de traducciones de obra. | RF-8; RNF-4 |
+| **Modificar** `web/src/infrastructure/sanity/mappers.ts` (propuesto) | Extender `MappedArtworkTranslation` con `seoDescription?: string`, recortada y ausente si está vacía, por idioma y sin fallback. | RF-8; RNF-1 |
+| **Modificar** `web/src/pages/obra/[artworkId].astro`, `web/src/pages/en/work/[artworkId].astro` (propuesto) | Pasar a `BaseLayout` solo la descripción SEO de la traducción del idioma actual; omitirla si falta. | RF-8; RNF-1, RNF-4 |
 | **Modificar** `web/src/infrastructure/sanity/mappers.ts` | Extender `MappedArtworkTranslation` con la nota localizada; mantener el campo legado solo en ES; bloquear obra ES sin serie ES válida y eliminar solo EN cuando su serie EN no esté publicada. Seguir usando los validadores y value objects existentes. | RF-1–RF-6, RF-14 |
 | **Modificar** `studio/schemaTypes/documents/artworkTranslation.ts` | Añadir campo de nota de taller opcional por idioma, sin renombrar ni borrar el campo legado de obra. | RF-3, RF-6 |
+| **Modificar** `studio/schemaTypes/documents/artworkTranslation.ts` (propuesto) | Añadir campo opcional `seoDescription` de tipo `text` por traducción, redactado por el artista; vacío es válido. | RF-8; RNF-4 |
 | **Modificar** `web/src/infrastructure/sanity/mappers.test.ts` | Probar publicación ES/EN según serie localizada, nota en el idioma correcto, falta de fallback y retención/omisión de la nota legada solo para ES. | RF-3, RF-5–RF-6, RF-14 |
 | **Modificar** `web/src/infrastructure/sanity/queries.test.ts` | Fijar el contrato de la proyección de notas por traducción y del campo legado; confirmar que las consultas siguen leyendo únicamente publicaciones. | RF-3, RF-5–RF-6 |
 | **Modificar** `web/src/i18n/build-output.test.ts` | Comprobar HTML estático ES/EN, metadatos, canonical, alternates, contenido obligatorio, JSON-LD y presencia/exclusión en ambos sitemaps. | RF-1–RF-14; RNF-1, RNF-4–RNF-6 |
@@ -42,7 +46,7 @@ No se prevén cambios en `design/tokens.md`, `web/src/styles/global.css`, `web/a
 ## Modelo de dominio y mappers
 
 - No se crea un modelo de dominio nuevo. Se reutilizan `MappedArtwork`, `MappedSeries`, `MappedCriticalText`, `Availability`, `Dimensions` e `InventoryNumber`.
-- Extensión necesaria del tipo público `MappedArtworkTranslation`: `workshopNote?: string`. `MappedArtwork.optional.criticalTextIds` continúa representando asociaciones; no se convierte en contenido crítico ni se usa para mostrar texto de otro idioma.
+- Extensión necesaria del tipo público `MappedArtworkTranslation`: `workshopNote?: string`. Propuesta pendiente de aprobación: añadir también `seoDescription?: string`. `MappedArtwork.optional.criticalTextIds` continúa representando asociaciones; no se convierte en contenido crítico ni se usa para mostrar texto de otro idioma.
 - El mapper normaliza la nota localizada de cada traducción. El `artwork.workshopNote` legado no se copia a EN; el plan lo trata como ES únicamente sujeto a confirmar el idioma real del contenido. Si no se confirma, se omite antes que arriesgar una presentación en el idioma equivocado.
 - Después de mapear obras y series completas, el mapper aplica el gate relacional por idioma: una obra sin serie ES traducida/publicada no es visible en ningún idioma; una obra ES válida sin serie EN traducida/publicada conserva ES y pierde solo EN. La selección se realiza en el mapper, no en las páginas, para mantener una única regla de publicación.
 - Los textos críticos provienen de `MappedCriticalText.translations[locale]`; la página selecciona solo IDs asociados y traducciones presentes, y presenta `title`, `body` y `author` sin traducción automática ni fallback.
@@ -68,7 +72,8 @@ durante el build:
     generar URL de imagen WebP responsive; usar alt de ese idioma
     renderizar HTML completo sin JavaScript cliente
     construir title localizado con título + número de inventario + código de idioma + marca
-    omitir meta description mientras no exista un campo SEO escrito por el artista
+    usar como meta description solo la seoDescription publicada de la traducción del idioma actual
+    omitir la meta description si esa traducción no la tiene; nunca usar otro idioma ni derivarla
     emitir JSON-LD VisualArtwork con hechos disponibles, sin estado ni oferta comercial
 
   generar sitemap de páginas con rutas publicadas y alternates existentes
@@ -96,14 +101,14 @@ El JSON-LD usará `VisualArtwork` con nombre, creador, identificador, técnica/s
 | Usar los IDs estables existentes en `/obra/<id>/` y `/en/work/<id>/`. | Coincide con enlaces emitidos por Spec 002 y evita slugs nuevos o duplicados por idioma. | Añadir slugs/campos editoriales traducidos o derivar rutas de títulos cambiantes.
 | Hacer que el mapper aplique elegibilidad de serie por idioma. | RF-5/RF-6 dependen de la serie localizada; centralizarlo evita discrepancias entre ficha, catálogo y sitemap. | Comprobarlo solo en componentes o usar nombre español como fallback inglés.
 | Guardar nota opcional en traducción y mantener el campo legado sin exponerlo en EN. | Permite añadir nota inglesa sin fallback y conserva datos/esquema existentes. | Mostrar un campo compartido en ambos idiomas, borrar/renombrar el campo legado o traducirlo automáticamente.
-| Omitir meta description si no hay descripción SEO escrita por el artista; incluir inventario y código de idioma en el title. | No inventa ni deriva texto editorial y la combinación de inventario validado e idioma distingue las versiones. | Derivar description de título, nota o texto crítico, o añadir un campo CMS sin aprobación.
+| Emitir la meta description solo desde el campo `seoDescription` de la traducción del idioma actual; omitirla si falta. Incluir inventario y código de idioma en el title. | El texto lo redacta el artista por obra e idioma, no se inventa ni se deriva de otros campos, y la combinación de inventario validado e idioma distingue las versiones. | Derivar description de título, nota o texto crítico, copiar el texto entre idiomas o mantenerlo obligatorio en código.
 | Emitir `VisualArtwork` sin propiedades comerciales ni disponibilidad. | Describe hechos catalográficos disponibles y evita presentar el estado informativo como oferta. | Usar `Product`/`Offer`, incluir `ItemAvailability` o indicar precios/enlaces de compra.
 | Reusar Sanity Image CDN y el generador WebP existente. | Ya produce srcset, transformaciones, dimensiones y un máximo de 2000 px sin dependencia nueva. | Servir original o introducir otro servicio/plugin de imágenes.
 | Generar sitemaps con endpoints Astro estáticos. | Las rutas e imágenes publicadas se conocen en build; se puede coordinar con T11/T12 de Spec 002 sin servicio ni dependencia. | Añadir plugin/dependencia externa o generar sitemaps en cliente.
 
 ## Puntos de «⚠️ Preguntar antes» de AGENTS.md
 
-1. **Esquema Sanity y tipo público del dominio:** para localizar la nota de taller hay que añadir un campo opcional a `studio/schemaTypes/documents/artworkTranslation.ts` y ampliar `MappedArtworkTranslation`. Pedir autorización antes de empezar esa implementación (AGENTS.md, líneas 95 y 97). El campo legado no se elimina, renombra ni migra; cualquier migración de datos requeriría acuerdo separado. Confirmar además que el valor legado `artwork.workshopNote` está redactado en español antes de mapearlo a ES; hasta confirmarlo, omitirlo.
+1. **Esquema Sanity y tipo público del dominio:** para localizar la nota de taller hay que añadir un campo opcional a `studio/schemaTypes/documents/artworkTranslation.ts` y ampliar `MappedArtworkTranslation`. El cambio propuesto de RF-8 añade además el campo opcional `seoDescription` al mismo documento y al tipo. Pedir autorización antes de empezar esa implementación (AGENTS.md, líneas 95 y 97). El campo legado no se elimina, renombra ni migra; cualquier migración de datos requeriría acuerdo separado. Confirmar además que el valor legado `artwork.workshopNote` está redactado en español antes de mapearlo a ES; hasta confirmarlo, omitirlo.
 2. **Tareas compartidas con Spec 002:** T10–T12 siguen pendientes. Antes de implementarlas, acordar la secuencia/registro para que las fichas y ambos sitemaps se integren en esos entregables aprobados sin duplicar trabajo.
 3. **Layout/tokens:** no se prevé alterar el layout ya documentado ni tokens de `@theme`. Si la revisión Chrome evidencia que hace falta cambiar layout, patrón, paleta o tipografía, parar y pedir aprobación; cualquier patrón/token nuevo se documenta primero en `design/tokens.md`.
 4. **Dependencias, JavaScript y servicios externos:** no se proponen. Si se juzgan necesarios, pedir aprobación previa. No se cambia configuración comercial ni se incorpora proveedor de pago.
@@ -116,7 +121,7 @@ Todos los archivos están bajo `web/src/` o `studio/schemaTypes/`, estructuras e
 |---|---|
 | RF-1–RF-6: contenido obligatorio/opcional, disponibilidad y ausencia de fallback | **Alcanzable**, una vez corregido el gate de serie localizado descrito arriba y localizada la nota de taller; sin esos cambios, RF-3 EN y RF-5/RF-6 no quedan garantizados por el mapper actual.
 | RF-7: imagen WebP/AVIF eficiente, responsive, dimensiones y alt | **Alcanzable:** el CDN de Sanity y `createResponsiveImage` actual entregan WebP, `srcset`, dimensiones y cap de 2000 px; `EditorialImage` declara dimensiones/alt. La calidad visual depende de la resolución del asset subido.
-| RF-8: metadatos únicos y omisión de descripción ausente | **Alcanzable con el schema actual:** title con inventario validado y código de idioma, más canonical por ruta; meta description omitida. No existe ahora un campo para proporcionar description SEO de obra.
+| RF-8: metadatos únicos y descripción SEO autoral por idioma | **Alcanzable:** title con inventario validado y código de idioma, canonical por ruta; la meta description se emite solo con el campo propuesto `seoDescription` de la traducción publicada y se omite si falta, sin fallback. Mientras el cambio no se apruebe e implemente, la descripción sigue omitiéndose y SEO queda por debajo de 100.
 | RF-9: equivalencias y hreflang solo existentes | **Alcanzable:** `BaseLayout` acepta `alternatePaths`; las páginas los construyen solo desde traducciones mapeadas y series válidas.
 | RF-10: datos estructurados factuales sin comercio | **Alcanzable:** JSON-LD `VisualArtwork` estático. Se verificará que no contiene propiedades de oferta, precio, compra, disponibilidad comercial ni prints.
 | RF-11: sitemap de páginas e imágenes | **Alcanzable:** Astro estático puede emitir ambos XML en build a partir del catálogo publicado. Hay que coordinarlo con tareas T11/T12 pendientes de Spec 002.

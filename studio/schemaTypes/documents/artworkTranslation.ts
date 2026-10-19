@@ -52,5 +52,14 @@ export const artworkTranslationType = defineType({
       title: 'Nota del cuaderno de taller',
       type: 'text',
     }),
+    defineField({
+      name: 'seoDescription',
+      title: 'Descripción SEO',
+      type: 'text',
+      description: 'Resumen opcional para buscadores, redactado por el artista; se usa solo en la ficha de este idioma.',
+      validation: (Rule) => Rule.custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.optionalText,
+      ),
+    }),
   ],
 })

@@ -1,5 +1,5 @@
 # Spec 003 — Fichas individuales de obra
-Estado: aprobada
+Estado: aprobada (cambio HU-5/RF-8 aprobado el 2026-10-19)
 
 ## Contexto y objetivo
 
@@ -19,6 +19,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - **HU-2.** Como visitante, quiero leer la ficha en español o inglés cuando esa versión esté completa para comprender la obra en mi idioma.
 - **HU-3.** Como coleccionista o curador, quiero identificar claramente si el original está disponible, reservado, vendido o en colección para entender su estado actual.
 - **HU-4.** Como visitante, quiero encontrar las fichas mediante buscadores y acceder a su contenido de forma accesible.
+- **HU-5.** Como artista, quiero mantener por idioma la descripción SEO de cada ficha para controlar cómo se describe la obra en los resultados de búsqueda.
 
 ## Definiciones
 
@@ -26,6 +27,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - **Campos opcionales de obra:** nota del cuaderno de taller y textos críticos asociados.
 - **Versión publicada de un idioma:** ficha cuyos campos obligatorios y contenido localizado necesario están completos en ese idioma.
 - **Disponibilidad:** estado del original, con uno de estos valores: `disponible`, `reservada`, `vendida` o `en colección`. No determina la disponibilidad de prints.
+- **Descripción SEO de la ficha:** texto opcional redactado y aprobado por el artista, independiente por idioma y aplicable solo a la meta description de la página de esa ficha; no se deriva de la nota de taller ni de los textos críticos, y su ausencia no bloquea la publicación de la ficha.
 
 ## Requisitos funcionales
 
@@ -36,7 +38,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - **RF-5. Contenido obligatorio incompleto en español.** SI falta o no es válido cualquier campo obligatorio necesario para la versión española, incluida la imagen principal o su texto alternativo descriptivo, ENTONCES EL SISTEMA no publicará la ficha en ningún idioma.
 - **RF-6. Contenido obligatorio incompleto en inglés.** SI la ficha española es válida pero falta la traducción inglesa de un campo obligatorio localizado, la traducción publicada de la serie asociada o el texto alternativo en inglés, ENTONCES EL SISTEMA mantendrá publicada la versión española y no publicará la versión inglesa. EL SISTEMA no utilizará texto español como fallback en la ficha inglesa.
 - **RF-7. Imagen de obra.** CUANDO EL SISTEMA presente la imagen principal, EL SISTEMA ofrecerá una representación optimizada en formato eficiente (AVIF o WebP), apropiada a la pantalla y con sus dimensiones declaradas, sin servir la imagen original a máxima resolución. EL SISTEMA proporcionará el texto alternativo correspondiente al idioma publicado.
-- **RF-8. Metadatos.** CUANDO una ficha esté publicada, EL SISTEMA proporcionará metadatos únicos que identifiquen la obra. SI no existe una descripción SEO redactada por el artista, ENTONCES EL SISTEMA omitirá la meta description y no la generará a partir de otros textos.
+- **RF-8. Metadatos.** CUANDO una ficha esté publicada, EL SISTEMA proporcionará metadatos únicos que identifiquen la obra. CUANDO exista una descripción SEO redactada por el artista y publicada en el idioma de la ficha, EL SISTEMA la usará como meta description de esa ficha. SI no existe para el idioma actual, ENTONCES EL SISTEMA omitirá la meta description, no la generará a partir de otros textos y no usará la del otro idioma.
 - **RF-9. Idiomas relacionados.** CUANDO existan versiones publicadas en ambos idiomas, EL SISTEMA permitirá acceder a la versión equivalente y declarará la relación entre ellas. SI solo está publicada una versión, ENTONCES EL SISTEMA no ofrecerá un enlace a una versión inexistente ni declarará esa relación.
 - **RF-10. Datos estructurados.** CUANDO una ficha esté publicada, EL SISTEMA incluirá datos estructurados que describan únicamente información factual disponible de la obra. EL SISTEMA no incluirá ofertas, precios, enlaces de compra, disponibilidad comercial ni afirmaciones sobre prints.
 - **RF-11. Sitemap.** CUANDO una ficha o imagen asociada esté publicada, EL SISTEMA la incluirá en los sitemaps de páginas e imágenes que correspondan. SI una versión lingüística no está publicada o una ficha deja de estarlo, ENTONCES EL SISTEMA la excluirá de esos sitemaps y de los datos estructurados públicos.
@@ -63,6 +65,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 | La obra tiene traducción EN, pero la serie no tiene una versión EN publicada | Se mantiene ES; se bloquea EN porque la serie es obligatoria y no se muestra su nombre en español. |
 | La imagen existe, pero falta su texto alternativo EN | Se mantiene ES; se bloquea EN, sin reutilizar el texto alternativo ES. |
 | Falta una descripción SEO redactada por el artista | Se omite la meta description; no se deriva de la nota de taller ni de los textos críticos. |
+| La descripción SEO de la ficha existe solo en un idioma | Se usa únicamente en la ficha de ese idioma; la otra versión omite la meta description sin fallback. |
 | Falta una nota de taller o no hay textos críticos asociados publicados en el idioma | Se omiten esos bloques; no se muestran espacios vacíos ni texto de sustitución. |
 | El estado del original es cualquiera de los cuatro valores | Se muestra la etiqueta de estado correspondiente en texto localizado; no se ofrece compra ni se infiere la disponibilidad de prints. |
 | Una obra se retira o deja de cumplir los requisitos de publicación | No se expone contenido público de la ficha ni aparece en sitemaps o datos estructurados públicos. |
@@ -83,7 +86,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - [ ] Los campos opcionales aparecen solo cuando tienen contenido publicado en el idioma de la ficha; los campos ausentes no generan contenido sustituto.
 - [ ] La falta de cualquier campo obligatorio ES bloquea todas las versiones; la falta de contenido localizado obligatorio EN bloquea solo EN y no activa fallback.
 - [ ] Cada versión publicada tiene imagen optimizada, dimensiones declaradas y texto alternativo correspondiente al idioma.
-- [ ] Metadatos, relaciones lingüísticas, datos estructurados y sitemaps incluyen solo información y versiones efectivamente publicadas; la meta description se omite si no fue redactada por el artista.
+- [ ] Metadatos, relaciones lingüísticas, datos estructurados y sitemaps incluyen solo información y versiones efectivamente publicadas; la meta description se emite únicamente con el texto SEO redactado por el artista en el idioma de la ficha y se omite si falta, sin fallback.
 - [ ] Los datos estructurados no contienen ofertas, precios ni disponibilidad comercial de originales o prints.
 - [ ] No hay compra, checkout, ni promesas de disponibilidad de prints en ningún estado del original.
 - [ ] Las páginas cumplen WCAG 2.2 AA y los umbrales de Lighthouse definidos en RNF-7.

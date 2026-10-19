@@ -1,5 +1,5 @@
 # Spec 002 — Catálogo de obras y series
-Estado: borrador
+Estado: aprobado
 
 ## Contexto y objetivo
 
@@ -115,4 +115,4 @@ Permitir que visitantes exploren las obras y series publicadas, consulten las ob
 
 ## Dudas abiertas
 
-- [NECESITA ACLARACIÓN] El artista debe proporcionar y aprobar el texto de la descripción SEO del catálogo ES y EN antes de completar la verificación Lighthouse de T19; no se redactará ni traducirá automáticamente.
+- Ninguna. El texto SEO ES/EN del catálogo fue proporcionado y publicado por el artista en `development` (2026-10-19) y la verificación Lighthouse de T19 se completó; para futuras obras, el texto autoral se mantiene en el campo correspondiente de cada ficha.

@@ -4,6 +4,11 @@ const IMAGE_PROJECTION = `{
 	hotspot
 }`
 
+export const siteSettingsQuery = `*[_id == "siteSettings"][0] {
+	catalogSeoDescriptionEs,
+	catalogSeoDescriptionEn
+}`
+
 export const artworkQuery = `*[_type == "artwork"] {
 	_id,
 	"seriesId": series._ref,
@@ -21,7 +26,8 @@ export const artworkQuery = `*[_type == "artwork"] {
 		technique,
 		support,
 		altText,
-		workshopNote
+		workshopNote,
+		seoDescription
 	}
 }`
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { artworkQuery, criticalTextQuery, exhibitionQuery, seriesQuery } from './queries'
+import { artworkQuery, criticalTextQuery, exhibitionQuery, seriesQuery, siteSettingsQuery } from './queries'
 
-const queries = [artworkQuery, seriesQuery, exhibitionQuery, criticalTextQuery]
+const queries = [artworkQuery, seriesQuery, exhibitionQuery, criticalTextQuery, siteSettingsQuery]
 
 describe('published Sanity GROQ queries', () => {
 	it.each([
@@ -35,6 +35,22 @@ describe('published Sanity GROQ queries', () => {
 
 		expect(artworkQuery).toContain('\n\tworkshopNote,\n\t"translations"')
 		expect(translationProjection).toContain('\n\t\tworkshopNote')
+	})
+
+	it('projects the artist-authored SEO description per artwork translation', () => {
+		const translationProjection = artworkQuery.match(
+			/"translations": \*\[_type == "artworkTranslation" && references\(\^\._id\)\] \{([\s\S]*?)\n\t\}/,
+		)?.[1]
+
+		expect(translationProjection).toContain('\n\t\tseoDescription')
+	})
+
+	it('selects the published global settings singleton by its stable ID with only the catalog SEO fields', () => {
+		expect(siteSettingsQuery).toContain('*[_id == "siteSettings"][0]')
+		expect(siteSettingsQuery).toContain('catalogSeoDescriptionEs')
+		expect(siteSettingsQuery).toContain('catalogSeoDescriptionEn')
+		expect(siteSettingsQuery).not.toContain('artwork')
+		expect(siteSettingsQuery).not.toContain('series')
 	})
 
 	it('contains no draft selectors or credentials', () => {

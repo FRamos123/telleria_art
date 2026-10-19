@@ -1,7 +1,7 @@
 # Tareas — Spec 002
 
 > Cada tarea está acotada a 20–30 minutos. T10 se desbloqueó tras aprobarse el plan de Spec 003.
-> T17–T19 son una propuesta pendiente de aprobación junto con `spec.md` y `plan.md`; no iniciar implementación hasta aprobarlos.
+> RF-20 y el plan de T17–T19 quedaron aprobados el 2026-10-19 con la instrucción de implementar T17; T18 y T19 se ejecutan después, de una en una.
 
 - [x] **T1. Preparar la carga de contenido visible por idioma.** RF-1, RF-4, RF-6–RF-8, RF-11–RF-12
   - Hecho cuando: el cargador de build reutiliza las consultas y `mapSanityContent`; Vitest comprueba visibilidad por idioma, relaciones conservadas y ausencia de fallback o revalidación en las páginas.
@@ -84,16 +84,22 @@
   - Verificación: Chrome DevTools revisó series ES/EN a 375×812 y 1280×900, cotejadas con la captura disponible y los tokens/patrón de ficha. Textos, enlace de retorno, alternates y alt de imagen corresponden al idioma; no hubo overflow. Por teclado, el foco llega a «Back to works» con outline de 2 px y Enter abre `/en/works/`. Dos rutas de serie inexistentes devolvieron HTTP 404, sin redirección, y contenido ES/EN. `pnpm --dir web verify` pasó (lint, tipos, build y 286 tests en 22 suites).
   - Decisión de verificación no detallada en el plan: como la serie publicada de `development` sí tiene descripción e imagen en ambos idiomas, simulé su ausencia eliminando esos nodos en el DOM EN y ajustando el span del contenedor al caso sin imagen; no se publicó ni modificó contenido. La captura específica de serie no existe en `design/`, por lo que se cotejó con la captura general disponible y el patrón de ficha descrito en tokens.
 
-- [ ] **T17. Añadir los campos globales de descripción SEO del catálogo a Sanity Studio.** RF-20, RNF-1
+- [x] **T17. Añadir los campos globales de descripción SEO del catálogo a Sanity Studio.** RF-20, RNF-1
   - Hecho cuando: Studio presenta un único documento de configuración global con campos opcionales e independientes ES/EN; puede dejarse vacío sin bloquear el build; `pnpm --dir studio build` pasa. No se redacta ni se publica contenido.
+  - Aprobación: la instrucción de implementar T17 (2026-10-19) aprueba el cambio RF-20 de `spec.md` y su plan; `spec.md` vuelve a «aprobado». El texto ES/EN sigue pendiente del artista y bloquea solo T19.
+  - Verificación: `pnpm --dir studio build` pasó (schema y estructura compilan); `pnpm --dir web verify` pasó (lint, tipos, build de 9 páginas y 286 tests en 22 suites). No se publicó contenido en ningún dataset.
+  - Decisiones no detalladas en el plan: documento `siteSettings` con id fijo `siteSettings`, expuesto como único documento anclado «Configuración global» en la estructura del Studio (filtrado de listas de tipos y del menú de creación para impedir duplicados). Campos `catalogSeoDescriptionEs` y `catalogSeoDescriptionEn` de tipo `text`, opcionales: vacíos son válidos, solo se marca si un texto escrito contiene únicamente espacios. No se añadieron tests de schema porque el Studio no tiene infraestructura de pruebas y añadirla exigiría una dependencia nueva no aprobada; la verificación de tarea es el `sanity build`. No aplica `design/tokens.md` ni capturas de interfaz web: el formulario lo genera Sanity y esta tarea no toca la interfaz pública.
 
-- [ ] **T18. Consultar y emitir la descripción SEO global del catálogo por idioma.** RF-14, RF-20, RNF-1, RNF-5
+- [x] **T18. Consultar y emitir la descripción SEO global del catálogo por idioma.** RF-14, RF-20, RNF-1, RNF-5
   - Hecho cuando: las pruebas fallan primero y luego pasan para descripción ES/EN independiente, ausencia sin fallback y HTML que solo emite el texto publicado en el idioma actual; `pnpm --dir web verify` pasa.
-  - Decisión propuesta no detallada en el plan aprobado: mantener el texto en un único `siteSettings` singleton de Sanity y no dentro de obra/serie; resolver la consulta durante el build, no desde el cliente.
+  - Verificación TDD: rojo con 7 pruebas fallando (`siteSettingsQuery` y `loadCatalogSeoDescriptions` inexistentes; páginas sin pasar la descripción); tras implementar query, cargador y páginas, verde. `pnpm --dir web verify` pasó (lint, tipos, build de 9 páginas y 293 tests en 22 suites); el gate de duplicados de T13 no reportó conflictos.
+  - Decisiones no detalladas en el plan: (1) la carga de ajustes es una función aparte, `loadCatalogSeoDescriptions()`, en lugar de ampliar `loadCatalogContent()`, porque este último lo invocan fichas, series y sitemaps que no necesitan los ajustes; solo las dos páginas de catálogo la llaman. (2) La query consulta el singleton por su ID estable `_id == "siteSettings"` fijado en T17. (3) El contrato del HTML construido (`build-output.test.ts`) es dirigido por el dataset: con `development` sin descripción publicada, los catálogos no emiten meta description; cuando exista texto aprobado publicado, las pruebas comprueban que el HTML emite exactamente ese texto solo en el idioma correspondiente (presencia implica texto no vacío y descripciones ES/EN distintas). La emisión con texto real se ejercitará en T19, cuando el artista publique el texto aprobado en `development`; no se publica contenido desde aquí.
 
-- [ ] **T19. Ejecutar Lighthouse y revisar pesos orientativos.** RNF-6–RNF-7
-  - Hecho cuando: con descripciones ES/EN aprobadas y cargadas en `development`, catálogo ES, ficha ES y serie ES en preview móvil alcanzan rendimiento ≥ 90, accesibilidad ≥ 95 y SEO = 100; los pesos se registran como objetivos no bloqueantes.
-  - Bloqueo actual (2026-10-09): el catálogo ES obtuvo Accesibilidad 100 y SEO 92 por la meta description ausente, que RF-14 anterior ordena omitir. La recomendación del usuario habilita proponer el setting global, pero falta aprobar estos documentos y disponer del texto SEO ES aprobado/publicado en `development`. El MCP Lighthouse disponible excluye la puntuación Performance y no hay CLI instalada; T19 necesita una herramienta que reporte esa categoría antes de certificar ≥90. No cambiar contenido ni umbrales para forzar un pase.
+- [x] **T19. Ejecutar Lighthouse y revisar pesos orientativos.** RNF-6–RNF-7
+  - Hecho cuando: en móvil y preview de producción, catálogo ES, ficha ES y serie ES alcanzan rendimiento ≥ 90, accesibilidad ≥ 95 y SEO = 100; los pesos se registran como objetivos no bloqueantes.
+  - Verificación (2026-10-19, Lighthouse CLI 13.5.0 móvil sobre preview del build con textos aprobados publicados en `development`): catálogo ES 100/100/100, ficha ES 99/100/100 y serie ES 100/100/100 (rendimiento/accesibilidad/SEO). El paso previo fue el desbloqueo aprobado en la spec 003 (HU-5/RF-8) con su T21 y el texto publicado por el artista; los catálogos ES/EN emiten la descripción global de RF-20 y cada ficha la autoral de su idioma (ES y EN distintas, verificadas por pruebas de salida). `pnpm --dir web verify` pasó (300 tests en 22 suites).
+  - Pesos orientativos no bloqueantes, dentro de objetivo: imagen de tarjeta 98 KB (≤150 KB), imagen principal de ficha 98 KB (≤500 KB), imagen de serie 55 KB.
+  - Nota de herramienta: la medición se hizo con la CLI Lighthouse instalada localmente (los shims `.ps1` de PowerShell están bloqueados por política de ejecución; se invoca `node_modules\.bin\lighthouse.cmd`). Informes JSON en el almacenamiento temporal de la sesión.
 
 ## Propuesta de división
 

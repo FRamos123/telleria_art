@@ -48,6 +48,6 @@ const alternatePaths = { es: `/obra/${encodeURIComponent(artwork.id)}/` };
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? new URL('https://telleria-art.pages.dev')).href;
 ---
 
-<BaseLayout locale={locale} title={title} canonicalPath={canonicalPath} alternatePaths={alternatePaths}>
+<BaseLayout locale={locale} title={title} description={translation.seoDescription} canonicalPath={canonicalPath} alternatePaths={alternatePaths}>
 	<ArtworkContent artwork={artwork} canonicalUrl={canonicalUrl} criticalTexts={criticalTexts} image={image} locale={locale} visibleSeries={visibleSeries} />
 </BaseLayout>

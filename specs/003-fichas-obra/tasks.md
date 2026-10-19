@@ -1,6 +1,6 @@
 # Tareas — Spec 003: Fichas individuales de obra
 
-Spec de referencia: `spec.md` (aprobada). Plan de referencia: `plan.md`.
+Spec de referencia: `spec.md` (borrador de cambio pendiente de aprobación para HU-5/RF-8; lo demás aprobado). Plan de referencia: `plan.md`.
 
 ## Precondiciones
 
@@ -85,7 +85,14 @@ Spec de referencia: `spec.md` (aprobada). Plan de referencia: `plan.md`.
 - [ ] **T20. Verificar teclado, contraste y rutas no publicadas.** RF-4, RF-11–RF-12, RNF-2
 - Hecho cuando: foco y navegación por teclado son operables, los textos cumplen WCAG 2.2 AA y una ruta inexistente o retirada responde HTTP 404 sin redirección ni aparece en los sitemaps.
 
-- [ ] **T21. Medir Lighthouse en las fichas representativas.** RNF-7
-- Hecho cuando: Lighthouse manual en preview móvil para fichas ES y EN registra rendimiento ≥90, accesibilidad ≥95 y SEO 100; los resultados quedan anotados y cualquier incumplimiento se resuelve antes de cerrar la spec.
+- [x] **T21. Añadir el campo de descripción SEO de obra y emitirla en la ficha.** RF-8, RNF-1, RNF-4
+- Hecho cuando: cada `artworkTranslation` admite un campo opcional `seoDescription` (vacío es válido); la query lo proyecta y el mapper lo expone por idioma, recortado y ausente si está vacío, sin fallback; las fichas ES/EN pasan a `BaseLayout` solo la descripción del idioma actual; pruebas primero fallan y luego pasan; `pnpm --dir studio build` y `pnpm --dir web verify` pasan. El texto lo redacta y publica el artista en `development`.
+- Aprobación: el cambio HU-5/RF-8 quedó aprobado el 2026-10-19; `spec.md` volvió a «aprobada».
+- Verificación TDD: rojo con 5 pruebas fallando (proyección de query, tres de mapper y páginas sin `description`); además, dos pruebas de T10 fijaban el contrato antiguo «sin description» y se actualizaron al nuevo RF-8 (contienen `description={translation.seoDescription}`). Artículo dist: un fallo EISDIR del helper de dist (ruta sin `index.html`) corregido antes del pase final. Tras implementar: verde; `pnpm --dir studio build` pasó y `pnpm --dir web verify` pasó (lint, tipos, build de 9 páginas y 300 tests en 22 suites).
+- Decisiones no detalladas en el plan: el campo en el Studio se llama «Descripción SEO», tipo `text`, con mensaje de validación propio para texto opcional (`optionalText` añadido a `validation.ts`) en lugar del mensaje de campo obligatorio; vacío es válido y no bloquea build. El test dist de fichas usa la primera ficha publicada del build (sin ID hardcodeado) y verifica el contrato dataset-dirigido: presencia implica texto no vacío y descripciones ES/EN distintas; la emisión con texto real se comprobará en T22 (y al re-auditar T19 de Spec 002) cuando el artista publique el texto. La publicación del contenido sigue siendo del artista.
 
-Hay **21 tareas**, por lo que se propone dividir la spec antes de iniciar la implementación en tres entregas coordinadas: **003A, contenido localizado y elegibilidad** (T1–T5); **003B, fichas estáticas y metadatos** (T6–T11); y **003C, sitemaps y validación de publicación** (T12–T21). Es una propuesta de planificación; no cambia por sí sola la spec aprobada ni su alcance.
+- [x] **T22. Medir Lighthouse en las fichas representativas.** RNF-7
+- Hecho cuando: Lighthouse manual en preview móvil para fichas ES y EN registra rendimiento ≥90, accesibilidad ≥95 y SEO 100; los resultados quedan anotados y cualquier incumplimiento se resuelve antes de cerrar la spec.
+- Verificación (2026-10-19, Lighthouse CLI 13.5.0 móvil sobre preview de producción, misma corrida que T19 de Spec 002): ficha ES 99/100/100 y ficha EN 100/100/100 (rendimiento/accesibilidad/SEO), con la descripción SEO autoral por idioma publicada por el artista (textos ES y EN distintos). `pnpm --dir web verify` pasó con `va9sgl77/development` (300 tests en 22 suites).
+
+Hay **22 tareas**, por lo que se propone dividir la spec antes de iniciar la implementación en tres entregas coordinadas: **003A, contenido localizado y elegibilidad** (T1–T5); **003B, fichas estáticas y metadatos** (T6–T11); y **003C, sitemaps y validación de publicación** (T12–T22). Es una propuesta de planificación; no cambia por sí sola la spec aprobada ni su alcance. La tarea T21 añadida depende de aprobar el cambio de HU-5/RF-8 en `spec.md` y `plan.md`.

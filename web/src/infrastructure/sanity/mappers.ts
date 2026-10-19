@@ -24,6 +24,7 @@ export interface MappedArtworkTranslation {
 	support: string
 	altText: string
 	workshopNote?: string
+	seoDescription?: string
 }
 
 export interface MappedArtwork {
@@ -170,6 +171,7 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 			const support = normalizedText(translation.support)
 			const altText = normalizedText(translation.altText)
 			const workshopNote = normalizedText(translation.workshopNote)
+			const seoDescription = normalizedText(translation.seoDescription)
 			if (!title || !technique || !support || !altText) continue
 			translations[language] = {
 				title,
@@ -177,6 +179,7 @@ function mapArtworkCandidates(value: unknown, currentYear: number): ArtworkCandi
 				support,
 				altText,
 				...(workshopNote ? { workshopNote } : {}),
+				...(seoDescription ? { seoDescription } : {}),
 			}
 			if (language === 'es') optional = completeness.optional
 		}

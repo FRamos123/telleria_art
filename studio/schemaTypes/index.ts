@@ -7,10 +7,12 @@ import { exhibitionType } from './documents/exhibition'
 import { exhibitionTranslationType } from './documents/exhibitionTranslation'
 import { seriesType } from './documents/series'
 import { seriesTranslationType } from './documents/seriesTranslation'
+import { siteSettingsType } from './documents/siteSettings'
 
 export const schemaTypes = [
   dimensionsType,
   availabilityType,
+  siteSettingsType,
   artworkType,
   artworkTranslationType,
   seriesType,

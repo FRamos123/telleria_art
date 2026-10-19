@@ -1,8 +1,20 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 function readBuildPage(path: string): string {
 	return readFileSync(new URL(`../../dist/${path}`, import.meta.url), 'utf8');
+}
+
+function readFirstArtworkPage(path: string): string | undefined {
+	const directory = new URL(`../../dist/${path}/`, import.meta.url);
+	if (!existsSync(directory)) return undefined;
+	const [entry] = readdirSync(directory);
+	return entry ? readBuildPage(`${path}/${entry}/index.html`) : undefined;
+}
+
+function readMetaDescription(page: string): string | undefined {
+	const match = page.match(/<meta name="description" content="([^"]*)"/);
+	return match ? match[1] : undefined;
 }
 
 describe('static build output', () => {
@@ -46,8 +58,18 @@ describe('static build output', () => {
 		expect(spanishCatalog).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/works/"');
 		expect(englishCatalog).toContain('hreflang="es" href="https://telleria-art.pages.dev/obras/"');
 		expect(englishCatalog).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/works/"');
-		expect(spanishCatalog).not.toContain('<meta name="description"');
-		expect(englishCatalog).not.toContain('<meta name="description"');
+		// Presence follows the published `siteSettings` text per language: when the approved
+		// description exists only for one locale, the other catalog must stay silent (RF-20).
+		const spanishCatalogDescription = readMetaDescription(spanishCatalog);
+		const englishCatalogDescription = readMetaDescription(englishCatalog);
+		for (const description of [spanishCatalogDescription, englishCatalogDescription]) {
+			if (description !== undefined) {
+				expect(description.trim().length).toBeGreaterThan(0);
+			}
+		}
+		if (spanishCatalogDescription && englishCatalogDescription) {
+			expect(spanishCatalogDescription).not.toBe(englishCatalogDescription);
+		}
 		for (const [catalog, emptyMessage] of [
 			[spanishCatalog, 'No hay obras que mostrar en este idioma.'],
 			[englishCatalog, 'There are no artworks to show in this language.'],
@@ -58,6 +80,23 @@ describe('static build output', () => {
 		}
 		expect(spanishCatalog).not.toMatch(/<script\b/i);
 		expect(englishCatalog).not.toMatch(/<script\b/i);
+	});
+
+	it('emits artwork SEO descriptions only when published for each language, without fallback', () => {
+		const spanishArtwork = readFirstArtworkPage('obra');
+		const englishArtwork = readFirstArtworkPage('en/work');
+		if (!spanishArtwork || !englishArtwork) return;
+
+		const spanishDescription = readMetaDescription(spanishArtwork);
+		const englishDescription = readMetaDescription(englishArtwork);
+		for (const description of [spanishDescription, englishDescription]) {
+			if (description !== undefined) {
+				expect(description.trim().length).toBeGreaterThan(0);
+			}
+		}
+		if (spanishDescription && englishDescription) {
+			expect(spanishDescription).not.toBe(englishDescription);
+		}
 	});
 
 	it('emits the static page sitemap with both catalogs and published-language alternates', () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SanityClient } from '@sanity/client'
-import { artworkQuery, seriesQuery } from './queries'
-import { loadCatalogContent } from './catalog-content'
+import { artworkQuery, seriesQuery, siteSettingsQuery } from './queries'
+import { loadCatalogContent, loadCatalogSeoDescriptions } from './catalog-content'
 
 const currentYear = 2026
 
@@ -125,5 +125,55 @@ describe('loadCatalogContent', () => {
 		const catalog = await loadCatalogContent(client, currentYear)
 
 		expect(catalog.seriesImageProjections.has('series-1')).toBe(false)
+	})
+})
+
+describe('loadCatalogSeoDescriptions', () => {
+	it('fetches the published singleton and exposes each language description independently', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) {
+				return {
+					catalogSeoDescriptionEs: '  [TEST] Descripción SEO del catálogo ES  ',
+					catalogSeoDescriptionEn: '[TEST] Catalog SEO description EN',
+				}
+			}
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const descriptions = await loadCatalogSeoDescriptions(client)
+
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(fetch).toHaveBeenCalledWith(siteSettingsQuery)
+		expect(descriptions).toEqual({
+			es: '[TEST] Descripción SEO del catálogo ES',
+			en: '[TEST] Catalog SEO description EN',
+		})
+	})
+
+	it('keeps missing or whitespace-only texts absent per language without fallback', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) {
+				return { catalogSeoDescriptionEs: '   ', catalogSeoDescriptionEn: null }
+			}
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const descriptions = await loadCatalogSeoDescriptions(client)
+
+		expect(descriptions).toEqual({})
+	})
+
+	it('treats a missing settings document as an empty set of descriptions', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) return null
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const descriptions = await loadCatalogSeoDescriptions(client)
+
+		expect(descriptions).toEqual({})
 	})
 })

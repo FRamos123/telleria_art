@@ -129,7 +129,7 @@ describe('catalog presentation components', () => {
 		expect(source).toContain(alternatePath);
 		expect(source).toContain('canonicalPath={canonicalPath}');
 		expect(source).toContain('alternatePaths={alternatePaths}');
-		expect(source).not.toContain('description=');
+		expect(source).toContain('description={translation.seoDescription}');
 	});
 
 	it('emits safely serialized factual VisualArtwork JSON-LD without commercial properties', () => {
@@ -241,6 +241,27 @@ describe('catalog presentation components', () => {
 		expect(source).toContain('alternatePaths=');
 		expect(source).toContain('first.name.localeCompare(second.name, locale)');
 		expect(source).toContain('first.id.localeCompare(second.id)');
+	});
+
+	it.each([
+		{ locale: 'es', source: spanishCatalogPage },
+		{ locale: 'en', source: englishCatalogPage },
+	])('passes only the $locale catalog SEO description to BaseLayout, without fallback', ({ locale, source }) => {
+		expect(source).toContain('loadCatalogSeoDescriptions()');
+		expect(source).toContain('description={catalogSeoDescriptions[locale]}');
+	});
+
+	it('keeps the catalog SEO description off series and artwork pages', () => {
+		for (const source of [spanishArtworkPage, englishArtworkPage, spanishSeriesPage, englishSeriesPage]) {
+			expect(source).not.toContain('catalogSeoDescriptions');
+		}
+	});
+
+	it.each([
+		{ source: spanishArtworkPage },
+		{ source: englishArtworkPage },
+	])('passes only its own translation SEO description to BaseLayout', ({ source }) => {
+		expect(source).toContain('description={translation.seoDescription}');
 	});
 
 	it('uses the provisional localized artwork destinations from the approved plan', () => {

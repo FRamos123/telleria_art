@@ -3,6 +3,7 @@ import { createInventoryNumber } from '../../web/src/domain/inventory-number'
 
 export const validationMessages = {
   requiredText: 'Este campo es obligatorio y no puede contener solo espacios.',
+  optionalText: 'Si escribes este campo, el texto no puede contener solo espacios en blanco.',
   language: 'Selecciona español (ES) o inglés (EN).',
   artworkYear: 'Indica un año entero de cuatro cifras entre 1900 y el año actual.',
   inventoryNumber: 'Usa el formato AFT-AAAA-NNN con año válido y secuencia entre 001 y 999.',

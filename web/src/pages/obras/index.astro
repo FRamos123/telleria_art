@@ -4,11 +4,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getMessages } from '../../i18n';
 import { sortArtworksForCatalog } from '../../domain/catalog-presentation';
 import { createResponsiveImage } from '../../infrastructure/sanity/image-url';
-import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+import { loadCatalogContent, loadCatalogSeoDescriptions } from '../../infrastructure/sanity/catalog-content';
 
 const locale = 'es';
 const messages = getMessages(locale);
 const catalog = await loadCatalogContent();
+const catalogSeoDescriptions = await loadCatalogSeoDescriptions();
 const artworks = sortArtworksForCatalog(
 	catalog.artworks.filter((artwork) => artwork.translations[locale] !== undefined),
 );
@@ -40,6 +41,7 @@ const visibleSeries = catalog.series
 <BaseLayout
 	locale={locale}
 	title={messages.catalogTitle}
+	description={catalogSeoDescriptions[locale]}
 	canonicalPath="/obras/"
 	alternatePaths={{ en: '/en/works/' }}
 >

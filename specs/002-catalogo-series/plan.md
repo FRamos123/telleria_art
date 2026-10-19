@@ -1,6 +1,6 @@
 # Plan 002 — Catálogo de obras y series
 
-Spec de referencia: `spec.md` (**borrador de cambio pendiente de aprobación**). Este plan propone generar el catálogo y las páginas de serie como contenido estático, usando exclusivamente entidades visibles según la spec 001. No añade compra, checkout ni disponibilidad de prints. El cambio propuesto permite al artista mantener descripciones SEO globales y localizadas del catálogo; no redacta el contenido.
+Spec de referencia: `spec.md` (**aprobada**). Este plan genera el catálogo y las páginas de serie como contenido estático, usando exclusivamente entidades visibles según la spec 001. No añade compra, checkout ni disponibilidad de prints. El cambio RF-20 (aprobado el 2026-10-19) permite al artista mantener descripciones SEO globales y localizadas del catálogo; no redacta el contenido.
 
 ## Alcance y dependencias
 
@@ -111,7 +111,7 @@ El orden de la lista de series no está definido en la spec; como decisión de p
 ## Puntos de «⚠️ Preguntar antes» de AGENTS.md
 
 1. **Layout y patrón visual:** `BaseLayout.astro` y `LanguageSwitcher.astro` son compartidos; cambiar sus alternates afecta páginas existentes. El reajuste de `SeriesContent.astro`, el catálogo, la cuadrícula y las tarjetas tampoco está descrito completamente en `design/tokens.md`. Antes de implementarlos, presentar la composición visual propuesta (incluidos los spans de cuatro columnas) y obtener aprobación; si requiere un patrón o token nuevo, actualizar `design/tokens.md` con su changelog antes del código.
-2. **Schema Sanity y tipos públicos:** el cambio propuesto necesita schema y configuración singleton global en Studio; pedir aprobación explícita antes del código. No cambia `MappedArtwork`/`MappedSeries`, reglas de publicación ni contenido de producción. El artista debe proporcionar/aprobar el texto ES/EN y editarlo en el dataset de desarrollo antes del Lighthouse final.
+2. **Schema Sanity y tipos públicos:** la instrucción de implementar T17 (2026-10-19) autoriza el schema singleton y la configuración de Studio. No cambia `MappedArtwork`/`MappedSeries`, reglas de publicación ni contenido de producción. El artista debe proporcionar/aprobar el texto ES/EN y editarlo en el dataset de desarrollo antes del Lighthouse final.
 3. **Dependencias:** no se propone ninguna. Si durante el trabajo se decide usar un generador/plugin de sitemap u otra dependencia, pedir aprobación antes.
 4. **JavaScript y servicios externos:** no se proponen. Cualquier necesidad posterior de JavaScript cliente o servicio externo requiere aprobación previa.
 5. **`@theme` y tokens existentes:** no se modifican valores de tema, paleta ni tipografía; los colores de estado ya tienen tokens. Cualquier cambio a esos valores requeriría aprobación previa.

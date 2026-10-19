@@ -256,6 +256,37 @@ describe('Sanity GROQ result mappers', () => {
 		expect(artwork?.optional).not.toHaveProperty('workshopNote')
 	})
 
+	it('maps Spanish and English SEO descriptions independently', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { seoDescription: '  Descripción SEO en español  ' })
+		Object.assign(input.artworks[0]!.translations[1]!, { seoDescription: '  SEO description in English  ' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).toMatchObject({ seoDescription: 'Descripción SEO en español' })
+		expect(artwork?.translations.en).toMatchObject({ seoDescription: 'SEO description in English' })
+	})
+
+	it('does not fall back from a Spanish SEO description to English', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { seoDescription: 'Descripción SEO solo en español' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).toMatchObject({ seoDescription: 'Descripción SEO solo en español' })
+		expect(artwork?.translations.en).not.toHaveProperty('seoDescription')
+	})
+
+	it('omits blank and missing SEO descriptions', async () => {
+		const input = validQueryResults()
+		Object.assign(input.artworks[0]!.translations[0]!, { seoDescription: '   ' })
+
+		const artwork = (await mapResults(input)).artworks[0]
+
+		expect(artwork?.translations.es).not.toHaveProperty('seoDescription')
+		expect(artwork?.translations.en).not.toHaveProperty('seoDescription')
+	})
+
 	it('drops artworks with a missing series reference or required image asset', async () => {
 		const missingSeries = validQueryResults()
 		missingSeries.artworks[0]!.seriesId = ''
