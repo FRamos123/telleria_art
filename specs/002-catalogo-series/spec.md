@@ -1,5 +1,5 @@
 # Spec 002 — Catálogo de obras y series
-Estado: aprobado
+Estado: implementada
 
 ## Contexto y objetivo
 

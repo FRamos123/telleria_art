@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SanityClient } from '@sanity/client'
-import { artworkQuery, seriesQuery, siteSettingsQuery } from './queries'
+import {
+	artworkQuery,
+	criticalTextQuery,
+	exhibitionQuery,
+	seriesQuery,
+	siteSettingsQuery,
+} from './queries'
 import { loadCatalogContent, loadCatalogSeoDescriptions } from './catalog-content'
 
 const currentYear = 2026
@@ -48,34 +54,128 @@ function artwork(id: string, inventoryNumber: string, englishSupport: string) {
 	}
 }
 
+function exhibition(id: string, imageAlt: string) {
+	return {
+		_id: id,
+		startDate: '2024-05-02',
+		endDate: '2024-06-15',
+		image: image(`${id}-image`),
+		artworkIds: ['artwork-1'],
+		seriesIds: ['series-1'],
+		translations: [{
+			_id: `${id}-es`,
+			language: 'es',
+			title: `[TEST] Exposición ${id}`,
+			venue: '[TEST] Vigo',
+			imageAlt,
+		}],
+	}
+}
+
+function criticalText(id: string) {
+	return {
+		_id: id,
+		originalLanguage: 'es',
+		artworkIds: ['artwork-1'],
+		seriesIds: ['series-1'],
+		translations: [{
+			_id: `${id}-es`,
+			language: 'es',
+			title: `[TEST] Texto crítico ${id}`,
+			body: '[TEST] Cuerpo crítico.',
+			author: '[TEST] Autoría',
+		}],
+	}
+}
+
 describe('loadCatalogContent', () => {
-	it('loads artwork and series queries and preserves mapper visibility by language', async () => {
+	it('loads all published content queries and preserves mapper visibility by language', async () => {
 		const artworks = [
-			artwork('artwork-visible-en', 'AFT-2024-001', 'Canvas'),
-			artwork('artwork-es-only', 'AFT-2024-002', '  '),
+			artwork('artwork-1', 'AFT-2024-001', 'Canvas'),
+			artwork('artwork-2', 'AFT-2024-002', '  '),
 		]
 		const series = [{
 			_id: 'series-1',
 			translations: [{ _id: 'series-1-es', language: 'es', name: '[TEST] Serie ES' }],
 		}]
+		const exhibitions = [exhibition('exhibition-1', '[TEST] Sala de exposición')]
+		const criticalTexts = [criticalText('critical-1')]
 		const fetch = vi.fn(async (query: string): Promise<unknown> => {
 			if (query === artworkQuery) return artworks
 			if (query === seriesQuery) return series
+			if (query === exhibitionQuery) return exhibitions
+			if (query === criticalTextQuery) return criticalTexts
 			throw new Error(`Unexpected query: ${query}`)
 		})
 		const client = { fetch } as unknown as SanityClient
 
 		const catalog = await loadCatalogContent(client, currentYear)
 
-		expect(fetch).toHaveBeenCalledTimes(2)
+		expect(fetch).toHaveBeenCalledTimes(4)
 		expect(fetch).toHaveBeenNthCalledWith(1, artworkQuery)
 		expect(fetch).toHaveBeenNthCalledWith(2, seriesQuery)
+		expect(fetch).toHaveBeenNthCalledWith(3, exhibitionQuery)
+		expect(fetch).toHaveBeenNthCalledWith(4, criticalTextQuery)
 		expect(catalog.artworks).toHaveLength(2)
 		expect(catalog.artworks[0]?.translations).not.toHaveProperty('en')
 		expect(catalog.artworks[0]?.seriesId).toBe('series-1')
 		expect(catalog.artworks[1]?.translations).not.toHaveProperty('en')
 		expect(catalog.artworks[1]?.seriesId).toBe('series-1')
 		expect(catalog.series[0]?.translations).toEqual({ es: { name: '[TEST] Serie ES' } })
+		expect(catalog.exhibitions[0]).toMatchObject({
+			id: 'exhibition-1',
+			translations: {
+				es: {
+					title: '[TEST] Exposición exhibition-1',
+					artworkIds: ['artwork-1'],
+					seriesIds: ['series-1'],
+				},
+			},
+		})
+		expect(catalog.criticalTexts[0]).toMatchObject({
+			id: 'critical-1',
+			translations: {
+				es: {
+					title: '[TEST] Texto crítico critical-1',
+					artworkIds: ['artwork-1'],
+					seriesIds: ['series-1'],
+				},
+			},
+		})
+		expect(catalog.exhibitionImageProjections.get('exhibition-1')).toEqual({
+			asset: {
+				_id: 'exhibition-1-image',
+				metadata: { dimensions: { width: 1200, height: 1600 } },
+			},
+			crop: { top: 0, bottom: 0, left: 0, right: 0 },
+			hotspot: { x: 0.5, y: 0.5, width: 1, height: 1 },
+		})
+	})
+
+	it('keeps exhibition image projections only when a visible translation accepts the same asset', async () => {
+		const rawExhibitions = [
+			exhibition('exhibition-valid-image', '[TEST] Sala válida'),
+			exhibition('exhibition-invalid-alt', '[TEST] Exposición exhibition-invalid-alt'),
+		]
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === artworkQuery) return [artwork('artwork-1', 'AFT-2024-005', 'Canvas')]
+			if (query === seriesQuery) return [{
+				_id: 'series-1',
+				translations: [{ _id: 'series-1-es', language: 'es', name: '[TEST] Serie ES' }],
+			}]
+			if (query === exhibitionQuery) return rawExhibitions
+			if (query === criticalTextQuery) return []
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const catalog = await loadCatalogContent(client, currentYear)
+
+		expect(catalog.exhibitions).toHaveLength(2)
+		expect(catalog.exhibitions[0]?.translations.es?.image?.assetId).toBe('exhibition-valid-image-image')
+		expect(catalog.exhibitions[1]?.translations.es).not.toHaveProperty('image')
+		expect(catalog.exhibitionImageProjections.has('exhibition-valid-image')).toBe(true)
+		expect(catalog.exhibitionImageProjections.has('exhibition-invalid-alt')).toBe(false)
 	})
 
 	it('keeps responsive image projections only for series images accepted by the visibility mapper', async () => {
@@ -93,6 +193,7 @@ describe('loadCatalogContent', () => {
 		const fetch = vi.fn(async (query: string): Promise<unknown> => {
 			if (query === artworkQuery) return [visibleArtwork]
 			if (query === seriesQuery) return rawSeries
+			if (query === exhibitionQuery || query === criticalTextQuery) return []
 			throw new Error(`Unexpected query: ${query}`)
 		})
 		const client = { fetch } as unknown as SanityClient
@@ -118,6 +219,7 @@ describe('loadCatalogContent', () => {
 		const fetch = vi.fn(async (query: string): Promise<unknown> => {
 			if (query === artworkQuery) return [artwork('artwork-no-series-image', 'AFT-2024-004', 'Canvas')]
 			if (query === seriesQuery) return rawSeries
+			if (query === exhibitionQuery || query === criticalTextQuery) return []
 			throw new Error(`Unexpected query: ${query}`)
 		})
 		const client = { fetch } as unknown as SanityClient

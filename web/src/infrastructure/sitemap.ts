@@ -19,6 +19,7 @@ const locales: readonly Locale[] = ['es', 'en'];
 
 export function createSitemapXml(content: SitemapContent, siteUrl: URL): string {
 	const pages: SitemapPage[] = [];
+	addLocalizedPages(pages, { es: '/', en: '/en/' });
 	addLocalizedPages(pages, { es: '/obras/', en: '/en/works/' });
 	addEntityPages(pages, content.series, (id, locale) =>
 		locale === 'es' ? `/series/${id}/` : `/en/series/${id}/`,

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createSitemapXml } from './sitemap';
 
 describe('createSitemapXml', () => {
-	it('includes both catalogs and only published series and artwork language versions', () => {
+	it('includes homes, both catalogs and only published series and artwork language versions', () => {
 		const xml = createSitemapXml({
 			series: [
 				{ id: 'serie-bilingue', translations: { es: {}, en: {} } },
@@ -14,6 +14,8 @@ describe('createSitemapXml', () => {
 			],
 		}, new URL('https://example.com'));
 
+		expect(xml).toContain('<loc>https://example.com/</loc>');
+		expect(xml).toContain('<loc>https://example.com/en/</loc>');
 		expect(xml).toContain('<loc>https://example.com/obras/</loc>');
 		expect(xml).toContain('<loc>https://example.com/en/works/</loc>');
 		expect(xml).toContain('<loc>https://example.com/series/serie-bilingue/</loc>');
@@ -24,7 +26,6 @@ describe('createSitemapXml', () => {
 		expect(xml).toContain('<loc>https://example.com/en/work/obra-bilingue/</loc>');
 		expect(xml).not.toContain('<loc>https://example.com/obra/obra-solo-en/</loc>');
 		expect(xml).toContain('<loc>https://example.com/en/work/obra-solo-en/</loc>');
-		expect(xml).not.toContain('<loc>https://example.com/</loc>');
 	});
 
 	it('emits alternates only for published versions, including the current version', () => {
@@ -33,6 +34,8 @@ describe('createSitemapXml', () => {
 			artworks: [{ id: 'obra-en', translations: { en: {} } }],
 		}, new URL('https://example.com'));
 
+		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/"');
+		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/obras/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/works/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/series/serie-es/"');

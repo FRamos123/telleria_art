@@ -102,7 +102,7 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 			</h1>
 			<p class="m-0 font-body-md text-body-md text-on-surface-variant">
 				{messages.series}:{' '}
-				<a class="text-on-surface underline decoration-surface-variant" href={visibleSeries.href}>
+				<a class="text-on-surface underline decoration-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={visibleSeries.href}>
 					{visibleSeries.name}
 				</a>
 			</p>

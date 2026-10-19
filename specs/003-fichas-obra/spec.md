@@ -1,5 +1,5 @@
 # Spec 003 — Fichas individuales de obra
-Estado: aprobada (cambio HU-5/RF-8 aprobado el 2026-10-19)
+Estado: implementada (auditoría RF por RF 2026-10-19; `pnpm --dir web verify` en verde: lint, tipos, build de 9 páginas y 307 tests)
 
 ## Contexto y objetivo
 
@@ -81,15 +81,15 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 
 ## Criterios de finalización
 
-- [ ] Cada ficha publicada muestra todos los campos obligatorios definidos y las dimensiones en centímetros en orden alto × ancho.
-- [ ] Los cuatro estados se presentan con sus etiquetas textuales localizadas y nunca solo mediante color.
-- [ ] Los campos opcionales aparecen solo cuando tienen contenido publicado en el idioma de la ficha; los campos ausentes no generan contenido sustituto.
-- [ ] La falta de cualquier campo obligatorio ES bloquea todas las versiones; la falta de contenido localizado obligatorio EN bloquea solo EN y no activa fallback.
-- [ ] Cada versión publicada tiene imagen optimizada, dimensiones declaradas y texto alternativo correspondiente al idioma.
-- [ ] Metadatos, relaciones lingüísticas, datos estructurados y sitemaps incluyen solo información y versiones efectivamente publicadas; la meta description se emite únicamente con el texto SEO redactado por el artista en el idioma de la ficha y se omite si falta, sin fallback.
-- [ ] Los datos estructurados no contienen ofertas, precios ni disponibilidad comercial de originales o prints.
-- [ ] No hay compra, checkout, ni promesas de disponibilidad de prints en ningún estado del original.
-- [ ] Las páginas cumplen WCAG 2.2 AA y los umbrales de Lighthouse definidos en RNF-7.
+- [x] Cada ficha publicada muestra todos los campos obligatorios definidos y las dimensiones en centímetros en orden alto × ancho.
+- [x] Los cuatro estados se presentan con sus etiquetas textuales localizadas y nunca solo mediante color.
+- [x] Los campos opcionales aparecen solo cuando tienen contenido publicado en el idioma de la ficha; los campos ausentes no generan contenido sustituto.
+- [x] La falta de cualquier campo obligatorio ES bloquea todas las versiones; la falta de contenido localizado obligatorio EN bloquea solo EN y no activa fallback.
+- [x] Cada versión publicada tiene imagen optimizada, dimensiones declaradas y texto alternativo correspondiente al idioma.
+- [x] Metadatos, relaciones lingüísticas, datos estructurados y sitemaps incluyen solo información y versiones efectivamente publicadas; la meta description se emite únicamente con el texto SEO redactado por el artista en el idioma de la ficha y se omite si falta, sin fallback.
+- [x] Los datos estructurados no contienen ofertas, precios ni disponibilidad comercial de originales o prints.
+- [x] No hay compra, checkout, ni promesas de disponibilidad de prints en ningún estado del original.
+- [x] Las páginas cumplen WCAG 2.2 AA y los umbrales de Lighthouse definidos en RNF-7.
 
 ## Dudas abiertas
 

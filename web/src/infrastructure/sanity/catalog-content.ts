@@ -2,26 +2,53 @@ import type { SanityClient } from '@sanity/client'
 import type { SanityImageProjection } from './image-url'
 import { mapSanityContent, type MappedSanityContent } from './mappers'
 import { getBuildSanityClient } from './client'
-import { artworkQuery, seriesQuery, siteSettingsQuery } from './queries'
+import {
+	artworkQuery,
+	criticalTextQuery,
+	exhibitionQuery,
+	seriesQuery,
+	siteSettingsQuery,
+} from './queries'
 import type { PublicationLanguage } from '../../domain/publication'
 
 export interface CatalogContent extends MappedSanityContent {
+	exhibitionImageProjections: ReadonlyMap<string, SanityImageProjection>
 	seriesImageProjections: ReadonlyMap<string, SanityImageProjection>
 }
 
 export type CatalogSeoDescriptions = Partial<Record<PublicationLanguage, string>>
 
-/** Loads published artwork and series, then delegates visibility to the existing mapper. */
+/** Loads published portfolio content, then delegates visibility to the existing mapper. */
 export async function loadCatalogContent(
 	client: SanityClient = getBuildSanityClient(),
 	currentYear = new Date().getFullYear(),
 ): Promise<CatalogContent> {
-	const [artworks, series] = await Promise.all([
+	const [artworks, series, exhibitions, criticalTexts] = await Promise.all([
 		client.fetch(artworkQuery),
 		client.fetch(seriesQuery),
+		client.fetch(exhibitionQuery),
+		client.fetch(criticalTextQuery),
 	])
 
-	const mapped = mapSanityContent({ artworks, series }, currentYear)
+	const mapped = mapSanityContent({ artworks, series, exhibitions, criticalTexts }, currentYear)
+	const exhibitionImageProjections = new Map<string, SanityImageProjection>()
+	for (const rawExhibition of asArray(exhibitions)) {
+		const record = asRecord(rawExhibition)
+		const id = normalizedText(record?._id)
+		const visibleExhibition = id && mapped.exhibitions.find((candidate) => candidate.id === id)
+		const projection = toImageProjection(record?.image)
+		if (
+			id
+			&& visibleExhibition
+			&& projection
+			&& Object.values(visibleExhibition.translations).some(
+				(translation) => translation?.image?.assetId === projection.asset._id,
+			)
+		) {
+			exhibitionImageProjections.set(id, projection)
+		}
+	}
+
 	const seriesImageProjections = new Map<string, SanityImageProjection>()
 	for (const rawSeries of asArray(series)) {
 		const record = asRecord(rawSeries)
@@ -40,7 +67,7 @@ export async function loadCatalogContent(
 		}
 	}
 
-	return { ...mapped, seriesImageProjections }
+	return { ...mapped, exhibitionImageProjections, seriesImageProjections }
 }
 
 /**

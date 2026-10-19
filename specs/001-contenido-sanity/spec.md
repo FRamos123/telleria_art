@@ -1,5 +1,5 @@
 # Spec 001 — Gestión editorial de obras, series y exposiciones
-Estado: aprobada
+Estado: implementada
 
 ## Contexto y objetivo
 
