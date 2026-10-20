@@ -42,6 +42,36 @@ describe('foundation translations', () => {
 		expect(en.seriesMetaDescriptionTemplate).toBe('Works from the {seriesName} series by {artistName}.');
 	});
 
+	it('provides localized exhibition index titles, descriptions, and empty messages', () => {
+		expect(es.exhibitionsTitle).toBe('Exposiciones — Alejandro Fernández Tellería');
+		expect(en.exhibitionsTitle).toBe('Exhibitions — Alejandro Fernández Tellería');
+		expect(es.exhibitionsMetaDescription).toContain('Exposiciones de Alejandro Fernández Tellería');
+		expect(en.exhibitionsMetaDescription).toContain('Exhibitions by Alejandro Fernández Tellería');
+		expect(es.exhibitionsEmpty).toBe('No hay exposiciones que mostrar en este idioma.');
+		expect(en.exhibitionsEmpty).toBe('There are no exhibitions to show in this language.');
+	});
+
+	it('provides localized critical-text index titles, descriptions, author labels, and empty messages', () => {
+		expect(es.criticalTextsTitle).toBe('Textos críticos — Alejandro Fernández Tellería');
+		expect(en.criticalTextsTitle).toBe('Critical texts — Alejandro Fernández Tellería');
+		expect(es.criticalTextsMetaDescription).toBeTruthy();
+		expect(en.criticalTextsMetaDescription).toBeTruthy();
+		expect(es.criticalTextAuthor).toBe('Autoría');
+		expect(en.criticalTextAuthor).toBe('Author');
+		expect(es.criticalTextsEmpty).toBe('No hay textos críticos que mostrar en este idioma.');
+		expect(en.criticalTextsEmpty).toBe('There are no critical texts to show in this language.');
+	});
+
+	it('provides localized skip-to-content text', () => {
+		expect(es.skipToContent).toBe('Saltar al contenido principal');
+		expect(en.skipToContent).toBe('Skip to main content');
+	});
+
+	it('provides the standard centimeter unit in both locales', () => {
+		expect(es.centimeterUnit).toBe('cm');
+		expect(en.centimeterUnit).toBe('cm');
+	});
+
 	it('provides the same message keys in Spanish and English', () => {
 		expect(Object.keys(es).sort()).toEqual(Object.keys(en).sort());
 		expect(Object.values(es).every((message) => message.trim().length > 0)).toBe(true);

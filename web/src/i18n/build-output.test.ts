@@ -26,6 +26,12 @@ describe('static build output', () => {
 
 		expect(spanishHome).toContain('Pintor · Vigo, Galicia');
 		expect(englishHome).toContain('Painter · Vigo, Galicia');
+		expect(spanishHome).toContain('href="#main-content"');
+		expect(englishHome).toContain('href="#main-content"');
+		expect(spanishHome).toContain('id="main-content"');
+		expect(englishHome).toContain('id="main-content"');
+		expect(spanishHome).toContain('Saltar al contenido principal');
+		expect(englishHome).toContain('Skip to main content');
 		expect(spanishHome).toContain('<link rel="canonical" href="https://telleria-art.pages.dev/">');
 		expect(englishHome).toContain('<link rel="canonical" href="https://telleria-art.pages.dev/en/">');
 		expect(spanishHome).toContain('hreflang="es" href="https://telleria-art.pages.dev/"');
@@ -83,6 +89,64 @@ describe('static build output', () => {
 		expect(englishCatalog).not.toMatch(/<script\b/i);
 	});
 
+	it('generates localized exhibition indexes with unique metadata and published alternates', () => {
+		const spanishIndex = readBuildPage('exposiciones/index.html');
+		const englishIndex = readBuildPage('en/exhibitions/index.html');
+
+		expect(spanishIndex).toContain('<html lang="es">');
+		expect(englishIndex).toContain('<html lang="en">');
+		expect(spanishIndex).toContain(`<title>${messages.es.exhibitionsTitle}</title>`);
+		expect(englishIndex).toContain(`<title>${messages.en.exhibitionsTitle}</title>`);
+		expect(readMetaDescription(spanishIndex)).toBe(messages.es.exhibitionsMetaDescription);
+		expect(readMetaDescription(englishIndex)).toBe(messages.en.exhibitionsMetaDescription);
+		expect(spanishIndex).toContain('rel="canonical" href="https://telleria-art.pages.dev/exposiciones/"');
+		expect(englishIndex).toContain('rel="canonical" href="https://telleria-art.pages.dev/en/exhibitions/"');
+		expect(spanishIndex).toContain('hreflang="es" href="https://telleria-art.pages.dev/exposiciones/"');
+		expect(spanishIndex).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/exhibitions/"');
+		expect(englishIndex).toContain('hreflang="es" href="https://telleria-art.pages.dev/exposiciones/"');
+		expect(englishIndex).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/exhibitions/"');
+		expect(spanishIndex).toContain('<h1');
+		expect(englishIndex).toContain('<h1');
+		expect(spanishIndex).not.toMatch(/<script\b/i);
+		expect(englishIndex).not.toMatch(/<script\b/i);
+
+		for (const [index, emptyMessage] of [
+			[spanishIndex, messages.es.exhibitionsEmpty],
+			[englishIndex, messages.en.exhibitionsEmpty],
+		] as const) {
+			if (!index.includes('<li')) expect(index).toContain(emptyMessage);
+		}
+	});
+
+	it('generates localized critical-text indexes with functional metadata and published alternates', () => {
+		const spanishIndex = readBuildPage('textos-criticos/index.html');
+		const englishIndex = readBuildPage('en/critical-texts/index.html');
+
+		expect(spanishIndex).toContain('<html lang="es">');
+		expect(englishIndex).toContain('<html lang="en">');
+		expect(spanishIndex).toContain(`<title>${messages.es.criticalTextsTitle}</title>`);
+		expect(englishIndex).toContain(`<title>${messages.en.criticalTextsTitle}</title>`);
+		expect(readMetaDescription(spanishIndex)).toBe(messages.es.criticalTextsMetaDescription);
+		expect(readMetaDescription(englishIndex)).toBe(messages.en.criticalTextsMetaDescription);
+		expect(spanishIndex).toContain('rel="canonical" href="https://telleria-art.pages.dev/textos-criticos/"');
+		expect(englishIndex).toContain('rel="canonical" href="https://telleria-art.pages.dev/en/critical-texts/"');
+		expect(spanishIndex).toContain('hreflang="es" href="https://telleria-art.pages.dev/textos-criticos/"');
+		expect(spanishIndex).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/critical-texts/"');
+		expect(englishIndex).toContain('hreflang="es" href="https://telleria-art.pages.dev/textos-criticos/"');
+		expect(englishIndex).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/critical-texts/"');
+		expect(spanishIndex).toContain('<h1');
+		expect(englishIndex).toContain('<h1');
+		expect(spanishIndex).not.toMatch(/<script\b/i);
+		expect(englishIndex).not.toMatch(/<script\b/i);
+
+		for (const [index, emptyMessage] of [
+			[spanishIndex, messages.es.criticalTextsEmpty],
+			[englishIndex, messages.en.criticalTextsEmpty],
+		] as const) {
+			if (!index.includes('<li')) expect(index).toContain(emptyMessage);
+		}
+	});
+
 	it('emits artwork SEO descriptions only when published for each language, without fallback', () => {
 		const spanishArtwork = readFirstArtworkPage('obra');
 		const englishArtwork = readFirstArtworkPage('en/work');
@@ -109,6 +173,10 @@ describe('static build output', () => {
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/obras/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/works/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/exposiciones/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/exhibitions/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/textos-criticos/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/critical-texts/</loc>');
 		expect(sitemap).toContain('hreflang="es" href="https://telleria-art.pages.dev/"');
 		expect(sitemap).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/"');
 		expect(sitemap).toContain('hreflang="es" href="https://telleria-art.pages.dev/obras/"');
@@ -125,6 +193,30 @@ describe('static build output', () => {
 		expect(sitemap).not.toContain('<image:loc></image:loc>');
 	});
 
+	it('ships local WOFF2 files and OFL notices for every design font family', () => {
+		const assetDirectory = new URL('../../dist/_astro/', import.meta.url);
+		const stylesheets = readdirSync(assetDirectory)
+			.filter((file) => file.endsWith('.css'))
+			.map((file) => readFileSync(new URL(`../../dist/_astro/${file}`, import.meta.url), 'utf8'));
+		const css = stylesheets.join('\n');
+		const fontUrls = [...css.matchAll(/url\((?:"|')?(\/fonts\/[^)"']+\.woff2)(?:"|')?\)/gu)]
+			.map(([, url]) => url ?? '');
+
+		expect(css).toContain('font-display:swap');
+		for (const family of ['Bodoni Moda', 'Newsreader', 'Geist']) expect(css).toContain(family);
+		expect(fontUrls).toHaveLength(10);
+		expect(css).not.toMatch(/fonts\.(?:googleapis|gstatic)\.com/iu);
+		for (const url of fontUrls) {
+			const path = url.replace(/^\/+/, '');
+			expect(readFileSync(new URL(`../../dist/${path}`, import.meta.url)).byteLength).toBeGreaterThan(0);
+		}
+
+		for (const file of ['OFL-Bodoni-Moda.txt', 'OFL-Newsreader.txt', 'OFL-Geist.txt']) {
+			const license = readBuildPage(`fonts/licenses/${file}`);
+			expect(license).toContain('SIL OPEN FONT LICENSE');
+		}
+	});
+
 	it('renders sitemap-listed public pages as static HTML and parses their JSON-LD', () => {
 		const sitemap = readBuildPage('sitemap.xml');
 		const entries = parseSitemapEntries(sitemap);
@@ -134,9 +226,22 @@ describe('static build output', () => {
 			'https://telleria-art.pages.dev/en/',
 			...sitemapLocations,
 		]);
+		const editorialDetailPages = [
+			...publishedDetailPages('exposiciones'),
+			...publishedDetailPages('en/exhibitions'),
+			...publishedDetailPages('textos-criticos'),
+			...publishedDetailPages('en/critical-texts'),
+		];
 
 		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/obras/');
 		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/en/works/');
+		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/exposiciones/');
+		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/en/exhibitions/');
+		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/textos-criticos/');
+		expect(sitemapLocations).toContain('https://telleria-art.pages.dev/en/critical-texts/');
+		for (const page of editorialDetailPages) {
+			expect(sitemapLocations).toContain(`https://telleria-art.pages.dev${page.path}`);
+		}
 		expect(sitemap).not.toContain('__not-published-t14__');
 		expect(sitemap).not.toContain('/404.html');
 
@@ -156,6 +261,111 @@ describe('static build output', () => {
 			if (/\/(?:en\/work|obra)\//u.test(pathname)) {
 				expect(structuredData).toHaveLength(1);
 				expect(structuredData[0]).toMatchObject({ '@context': 'https://schema.org', '@type': 'VisualArtwork' });
+			}
+			if (/\/(?:en\/exhibitions|exposiciones)\/[^/]+\/$/u.test(pathname)) {
+				expect(structuredData).toHaveLength(1);
+				expect(structuredData[0]).toMatchObject({ '@context': 'https://schema.org', '@type': 'Event' });
+			}
+			if (/\/(?:en\/critical-texts|textos-criticos)\/[^/]+\/$/u.test(pathname)) {
+				expect(structuredData).toHaveLength(1);
+				expect(structuredData[0]).toMatchObject({ '@context': 'https://schema.org', '@type': 'Article' });
+			}
+		}
+	});
+
+	it('renders published editorial details with complete content, localized metadata, and visible relations', () => {
+		const sitemapLocations = new Set(parseSitemapEntries(readBuildPage('sitemap.xml')).map((entry) => entry.location));
+		const imageLocations = new Set(parseSitemapEntries(readBuildPage('image-sitemap.xml')).map((entry) => entry.location));
+		const criticalTextPages = [
+			...publishedDetailPages('textos-criticos'),
+			...publishedDetailPages('en/critical-texts'),
+		];
+		const exhibitionPages = [
+			...publishedDetailPages('exposiciones'),
+			...publishedDetailPages('en/exhibitions'),
+		];
+
+		for (const page of criticalTextPages) {
+			const data = readJsonLd(page.html);
+			const body = String(data.articleBody ?? '');
+			const description = tagsToText(readMetaDescription(page.html) ?? '');
+			const visibleBody = tagsToText(
+				/<div class="whitespace-pre-line[^"]*">([\s\S]*?)<\/div>/u.exec(page.html)?.[1] ?? '',
+			);
+
+			expect(data).toMatchObject({
+				'@context': 'https://schema.org',
+				'@type': 'Article',
+				inLanguage: page.locale,
+			});
+			expect(String(data.headline).trim()).toBeTruthy();
+			expect(body.trim()).toBeTruthy();
+			expect(typeof data.author).toBe('string');
+			expect(visibleBody.replaceAll(/\s+/gu, ' ').trim()).toBe(body.replaceAll(/\s+/gu, ' ').trim());
+			if (description) {
+				expect(Array.from(description).length).toBeLessThanOrEqual(155);
+				expect(body.startsWith(description)).toBe(true);
+			}
+			expect(sitemapLocations).toContain(`https://telleria-art.pages.dev${page.path}`);
+			for (const relation of (Array.isArray(data.about) ? data.about : [])) {
+				expect(sitemapLocations).toContain(String((relation as Record<string, unknown>).url));
+			}
+		}
+
+		for (const page of exhibitionPages) {
+			const data = readJsonLd(page.html);
+			const image = /<img\b[^>]*>/u.exec(page.html)?.[0];
+
+			expect(data).toMatchObject({
+				'@context': 'https://schema.org',
+				'@type': 'Event',
+				inLanguage: page.locale,
+			});
+			expect(String(data.name).trim()).toBeTruthy();
+			expect(String((data.location as Record<string, unknown> | undefined)?.name).trim()).toBeTruthy();
+			expect(data.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+			expect(sitemapLocations).toContain(`https://telleria-art.pages.dev${page.path}`);
+			if (image) {
+				expect(imageLocations).toContain(`https://telleria-art.pages.dev${page.path}`);
+				expect(image).toMatch(/\bwidth="\d+"/u);
+				expect(image).toMatch(/\bheight="\d+"/u);
+				expect(image).toMatch(/\bsrcset="/u);
+				expect(image).toMatch(/\balt="[^"]+"/u);
+			} else {
+				expect(imageLocations).not.toContain(`https://telleria-art.pages.dev${page.path}`);
+			}
+			for (const property of ['workFeatured', 'about'] as const) {
+				for (const relation of (Array.isArray(data[property]) ? data[property] : [])) {
+					expect(sitemapLocations).toContain(String((relation as Record<string, unknown>).url));
+				}
+			}
+		}
+	});
+
+	it('links an artwork critical-text title to the emitted same-language detail and keeps its body', () => {
+		const detailPages = [
+			...publishedDetailPages('textos-criticos'),
+			...publishedDetailPages('en/critical-texts'),
+		];
+		const detailsByPath = new Map(detailPages.map((page) => [page.path, page]));
+
+		for (const artworkPage of artworkFichaPages()) {
+			const section = /<section aria-labelledby="artwork-critical-texts-title"[\s\S]*?<\/section>/u.exec(artworkPage.html)?.[0];
+			if (!section) continue;
+
+			const links = [...section.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gu)];
+			expect(links.length).toBeGreaterThan(0);
+			for (const [, href, linkedTitle] of links) {
+				const detailPath = href ?? '';
+				expect(detailPath.startsWith(artworkPage.locale === 'es' ? '/textos-criticos/' : '/en/critical-texts/')).toBe(true);
+				const detailPage = detailsByPath.get(detailPath);
+				expect(detailPage).toBeDefined();
+				if (!detailPage) continue;
+
+				const data = readJsonLd(detailPage.html);
+				expect(tagsToText(linkedTitle ?? '')).toBe(String(data.headline));
+				expect(tagsToText(section)).toContain(tagsToText(String(data.author)));
+				expect(section).toContain(escapeHtmlText(String(data.articleBody)));
 			}
 		}
 	});
@@ -215,6 +425,24 @@ function publishedRouteIds(directory: string): string[] {
 	const directoryUrl = new URL(`../../dist/${directory}/`, import.meta.url);
 	if (!existsSync(directoryUrl)) return [];
 	return readdirSync(directoryUrl).sort();
+}
+
+function publishedDetailPages(directory: string): Array<{
+	id: string;
+	locale: 'es' | 'en';
+	path: string;
+	html: string;
+}> {
+	const directoryUrl = new URL(`../../dist/${directory}/`, import.meta.url);
+	if (!existsSync(directoryUrl)) return [];
+	return readdirSync(directoryUrl, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => ({
+			id: entry.name,
+			locale: directory.startsWith('en/') ? 'en' as const : 'es' as const,
+			path: `/${directory}/${entry.name}/`,
+			html: readBuildPage(`${directory}/${entry.name}/index.html`),
+		}));
 }
 
 function parseSitemapEntries(xml: string): Array<{
@@ -309,7 +537,9 @@ function decodeXmlAttribute(value: string): string {
 			}
 
 			const dimensions = entries.get(expectation.dimensions) ?? '';
-			expect(dimensions).toBe(`${quantitativeValue(structuredData, 'height')} × ${quantitativeValue(structuredData, 'width')} cm`);
+			expect(dimensions).toBe(`${quantitativeValue(structuredData, 'height')} × ${quantitativeValue(structuredData, 'width')} ${expectation.centimeterUnit}`);
+			expect((structuredData.height as Record<string, unknown>).unitText).toBe(expectation.centimeterUnit);
+			expect((structuredData.width as Record<string, unknown>).unitText).toBe(expectation.centimeterUnit);
 
 			const statusLabels = [
 				expectation.availabilityAvailable,
@@ -461,6 +691,19 @@ function readArtworkJsonLd(html: string): Record<string, unknown> {
 	const script = /<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/iu.exec(html)?.[1];
 	expect(script).toBeDefined();
 	return JSON.parse(script ?? '{}') as Record<string, unknown>;
+}
+
+function readJsonLd(html: string): Record<string, unknown> {
+	const script = /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/iu.exec(html)?.[1];
+	expect(script).toBeDefined();
+	return JSON.parse(script ?? '{}') as Record<string, unknown>;
+}
+
+function escapeHtmlText(value: string): string {
+	return value
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;');
 }
 
 function extractTechnicalSheetEntries(html: string): Map<string, string> {

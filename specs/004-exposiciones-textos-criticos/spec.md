@@ -1,5 +1,5 @@
 # Spec 004 — Exposiciones y textos críticos
-Estado: aprobada
+Estado: implementada
 
 ## Contexto y objetivo
 
@@ -41,7 +41,7 @@ Esta spec amplía la presentación pública: las fichas de obra conservan el tex
 - **RF-8. Listados vacíos.** SI no hay exposiciones visibles o no hay textos críticos visibles en el idioma solicitado, ENTONCES EL SISTEMA mantendrá accesible el listado correspondiente y mostrará un mensaje funcional localizado que no se presente como contenido del artista. EL SISTEMA no recurrirá a contenido del otro idioma.
 - **RF-9. Versiones lingüísticas.** CUANDO una exposición o un texto crítico tenga versiones publicadas en ambos idiomas, EL SISTEMA permitirá pasar a la versión equivalente y declarará esa relación lingüística. SI no existe una versión publicada en el otro idioma, ENTONCES EL SISTEMA omitirá el enlace y la relación hacia esa versión, sin fallback.
 - **RF-10. Páginas no visibles.** SI se solicita una página propia que no está publicada, completa o disponible en el idioma solicitado, o que no existe, ENTONCES EL SISTEMA responderá con la página 404 definida en la spec 000, sin mostrar contenido incompleto ni redirigir a otro idioma.
-- **RF-11. Metadatos para buscadores.** CUANDO EL SISTEMA publique un listado o una página propia, EL SISTEMA ofrecerá un título de página único e identificable en el idioma correspondiente. Para los listados, EL SISTEMA usará una descripción funcional localizada del tipo de contenido, no atribuida al artista. Para una exposición, EL SISTEMA formará una descripción específica a partir de su título, lugar y fechas publicados. Para un texto crítico, EL SISTEMA usará el comienzo de su cuerpo publicado, con un máximo de 155 caracteres y terminando en el último límite de palabra que no supere esa longitud. SI falta contenido para el idioma actual, ENTONCES EL SISTEMA no usará contenido del otro idioma ni inventará contenido editorial.
+- **RF-11. Metadatos para buscadores.** CUANDO EL SISTEMA publique un listado o una página propia, EL SISTEMA ofrecerá un título de página único e identificable en el idioma correspondiente. Para los listados, EL SISTEMA usará una descripción funcional localizada del tipo de contenido, no atribuida al artista. Para una exposición, EL SISTEMA formará una descripción específica a partir de su título, lugar y fechas publicados. Para un texto crítico, EL SISTEMA usará el comienzo de su cuerpo publicado, con un máximo de 155 caracteres y terminando en el último límite de palabra que no supere esa longitud. SI el primer término del cuerpo supera por sí solo los 155 caracteres y no existe un límite de palabra admisible, ENTONCES EL SISTEMA omitirá la meta description en vez de cortar el término o exceder el límite. SI falta contenido para el idioma actual, ENTONCES EL SISTEMA no usará contenido del otro idioma ni inventará contenido editorial.
 - **RF-12. Datos estructurados.** CUANDO EL SISTEMA publique una página propia, EL SISTEMA proporcionará datos estructurados que representen el tipo de contenido y únicamente los hechos publicados de esa exposición o texto crítico, incluidos los datos lingüísticos y las relaciones visibles aplicables. EL SISTEMA no inferirá datos ausentes ni añadirá afirmaciones comerciales.
 - **RF-13. Sitemaps y relaciones de idioma.** CUANDO un listado o una página propia esté visible en un idioma, EL SISTEMA incluirá su dirección pública en el sitemap correspondiente. EL SISTEMA declarará alternates de idioma solo para versiones publicadas. EL SISTEMA incluirá la imagen de una exposición en el sitemap de imágenes únicamente cuando exista y sea válida; no incluirá imágenes ausentes ni contenido no visible.
 - **RF-14. Estado de las obras relacionadas.** CUANDO una exposición o texto crítico enlace a una obra visible, EL SISTEMA mantendrá el enlace con independencia de que la disponibilidad del original sea `disponible`, `reservada`, `vendida` o `en colección`. La ficha de la obra seguirá mostrando su estado como texto según la spec 003; esta spec no ofrecerá acciones de adquisición.
@@ -49,9 +49,9 @@ Esta spec amplía la presentación pública: las fichas de obra conservan el tex
 
 ## Requisitos no funcionales
 
-- **RNF-1. i18n.** Los listados, las páginas propias, las fechas y los mensajes funcionales estarán localizados en español e inglés. No habrá fallback de contenido; los enlaces entre idiomas solo apuntarán a versiones publicadas.
-- **RNF-2. Accesibilidad.** Las páginas cumplirán WCAG 2.2 nivel AA, con contraste mínimo de 4.5:1 para texto normal y 3:1 para texto grande. Los listados y relaciones serán navegables mediante teclado y tendrán enlaces identificables; las imágenes tendrán texto alternativo conforme a la spec 001.
-- **RNF-3. Diseño y responsive.** La presentación respetará los patrones y tokens de diseño acordados, sin introducir patrones visuales ni tokens nuevos. El contenido será legible y navegable en móvil, tablet y escritorio, sin solapamientos, recortes ni desplazamiento horizontal.
+- **RNF-1. i18n.** Los listados, las páginas propias, las fechas, las unidades visibles de la ficha técnica y los mensajes funcionales estarán localizados en español e inglés. No habrá fallback de contenido; los enlaces entre idiomas solo apuntarán a versiones publicadas.
+- **RNF-2. Accesibilidad.** Las páginas cumplirán WCAG 2.2 nivel AA, con contraste mínimo de 4.5:1 para texto normal y 3:1 para texto grande. Las páginas ofrecerán un enlace de salto al contenido principal, visible al recibir foco de teclado. Los listados y relaciones serán navegables mediante teclado y tendrán enlaces identificables; las imágenes tendrán texto alternativo conforme a la spec 001.
+- **RNF-3. Diseño y responsive.** La presentación respetará los patrones y tokens de diseño acordados, sin introducir patrones visuales ni tokens nuevos. Las familias tipográficas definidas en `design/tokens.md` estarán disponibles en las páginas públicas sin depender de fuentes instaladas en el dispositivo. El contenido será legible y navegable en móvil, tablet y escritorio, sin solapamientos, recortes ni desplazamiento horizontal.
 - **RNF-4. Contenido público.** El contenido principal estará disponible para personas y buscadores sin depender de interacciones del navegador.
 - **RNF-5. SEO.** Los títulos, las descripciones, las relaciones de idioma, los datos estructurados y los sitemaps reflejarán únicamente las páginas y versiones publicadas. Las direcciones canónicas y las relaciones lingüísticas corresponderán a la versión actual y a sus equivalentes existentes.
 - **RNF-6. Imágenes.** Las imágenes opcionales de exposición se mostrarán en representaciones optimizadas y adecuadas a la pantalla, con dimensiones declaradas y texto alternativo localizado válido; nunca se mostrará el original a máxima resolución.
@@ -73,6 +73,7 @@ Esta spec amplía la presentación pública: las fichas de obra conservan el tex
 | No hay contenido visible en uno de los listados | El listado permanece accesible y muestra el mensaje funcional localizado; no muestra contenido del otro idioma ni contenido atribuido al artista. |
 | Se solicita una página propia inexistente, retirada, incompleta o no publicada en el idioma solicitado | Se muestra la página 404, sin contenido de otro idioma ni redirección. |
 | Una meta description de texto crítico supera 155 caracteres | Se conserva el texto hasta el último límite de palabra que no supere 155 caracteres. |
+| El primer término de un texto crítico supera 155 caracteres sin un límite de palabra admisible | Se omite la meta description; no se parte el término ni se exceden 155 caracteres. |
 
 ## Fuera de alcance
 
@@ -86,18 +87,18 @@ Esta spec amplía la presentación pública: las fichas de obra conservan el tex
 
 ## Criterios de finalización
 
-- [ ] Existen listados públicos de exposiciones y textos críticos en cada idioma; cada listado muestra únicamente las versiones visibles en ese idioma.
-- [ ] El listado de exposiciones muestra título, lugar y fechas existentes, ordena por fecha de inicio descendente y enlaza a páginas propias visibles.
-- [ ] El listado de textos críticos muestra título y autor, ordena alfabéticamente por título y no muestra extractos del cuerpo.
-- [ ] Las páginas propias muestran el contenido publicado completo requerido; las imágenes opcionales ausentes o inválidas no bloquean exposiciones.
-- [ ] Las relaciones de una página propia enlazan únicamente asociaciones confirmadas con destinos visibles en el mismo idioma; las fichas de obra conservan el texto completo y enlazan a la página propia del texto crítico.
-- [ ] Listados vacíos y versiones lingüísticas ausentes se comportan según esta spec, sin fallback ni contenido inventado.
-- [ ] Las páginas no visibles o inexistentes responden con la 404 definida, sin redirección ni contenido parcial.
-- [ ] Títulos, descripciones, datos estructurados, alternates y sitemaps describen solo contenido publicado y respetan las reglas de esta spec.
-- [ ] Las imágenes opcionales válidas están optimizadas, tienen dimensiones y texto alternativo localizados, y solo aparecen en el sitemap de imágenes cuando existen.
-- [ ] Las páginas cumplen WCAG 2.2 AA, se verifican a 375, 768 y 1280 px y alcanzan los umbrales de Lighthouse definidos.
-- [ ] Las obras relacionadas conservan sus relaciones en los cuatro estados de disponibilidad; no se ofrecen compras ni acciones comerciales.
+- [x] Existen listados públicos de exposiciones y textos críticos en cada idioma; cada listado muestra únicamente las versiones visibles en ese idioma.
+- [x] El listado de exposiciones muestra título, lugar y fechas existentes, ordena por fecha de inicio descendente y enlaza a páginas propias visibles.
+- [x] El listado de textos críticos muestra título y autor, ordena alfabéticamente por título y no muestra extractos del cuerpo.
+- [x] Las páginas propias muestran el contenido publicado completo requerido; las imágenes opcionales ausentes o inválidas no bloquean exposiciones.
+- [x] Las relaciones de una página propia enlazan únicamente asociaciones confirmadas con destinos visibles en el mismo idioma; las fichas de obra conservan el texto completo y enlazan a la página propia del texto crítico.
+- [x] Listados vacíos y versiones lingüísticas ausentes se comportan según esta spec, sin fallback ni contenido inventado.
+- [x] Las páginas no visibles o inexistentes responden con la 404 definida, sin redirección ni contenido parcial.
+- [x] Títulos, descripciones, datos estructurados, alternates y sitemaps describen solo contenido publicado y respetan las reglas de esta spec.
+- [x] Las imágenes opcionales válidas están optimizadas, tienen dimensiones y texto alternativo localizados, y solo aparecen en el sitemap de imágenes cuando existen.
+- [x] Las páginas cumplen WCAG 2.2 AA, ofrecen enlace de salto al contenido principal, usan las familias tipográficas de diseño, se verifican a 375, 768 y 1280 px y alcanzan los umbrales de Lighthouse definidos.
+- [x] Las obras relacionadas conservan sus relaciones en los cuatro estados de disponibilidad; no se ofrecen compras ni acciones comerciales.
 
 ## Dudas abiertas
 
-- Ninguna para el alcance de este borrador. La spec requiere aprobación explícita antes de pasar a plan o implementación.
+- Ninguna. Los criterios de finalización se verificaron con pruebas automatizadas, Chrome DevTools y Lighthouse según el plan.

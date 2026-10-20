@@ -7,6 +7,7 @@
 - **2026-10-07:** se añade el mapeo normativo a variables `@theme` de Tailwind CSS v4; los nombres semánticos conservan los del export de Stitch y los valores siguen las decisiones vigentes.
 - **2026-10-08:** se actualiza la ruta del tema de Tailwind tras separar el repositorio en `web/` y `studio/`.
 - **2026-10-09:** se documenta el patrón aprobado para tarjetas de obra y directorio de series de Spec 002 (T7), sin añadir ni cambiar tokens.
+- **2026-10-20:** se documenta el patrón de enlace de salto y la entrega local de Bodoni Moda, Newsreader y Geist en WOFF2 con licencias SIL OFL 1.1; no cambian valores de `@theme`.
 
 ## Fuentes y criterio
 
@@ -51,6 +52,8 @@ La paleta original de HTML también define `#faba67` para `primary`/`surface-tin
 
 Familias enlazadas en los HTML exportados: **Bodoni Moda**, **Newsreader**, **Geist** y **Material Symbols Outlined** (iconografía). No se declara familia de respaldo.
 
+**Entrega tipográfica en web:** Bodoni Moda 400 normal/itálica, Newsreader 400 normal/itálica y Geist 400/500 se autoalojan en WOFF2 con subconjuntos Latin y Latin-Ext bajo `web/public/fonts/`. Se conserva `font-display: swap`; cada familia incluye su licencia SIL OFL 1.1. No se solicitan fuentes a terceros en runtime.
+
 | Estilo / uso | Familia | Tamaño | Peso | Interlineado | Tracking |
 |---|---|---:|---:|---:|---:|
 | `display-hero` — nombre en hero | Bodoni Moda | `5rem` | 400 | `5.25rem` | `-0.03em` |
@@ -81,6 +84,7 @@ Usos complementarios visibles: el autor y citas pueden ir en cursiva; el nombre 
 - **Cabecera (estimado a partir de la captura):** franja compacta sobre `surface-lowest`, con marca del artista a un lado y selector ES/EN al otro. Marca y selector usan los tokens tipográficos de etiqueta/título, texto sólido `on-surface` y selección activa `accent`. En móvil pueden ajustarse en varias líneas para evitar desbordamiento. No se deduce de la captura una navegación obligatoria.
 - **Pie (estimado a partir de la captura):** cierre de ancho completo sobre `surface-lowest`, separado del contenido por un divisor fino. La referencia sugiere agrupación editorial en columnas en escritorio y apilado en móvil; para la fundación se reduce a la marca del artista, sin inventar texto biográfico ni enlaces de navegación. Tipografía y colores proceden de los tokens de encabezado, etiqueta y texto.
 - **Cabecera / navegación:** la captura del portfolio muestra una franja de navegación oscura compacta con nombre/índice y enlaces pequeños en Geist uppercase. El fragmento HTML de portfolio no contiene esa cabecera global, así que su composición exacta queda **estimada solo visualmente**. En páginas de obra aparece una barra de breadcrumb: fondo `surface-lowest`, `gutter`, `space-sm` vertical y Geist técnico uppercase. Texto con token sólido y contraste AA; acciones sobre `surface-low`.
+- **Enlace de salto al contenido:** primer control del documento, oculto visualmente hasta recibir foco de teclado; enlaza al `<main>`. En foco se presenta con superficie `surface-container-lowest`, texto `on-surface`, outline `primary` y padding `space-md`; el patrón usa solo tokens existentes y texto ES/EN de i18n.
 - **Botón primario:** mide `h-11` (44 px), padding horizontal `space-md`, Geist técnico en mayúsculas, fondo `accent #c48b3c` y texto `on-accent #0e0e10` (6.52:1 sobre `#c48b3c`). Hover carmín cambia borde/superficie, no el color del texto; si el fondo pasa a `carmine-surface`, el texto hover es `secondary #ffb3ad` (5.28:1).
 - **Botón secundario:** fondo `surface-container` o `surface-low`, texto `on-surface`, Geist uppercase, padding compacto; hover hacia `surface-container-high` o superficie/borde carmín. El texto hover permanece `secondary`, sin opacidad.
 - **Filtros por corpus:** banda horizontal sobre `surface-lowest` con `gutter`, etiqueta “Serie activa”, filtro por corpus alineado al lado opuesto, Geist uppercase, estado activo en `accent` y separadores `/` decorativos. En anchura estrecha los controles hacen wrap.

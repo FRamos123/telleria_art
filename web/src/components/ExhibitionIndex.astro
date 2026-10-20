@@ -1,0 +1,92 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+
+interface ExhibitionEntry {
+	id: string;
+	title: string;
+	venue: string;
+	startDate: string;
+	endDate?: string;
+	href: string;
+}
+
+interface Props {
+	locale: Locale;
+	exhibitions: readonly ExhibitionEntry[];
+}
+
+const { locale, exhibitions } = Astro.props;
+const messages = getMessages(locale);
+const dateFormatter = new Intl.DateTimeFormat(locale, {
+	dateStyle: 'long',
+	timeZone: 'UTC',
+});
+const formatDate = (date: string) => dateFormatter.format(new Date(`${date}T00:00:00Z`));
+const entries = exhibitions.flatMap((exhibition) => {
+	const id = exhibition.id.trim();
+	const title = exhibition.title.trim();
+	const venue = exhibition.venue.trim();
+	const href = exhibition.href.trim();
+	return id && title && venue && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...exhibition, id, title, venue, href }]
+		: [];
+});
+---
+
+<section
+	aria-labelledby="exhibitions-index-title"
+	class="mx-auto w-full max-w-7xl px-margin-mobile py-space-lg tablet:px-gutter-mobile desktop:px-gutter"
+>
+	<h1
+		id="exhibitions-index-title"
+		class="mb-space-lg mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+	>
+		{messages.exhibitionsTitle}
+	</h1>
+
+	{entries.length > 0 ? (
+		<ul class="m-0 list-none p-0">
+			{entries.map((exhibition) => (
+				<li class="border-b border-surface-variant py-space-md">
+					<article>
+						<h2 class="m-0 break-words font-headline-sm text-headline-sm text-on-surface">
+							<a
+								class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href={exhibition.href}
+							>
+								{exhibition.title}
+							</a>
+						</h2>
+
+						<dl class="mb-0 mt-space-sm grid grid-cols-1 gap-y-space-sm">
+							<div>
+								<dt class="font-label-caption text-label-caption text-on-surface-variant">
+									{messages.exhibitionVenue}
+								</dt>
+								<dd class="m-0 font-body-md text-body-md text-on-surface">
+									{exhibition.venue}
+								</dd>
+							</div>
+							<div>
+								<dt class="font-label-caption text-label-caption text-on-surface-variant">
+									{messages.exhibitionDates}
+								</dt>
+								<dd class="m-0 font-body-md text-body-md text-on-surface">
+									<time datetime={exhibition.startDate}>{formatDate(exhibition.startDate)}</time>
+									{exhibition.endDate && (
+										<> – <time datetime={exhibition.endDate}>{formatDate(exhibition.endDate)}</time></>
+									)}
+								</dd>
+							</div>
+						</dl>
+					</article>
+				</li>
+			))}
+		</ul>
+	) : (
+		<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+			{messages.exhibitionsEmpty}
+		</p>
+	)}
+</section>

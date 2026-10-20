@@ -1,0 +1,72 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+
+interface CriticalTextEntry {
+	title: string;
+	author: string;
+	href: string;
+}
+
+interface Props {
+	locale: Locale;
+	criticalTexts: readonly CriticalTextEntry[];
+}
+
+const { locale, criticalTexts } = Astro.props;
+const messages = getMessages(locale);
+const entries = criticalTexts.flatMap((text) => {
+	const title = text.title.trim();
+	const author = text.author.trim();
+	const href = text.href.trim();
+	return title && author && href.startsWith('/') && !href.startsWith('//')
+		? [{ title, author, href }]
+		: [];
+});
+---
+
+<section
+	aria-labelledby="critical-texts-index-title"
+	class="mx-auto w-full max-w-7xl px-margin-mobile py-space-lg tablet:px-gutter-mobile desktop:px-gutter"
+>
+	<h1
+		id="critical-texts-index-title"
+		class="mb-space-lg mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+	>
+		{messages.criticalTextsTitle}
+	</h1>
+
+	{entries.length > 0 ? (
+		<ul class="m-0 list-none p-0">
+			{entries.map((text) => (
+				<li class="border-b border-surface-variant py-space-md">
+					<article>
+						<h2 class="m-0 break-words font-headline-sm text-headline-sm text-on-surface">
+							<a
+								class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href={text.href}
+							>
+								{text.title}
+							</a>
+						</h2>
+
+						<dl class="mb-0 mt-space-sm grid grid-cols-1 gap-y-space-sm">
+							<div>
+								<dt class="font-label-caption text-label-caption text-on-surface-variant">
+									{messages.criticalTextAuthor}
+								</dt>
+								<dd class="m-0 break-words font-body-md text-body-md italic text-on-surface-variant">
+									{text.author}
+								</dd>
+							</div>
+						</dl>
+					</article>
+				</li>
+			))}
+		</ul>
+	) : (
+		<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+			{messages.criticalTextsEmpty}
+		</p>
+	)}
+</section>

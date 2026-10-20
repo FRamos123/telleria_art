@@ -1,4 +1,5 @@
 import { createResponsiveImage, type ResponsiveImageOptions, type SanityImageProjection } from './sanity/image-url';
+import type { Locale } from '../i18n';
 
 interface ImageSitemapArtwork {
 	id: string;
@@ -9,10 +10,17 @@ interface ImageSitemapSeries {
 	id: string;
 }
 
+interface ImageSitemapExhibition {
+	id: string;
+	translations: Partial<Record<Locale, { image?: { assetId: string } }>>;
+}
+
 export interface ImageSitemapContent {
 	artworks: readonly ImageSitemapArtwork[];
 	series: readonly ImageSitemapSeries[];
 	seriesImageProjections: ReadonlyMap<string, SanityImageProjection>;
+	exhibitions: readonly ImageSitemapExhibition[];
+	exhibitionImageProjections: ReadonlyMap<string, SanityImageProjection>;
 }
 
 interface ImageSitemapEntry {
@@ -41,6 +49,28 @@ export function createImageSitemapXml(
 			});
 		} catch {
 			// A series image is optional; invalid projections are omitted without blocking the sitemap.
+		}
+	}
+
+	for (const exhibition of content.exhibitions) {
+		const projection = content.exhibitionImageProjections.get(exhibition.id);
+		if (!projection) continue;
+
+		for (const locale of ['es', 'en'] as const) {
+			const image = exhibition.translations[locale]?.image;
+			if (!image || image.assetId !== projection.asset._id) continue;
+
+			const pagePath = locale === 'es'
+				? `/exposiciones/${encodeURIComponent(exhibition.id)}/`
+				: `/en/exhibitions/${encodeURIComponent(exhibition.id)}/`;
+			try {
+				entries.push({
+					pagePath,
+					imageUrl: createResponsiveImage(projection, imageOptions).src,
+				});
+			} catch {
+				// Exhibition images are optional; invalid projections must not block the sitemap.
+			}
 		}
 	}
 

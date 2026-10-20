@@ -7,6 +7,7 @@ interface CriticalTextEntry {
 	title: string;
 	body: string;
 	author: string;
+	href: string;
 }
 
 interface Props {
@@ -31,7 +32,12 @@ const messages = getMessages(locale);
 							id={`artwork-critical-text-${text.id}-title`}
 							class="mb-space-xs mt-0 font-headline-sm text-headline-sm text-on-surface"
 						>
-							{text.title}
+							<a
+								class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href={text.href}
+							>
+								{text.title}
+							</a>
 						</h3>
 						<p class="mb-space-sm mt-0 font-body-md text-body-md italic text-on-surface-variant">
 							{text.author}

@@ -17,6 +17,16 @@ const spanishArtworkPage = readFileSync(new URL('../pages/obra/[artworkId].astro
 const englishArtworkPage = readFileSync(new URL('../pages/en/work/[artworkId].astro', import.meta.url), 'utf8');
 const spanishSeriesPagePath = new URL('../pages/series/[seriesId].astro', import.meta.url);
 const englishSeriesPagePath = new URL('../pages/en/series/[seriesId].astro', import.meta.url);
+const exhibitionIndexPath = new URL('./ExhibitionIndex.astro', import.meta.url);
+const spanishExhibitionIndexPagePath = new URL('../pages/exposiciones/index.astro', import.meta.url);
+const englishExhibitionIndexPagePath = new URL('../pages/en/exhibitions/index.astro', import.meta.url);
+const criticalTextIndexPath = new URL('./CriticalTextIndex.astro', import.meta.url);
+const spanishCriticalTextIndexPagePath = new URL('../pages/textos-criticos/index.astro', import.meta.url);
+const englishCriticalTextIndexPagePath = new URL('../pages/en/critical-texts/index.astro', import.meta.url);
+const criticalTextContentPath = new URL('./CriticalTextContent.astro', import.meta.url);
+const spanishCriticalTextPagePath = new URL('../pages/textos-criticos/[criticalTextId].astro', import.meta.url);
+const englishCriticalTextPagePath = new URL('../pages/en/critical-texts/[criticalTextId].astro', import.meta.url);
+const baseLayoutPath = new URL('../layouts/BaseLayout.astro', import.meta.url);
 const readOptionalComponent = (path: URL): string => {
 	try {
 		return readFileSync(path, 'utf8');
@@ -31,6 +41,16 @@ const artworkCatalog = readOptionalComponent(artworkCatalogPath);
 const seriesContent = readOptionalComponent(seriesContentPath);
 const spanishSeriesPage = readOptionalComponent(spanishSeriesPagePath);
 const englishSeriesPage = readOptionalComponent(englishSeriesPagePath);
+const exhibitionIndex = readOptionalComponent(exhibitionIndexPath);
+const spanishExhibitionIndexPage = readOptionalComponent(spanishExhibitionIndexPagePath);
+const englishExhibitionIndexPage = readOptionalComponent(englishExhibitionIndexPagePath);
+const criticalTextIndex = readOptionalComponent(criticalTextIndexPath);
+const spanishCriticalTextIndexPage = readOptionalComponent(spanishCriticalTextIndexPagePath);
+const englishCriticalTextIndexPage = readOptionalComponent(englishCriticalTextIndexPagePath);
+const criticalTextContent = readOptionalComponent(criticalTextContentPath);
+const spanishCriticalTextPage = readOptionalComponent(spanishCriticalTextPagePath);
+const englishCriticalTextPage = readOptionalComponent(englishCriticalTextPagePath);
+const baseLayout = readOptionalComponent(baseLayoutPath);
 
 const availabilityCases = [
 	{ availability: 'disponible', messageKey: 'availabilityAvailable', classEntry: "disponible: 'text-primary'", es: 'Disponible', en: 'Available' },
@@ -40,6 +60,157 @@ const availabilityCases = [
 ] as const;
 
 describe('catalog presentation components', () => {
+	it('renders exhibition entries as text-only, one-column links with localized fields and an empty message', () => {
+		expect(exhibitionIndex).toContain('entries.length > 0');
+		expect(exhibitionIndex).toContain('{messages.exhibitionsEmpty}');
+		expect(exhibitionIndex).toContain('{messages.exhibitionVenue}');
+		expect(exhibitionIndex).toContain('{messages.exhibitionDates}');
+		expect(exhibitionIndex).toContain('href={exhibition.href}');
+		expect(exhibitionIndex).toContain('border-b border-surface-variant');
+		expect(exhibitionIndex).toContain('focus-visible:outline-primary');
+		expect(exhibitionIndex).not.toContain('EditorialImage');
+		expect(exhibitionIndex).not.toMatch(/<(?:button|form)\b/i);
+	});
+
+	it('places a localized keyboard skip link before the header and targets main content', () => {
+		expect(baseLayout).toContain('href="#main-content"');
+		expect(baseLayout).toContain('{messages.skipToContent}');
+		expect(baseLayout).toContain('id="main-content"');
+		expect(baseLayout.indexOf('href="#main-content"')).toBeLessThan(baseLayout.indexOf('<SiteHeader'));
+		expect(baseLayout).toContain('sr-only');
+		expect(baseLayout).toContain('focus:not-sr-only');
+		expect(baseLayout).toContain('focus-visible:outline-primary');
+	});
+
+	it.each([
+		{
+			locale: 'es',
+			source: spanishExhibitionIndexPage,
+			canonicalPath: 'canonicalPath="/exposiciones/"',
+			alternatePath: "en: '/en/exhibitions/'",
+		},
+		{
+			locale: 'en',
+			source: englishExhibitionIndexPage,
+			canonicalPath: 'canonicalPath="/en/exhibitions/"',
+			alternatePath: "es: '/exposiciones/'",
+		},
+	])('prepares the published $locale exhibition index without a content fallback', ({ locale, source, canonicalPath, alternatePath }) => {
+		expect(source).toContain(`const locale = '${locale}' as const;`);
+		expect(source).toContain('sortExhibitionsForIndex');
+		expect(source).toContain('loadCatalogContent()');
+		expect(source).toContain(canonicalPath);
+		expect(source).toContain(alternatePath);
+		expect(source).toContain('messages.exhibitionsMetaDescription');
+		expect(source).toContain('<ExhibitionIndex locale={locale} exhibitions={exhibitions} />');
+	});
+
+	it('renders critical text index entries as localized title links with author and no body excerpts', () => {
+		expect(criticalTextIndex).toContain('entries.length > 0');
+		expect(criticalTextIndex).toContain('{messages.criticalTextsEmpty}');
+		expect(criticalTextIndex).toContain('messages.criticalTextAuthor');
+		expect(criticalTextIndex).toContain('href={text.href}');
+		expect(criticalTextIndex).toContain('{text.title}');
+		expect(criticalTextIndex).toContain('{text.author}');
+		expect(criticalTextIndex).toContain('border-b border-surface-variant');
+		expect(criticalTextIndex).toContain('focus-visible:outline-primary');
+		expect(criticalTextIndex).not.toContain('{text.body}');
+		expect(criticalTextIndex).not.toMatch(/<(?:button|form)\b/i);
+	});
+
+	it.each([
+		{
+			locale: 'es',
+			source: spanishCriticalTextIndexPage,
+			canonicalPath: 'canonicalPath="/textos-criticos/"',
+			alternatePath: "en: '/en/critical-texts/'",
+			detailPath: '`/textos-criticos/${encodeURIComponent(criticalText.id)}/`',
+		},
+		{
+			locale: 'en',
+			source: englishCriticalTextIndexPage,
+			canonicalPath: 'canonicalPath="/en/critical-texts/"',
+			alternatePath: "es: '/textos-criticos/'",
+			detailPath: '`/en/critical-texts/${encodeURIComponent(criticalText.id)}/`',
+		},
+	])('prepares the published $locale critical-text index without a content fallback', ({ locale, source, canonicalPath, alternatePath, detailPath }) => {
+		expect(source).toContain(`const locale = '${locale}' as const;`);
+		expect(source).toContain('sortCriticalTextsForIndex(');
+		expect(source).toContain('catalog.criticalTexts.filter((criticalText) => criticalText.translations[locale] !== undefined)');
+		expect(source).toContain(detailPath);
+		expect(source).toContain(canonicalPath);
+		expect(source).toContain(alternatePath);
+		expect(source).toContain('messages.criticalTextsMetaDescription');
+		expect(source).toContain('<CriticalTextIndex locale={locale} criticalTexts={criticalTexts} />');
+	});
+
+	it('presents the complete localized critical-text content and only non-empty visible relations', () => {
+		expect(criticalTextContent).toContain('{title}');
+		expect(criticalTextContent).toContain('{body}');
+		expect(criticalTextContent).toContain('{author}');
+		expect(criticalTextContent).toContain('{relatedArtworks.length > 0 && (');
+		expect(criticalTextContent).toContain('{relatedSeries.length > 0 && (');
+		expect(criticalTextContent).toContain('artworkIds.has(id)');
+		expect(criticalTextContent).toContain('seriesIds.has(id)');
+	});
+
+	it.each([
+		{
+			locale: 'es',
+			source: spanishCriticalTextPage,
+			canonicalPath: '`/textos-criticos/${encodeURIComponent(criticalText.id)}/`',
+			alternatePath: 'criticalText.translations.en',
+			artworkPath: '`/obra/${encodeURIComponent(artwork.id)}/`',
+			seriesPath: '`/series/${encodeURIComponent(series.id)}/`',
+		},
+		{
+			locale: 'en',
+			source: englishCriticalTextPage,
+			canonicalPath: '`/en/critical-texts/${encodeURIComponent(criticalText.id)}/`',
+			alternatePath: 'criticalText.translations.es',
+			artworkPath: '`/en/work/${encodeURIComponent(artwork.id)}/`',
+			seriesPath: '`/en/series/${encodeURIComponent(series.id)}/`',
+		},
+	])('generates only published $locale critical-text pages with localized visible relations', ({ locale, source, canonicalPath, alternatePath, artworkPath, seriesPath }) => {
+		const getStaticPaths = source.match(
+			/export async function getStaticPaths\(\) \{([\s\S]*?)\n\}/,
+		)?.[1] ?? '';
+
+		expect(getStaticPaths).toContain(`const locale = '${locale}' as const;`);
+		expect(getStaticPaths).toContain('criticalText.translations[locale]');
+		expect(getStaticPaths).toContain('if (!translation) return [];');
+		expect(getStaticPaths).toContain('translation.artworkIds.includes(artwork.id) && artworkTranslation');
+		expect(getStaticPaths).toContain('translation.seriesIds.includes(series.id) && seriesTranslation');
+		expect(getStaticPaths).toContain(artworkPath);
+		expect(getStaticPaths).toContain(seriesPath);
+		expect(source).toContain(canonicalPath);
+		expect(source).toContain(alternatePath);
+		expect(source).toContain('deriveCriticalTextMetaDescription(translation.body)');
+		expect(source).toContain('description={description || undefined}');
+		expect(source).toContain('<CriticalTextContent');
+		expect(source).toContain('criticalText={criticalText}');
+	});
+
+	it.each([
+		{ locale: 'es', source: spanishCriticalTextPage },
+		{ locale: 'en', source: englishCriticalTextPage },
+	])('emits factual Article JSON-LD in $locale without inferring an author type', ({ locale, source }) => {
+		const structuredDataStart = source.indexOf('const relatedWorks = [');
+		const structuredDataEnd = source.indexOf('const articleJsonLd');
+		const structuredData = source.slice(structuredDataStart, structuredDataEnd);
+
+		expect(source).toContain('<script type="application/ld+json" set:html={articleJsonLd} />');
+		expect(structuredData).toContain("'@type': 'Article'");
+		expect(structuredData).toContain('headline: translation.title');
+		expect(structuredData).toContain('articleBody: translation.body');
+		expect(structuredData).toContain('author: translation.author');
+		expect(structuredData).toContain(`inLanguage: locale`);
+		expect(structuredData).toContain('visibleArtworks.map');
+		expect(structuredData).toContain('visibleSeries.map');
+		expect(structuredData).not.toMatch(/'@type': '(?:Person|Organization)'/);
+		expect(source).toContain("replaceAll('<', '\\\\u003c')");
+	});
+
 	it.each([
 		{ locale: 'es', source: spanishSeriesPage },
 		{ locale: 'en', source: englishSeriesPage },
@@ -67,7 +238,7 @@ describe('catalog presentation components', () => {
 		expect(artworkContent).toContain('heightCm={artwork.heightCm}');
 		expect(artworkContent).toContain('widthCm={artwork.widthCm}');
 		expect(artworkContent).toContain('year={artwork.year}');
-		expect(artworkTechnicalSheet).toContain('format(heightCm)} × ${numberFormat.format(widthCm)} cm');
+		expect(artworkTechnicalSheet).toContain('format(heightCm)} × ${numberFormat.format(widthCm)} ${messages.centimeterUnit}');
 		expect(artworkContent).not.toContain('catalogLine');
 		expect(artworkContent).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
 	});
@@ -88,6 +259,30 @@ describe('catalog presentation components', () => {
 		expect(artworkContent).toContain('return title && body && author');
 		expect(artworkContent).toContain('<ArtworkCriticalTexts texts={relatedCriticalTexts} locale={locale} />');
 		expect(artworkContent).not.toContain('visibleCriticalTexts');
+	});
+
+	it('links each selected critical-text title to its same-locale detail and keeps body and author', () => {
+		expect(artworkContent).toContain("locale === 'es'");
+		expect(artworkContent).toContain('`/textos-criticos/${encodeURIComponent(criticalText.id)}/`');
+		expect(artworkContent).toContain('`/en/critical-texts/${encodeURIComponent(criticalText.id)}/`');
+		expect(artworkContent).toContain('author, href');
+		expect(artworkCriticalTexts).toContain('href={text.href}');
+		expect(artworkCriticalTexts).toContain('{text.title}');
+		expect(artworkCriticalTexts).toContain('{text.author}');
+		expect(artworkCriticalTexts).toContain('{text.body}');
+		expect(artworkCriticalTexts).toContain('focus-visible:outline-primary');
+		expect(artworkCriticalTexts).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir)\b/i);
+	});
+
+	it('gets the visible centimeter suffix and structured unit text from i18n', () => {
+		expect(artworkTechnicalSheet).toContain('messages.centimeterUnit');
+		expect(artworkTechnicalSheet).not.toContain('widthCm)} cm`');
+
+		const structuredDataStart = artworkContent.indexOf('const visualArtwork = {');
+		const structuredDataEnd = artworkContent.indexOf('const visualArtworkJsonLd');
+		const structuredData = artworkContent.slice(structuredDataStart, structuredDataEnd);
+		expect(structuredData).toContain('unitText: messages.centimeterUnit');
+		expect(structuredData).toContain("unitCode: 'CMT'");
 	});
 
 	it('presents critical text title, body, and author without rendering an empty section', () => {
@@ -199,6 +394,7 @@ describe('catalog presentation components', () => {
 		expect(availabilityLabel).toContain(classEntry);
 		expect(artworkCard).toContain('<AvailabilityLabel availability={artwork.availability} locale={locale} />');
 		expect(artworkCard).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir)\b/i);
+		expect(artworkCriticalTexts).toContain('href={text.href}');
 	});
 
 	it('renders a linked artwork card with only its image, title, year, and textual availability', () => {

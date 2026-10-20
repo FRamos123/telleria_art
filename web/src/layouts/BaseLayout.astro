@@ -37,8 +37,14 @@ const languagePaths: Partial<Record<Locale, string>> = {
 	</head>
 	<body class="m-0 min-h-screen bg-surface-container-lowest font-body-md text-on-surface">
 		<div class="flex min-h-screen flex-col">
+			<a
+				class="sr-only focus:not-sr-only focus:block focus:bg-surface-container-lowest focus:px-space-md focus:py-space-sm focus:font-label-technical focus:text-label-technical focus:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				href="#main-content"
+			>
+				{messages.skipToContent}
+			</a>
 			<SiteHeader locale={locale} messages={messages} languagePaths={languagePaths} />
-			<main class="flex-1">
+			<main id="main-content" class="flex-1">
 				<slot />
 			</main>
 			<SiteFooter messages={messages} />

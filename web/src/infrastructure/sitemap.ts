@@ -8,6 +8,8 @@ type SitemapEntity = {
 type SitemapContent = {
 	artworks: readonly SitemapEntity[];
 	series: readonly SitemapEntity[];
+	exhibitions: readonly SitemapEntity[];
+	criticalTexts: readonly SitemapEntity[];
 };
 
 type SitemapPage = {
@@ -21,11 +23,19 @@ export function createSitemapXml(content: SitemapContent, siteUrl: URL): string 
 	const pages: SitemapPage[] = [];
 	addLocalizedPages(pages, { es: '/', en: '/en/' });
 	addLocalizedPages(pages, { es: '/obras/', en: '/en/works/' });
+	addLocalizedPages(pages, { es: '/exposiciones/', en: '/en/exhibitions/' });
+	addLocalizedPages(pages, { es: '/textos-criticos/', en: '/en/critical-texts/' });
 	addEntityPages(pages, content.series, (id, locale) =>
 		locale === 'es' ? `/series/${id}/` : `/en/series/${id}/`,
 	);
 	addEntityPages(pages, content.artworks, (id, locale) =>
 		locale === 'es' ? `/obra/${id}/` : `/en/work/${id}/`,
+	);
+	addEntityPages(pages, content.exhibitions, (id, locale) =>
+		locale === 'es' ? `/exposiciones/${id}/` : `/en/exhibitions/${id}/`,
+	);
+	addEntityPages(pages, content.criticalTexts, (id, locale) =>
+		locale === 'es' ? `/textos-criticos/${id}/` : `/en/critical-texts/${id}/`,
 	);
 
 	const urls = pages

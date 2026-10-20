@@ -1,0 +1,100 @@
+---
+import CriticalTextContent from '../../../components/CriticalTextContent.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { deriveCriticalTextMetaDescription } from '../../../domain/catalog-presentation';
+import { getMessages, type Locale } from '../../../i18n';
+import { loadCatalogContent } from '../../../infrastructure/sanity/catalog-content';
+
+const locale: Locale = 'en';
+
+export async function getStaticPaths() {
+	const locale = 'en' as const;
+	const catalog = await loadCatalogContent();
+
+	return catalog.criticalTexts.flatMap((criticalText) => {
+		const translation = criticalText.translations[locale];
+		if (!translation) return [];
+
+		const visibleArtworks = catalog.artworks.flatMap((artwork) => {
+			const artworkTranslation = artwork.translations[locale];
+			return translation.artworkIds.includes(artwork.id) && artworkTranslation
+				? [{
+					id: artwork.id,
+					title: artworkTranslation.title,
+					href: `/en/work/${encodeURIComponent(artwork.id)}/`,
+				}]
+				: [];
+		});
+		const visibleSeries = catalog.series.flatMap((series) => {
+			const seriesTranslation = series.translations[locale];
+			return translation.seriesIds.includes(series.id) && seriesTranslation
+				? [{
+					id: series.id,
+					title: seriesTranslation.name,
+					href: `/en/series/${encodeURIComponent(series.id)}/`,
+				}]
+				: [];
+		});
+
+		return [{
+			params: { criticalTextId: criticalText.id },
+			props: { criticalText, visibleArtworks, visibleSeries },
+		}];
+	});
+}
+
+const { criticalText, visibleArtworks, visibleSeries } = Astro.props;
+const messages = getMessages(locale);
+const translation = criticalText.translations[locale];
+const criticalTextPath = `/en/critical-texts/${encodeURIComponent(criticalText.id)}/`;
+const alternatePaths: Partial<Record<Locale, string>> = {
+	...(criticalText.translations.es
+		? { es: `/textos-criticos/${encodeURIComponent(criticalText.id)}/` }
+		: {}),
+	...(criticalText.translations.en ? { en: criticalTextPath } : {}),
+};
+const siteUrl = Astro.site ?? new URL('https://telleria-art.pages.dev');
+const canonicalUrl = new URL(criticalTextPath, siteUrl).href;
+const title = `${translation.title} — ${messages.criticalTextsTitle}`;
+const description = deriveCriticalTextMetaDescription(translation.body);
+const relatedWorks = [
+	...visibleArtworks.map((artwork) => ({
+		'@type': 'VisualArtwork',
+		name: artwork.title,
+		url: new URL(artwork.href, siteUrl).href,
+	})),
+	...visibleSeries.map((series) => ({
+		'@type': 'CreativeWorkSeries',
+		name: series.title,
+		url: new URL(series.href, siteUrl).href,
+	})),
+];
+const article = {
+	'@context': 'https://schema.org',
+	'@type': 'Article',
+	'@id': canonicalUrl,
+	url: canonicalUrl,
+	headline: translation.title,
+	articleBody: translation.body,
+	author: translation.author,
+	inLanguage: locale,
+	...(relatedWorks.length > 0 ? { about: relatedWorks } : {}),
+};
+const articleJsonLd = JSON.stringify(article).replaceAll('<', '\\u003c');
+---
+
+<BaseLayout
+	locale={locale}
+	title={title}
+	description={description || undefined}
+	canonicalPath={criticalTextPath}
+	alternatePaths={alternatePaths}
+>
+	<script type="application/ld+json" set:html={articleJsonLd} />
+	<CriticalTextContent
+		criticalText={criticalText}
+		locale={locale}
+		visibleArtworks={visibleArtworks}
+		visibleSeries={visibleSeries}
+	/>
+</BaseLayout>

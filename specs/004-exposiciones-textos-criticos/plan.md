@@ -1,6 +1,6 @@
 # Plan 004 — Exposiciones y textos críticos
 
-Spec de referencia: `spec.md` (**Estado: aprobada**, sin dudas abiertas). Su última frase conserva una referencia al borrador y a la aprobación pendiente; se toma el estado explícito como vigente y esa frase como texto residual. Este plan debe aprobarse antes de redactar tareas o implementar.
+Spec de referencia: `spec.md` (**Estado: implementada**, sin dudas abiertas). Plan aprobado y ejecutado mediante T1–T15 de `tasks.md`.
 
 ## Alcance y dependencias
 
@@ -41,8 +41,12 @@ Spec de referencia: `spec.md` (**Estado: aprobada**, sin dudas abiertas). Su úl
 | `web/src/components/ArtworkContent.astro` | Añadir a cada texto crítico visible una dirección a su página propia en el idioma actual; conservar cuerpo, título y autoría actuales. | RF-7, RF-9, RF-15 |
 | `web/src/components/ArtworkCriticalTexts.astro` | Convertir el título ya presentado en enlace identificable y con foco visible, manteniendo cuerpo y autor. | RF-7, RNF-2–RNF-3 |
 | `web/src/components/catalog-components.test.ts` | Verificar selección localizada de textos críticos y el enlace a la versión propia sin eliminar el contenido incluido en la ficha. | RF-7, RF-9, RNF-1–RNF-3 |
-| `web/src/i18n/es.ts`, `web/src/i18n/en.ts` | Añadir títulos, descripciones funcionales, etiquetas y mensajes de listado vacío en ambos idiomas. | RF-1–RF-5, RF-8–RF-9, RF-11, RNF-1 |
+| `web/src/i18n/es.ts`, `web/src/i18n/en.ts` | Añadir títulos, descripciones funcionales, etiquetas, unidad de centímetros y mensajes de listado vacío en ambos idiomas. | RF-1–RF-5, RF-8–RF-9, RF-11, RNF-1 |
 | `web/src/i18n/messages.test.ts` | Comprobar paridad y presencia no vacía de todos los mensajes nuevos en ES/EN. | RF-8–RF-9, RNF-1 |
+| `web/src/layouts/BaseLayout.astro` | Añadir un enlace de salto localizado al contenido principal, oculto visualmente hasta recibir foco de teclado. | RNF-2 |
+| `web/src/components/ArtworkTechnicalSheet.astro`, `web/src/components/ArtworkContent.astro` | Obtener de i18n la unidad visible `cm`; mantener `CMT` como código técnico de Schema.org. | RNF-1 |
+| `web/src/styles/global.css` | Declarar fuentes locales WOFF2 mediante `@font-face` y `font-display: swap` para los nombres ya existentes en `@theme`. | RNF-3, RNF-7 |
+| `web/public/fonts/` | Alojar los estilos WOFF2 necesarios de Bodoni Moda, Newsreader y Geist en Latin/Latin-Ext, junto con sus licencias SIL OFL 1.1. | RNF-3, RNF-7 |
 | `web/src/infrastructure/sitemap.ts` | Incluir siempre los cuatro listados y solo las páginas propias con traducción publicada, usando alternates solo para versiones generadas. | RF-9, RF-13 |
 | `web/src/infrastructure/sitemap.test.ts` | Comprobar listados vacíos, rutas de exposición/texto y alternates solo para idiomas existentes. | RF-9, RF-13 |
 | `web/src/infrastructure/image-sitemap.ts` | Añadir la imagen de exposición solo en las versiones lingüísticas cuya traducción conserve una imagen válida, asociando cada entrada a la página donde esa imagen se muestra. | RF-3, RF-13 |
@@ -62,7 +66,7 @@ Spec de referencia: `spec.md` (**Estado: aprobada**, sin dudas abiertas). Su úl
 | `web/src/infrastructure/seo-metadata-build-gate.mjs`, `web/src/domain/catalog-presentation.ts` | La puerta ya recorre todas las páginas HTML generadas y detiene el build ante títulos o descripciones repetidos; debe cubrir también las nuevas páginas sin añadir otra integración. | RF-11, RNF-5 |
 | `web/src/pages/404.astro` y endpoints estáticos de sitemap | Mantener la 404 existente; los endpoints actuales consumirán las nuevas colecciones a través del loader extendido y los generadores ampliados. | RF-10, RF-13 |
 
-No se prevén cambios en `studio/`, `web/src/styles/global.css`, `web/astro.config.mjs`, dependencias ni datos de Sanity.
+No se prevén cambios en `studio/`, `web/astro.config.mjs`, dependencias ni schemas de Sanity. La tipografía se autoalojará en `web/public/fonts/`; no habrá solicitudes a proveedores de fuentes durante la navegación.
 
 ## Modelo de dominio y mappers
 
@@ -102,6 +106,8 @@ durante el build:
       filtrar relaciones y emitir solo enlaces a destinos visibles del mismo idioma
       derivar description de los primeros 155 caracteres del cuerpo,
         cerrando en el último límite de palabra admisible
+      si el primer término supera por sí solo 155 caracteres sin límite admisible,
+        omitir description en vez de cortar el término o exceder el límite
       crear title, canonical y alternates de versiones existentes
       serializar datos estructurados factuales y escapados
 
@@ -117,13 +123,16 @@ durante el build:
 
 - **Páginas propias:** reutilizar sin cambios `ExhibitionContent.astro` y `CriticalTextContent.astro`. Ya implementan jerarquía de títulos, relaciones con secciones etiquetadas, fechas localizadas, adaptación responsive y omisión de imagen/bloques vacíos.
 - **Listados:** dos componentes pequeños, uno por tipo. Usarán listas semánticas de enlaces identificables, no tarjetas comerciales ni imágenes. Exposiciones muestran título, lugar y fechas; textos críticos, título y autor, sin extractos.
+- **Unidad visible:** el sufijo de centímetros de la ficha técnica procede de i18n en ES/EN; `CMT` permanece como código técnico en Schema.org. Los códigos estándar `ES`/`EN` del selector no se incorporan a i18n.
+- **Enlace de salto:** será el primer control del documento, quedará visualmente oculto hasta recibir foco, apuntará a `<main id="main-content">` y usará colores, tipografía y espaciado existentes. Su texto se obtiene de i18n en ES/EN.
+- **Fuentes:** autoalojar WOFF2 con subconjuntos Latin/Latin-Ext para Bodoni Moda (400 normal/italic), Newsreader (400 normal/italic) y Geist (400/500). Incluir licencias SIL OFL 1.1, usar `font-display: swap` y no hacer solicitudes a fuentes externas en runtime.
 - **Patrón propuesto:** reutilizar la lista de relaciones ya presente en las páginas de exposición/texto y el directorio de series. Separadores decorativos `surface-variant`, texto principal `on-surface`, texto secundario `on-surface-variant`, títulos `headline-sm`/`headline-md`, datos `body-md` y etiquetas `label-technical`/`label-caption`; espaciado `space-sm`, `space-md`, `space-lg`, `gutter-mobile`, `gutter` y márgenes existentes. El lienzo usa `surface-container-lowest`; no se añaden superficies, colores, radios ni tokens.
 - **Texto crítico en ficha de obra:** convertir el título existente en enlace con foco visible usando el patrón de enlace ya presente; mantener tipografía y estructura para minimizar el cambio de layout.
 - **Responsive:** mobile-first, una columna bajo 768 px, tablet desde 768 px y escritorio desde 1280 px. Títulos y autores largos deben envolver sin recortes ni scroll horizontal. No se añade JavaScript de cliente.
 - **Imágenes de exposición:** reutilizar `EditorialImage` y el CDN existente, con AVIF/WebP según capacidad configurada, tamaños responsive, dimensiones explícitas y alt localizado. La imagen principal visible en la página puede cargarse de forma inmediata; imágenes que no sean principales, de forma diferida.
 - **Tokens usados:** `surface-container-lowest`, `surface-variant`, `on-surface`, `on-surface-variant`, `headline-lg-mobile`, `headline-lg`, `headline-md`, `headline-sm`, `body-lg`, `body-md`, `label-technical`, `label-caption`, `space-sm/md/lg`, gutters responsive y breakpoints `tablet`/`desktop`. Texto siempre opaco y con contraste AA.
 
-El patrón exacto de listado editorial no está definido literalmente en `design/tokens.md`. Antes de implementar, revisar y aprobar la composición propuesta; si se considera un patrón nuevo en lugar de una reutilización del directorio/lista de relaciones, actualizar primero `design/tokens.md` y su changelog.
+El patrón de listado editorial de una columna fue aprobado en T3 y se reutiliza. El patrón de enlace de salto fue aprobado tras la auditoría y se documentará en `design/tokens.md` con changelog antes de implementarlo; no se crearán valores nuevos de tokens.
 
 ## Decisiones técnicas
 
@@ -133,6 +142,9 @@ El patrón exacto de listado editorial no está definido literalmente en `design
 | Usar IDs estables en las rutas propuestas. | Las cuatro entidades tienen ID y el proyecto ya los usa para obras/series; no requiere migraciones ni nuevos campos. | Añadir slugs al CMS o construir URLs desde títulos que pueden repetirse/cambiar. |
 | Extender `loadCatalogContent` y reutilizar `mapSanityContent`. | El mapper ya soporta los cuatro tipos y el filtrado localizado de relaciones; evita duplicar elegibilidad y reduce cambios de dominio. | Añadir un segundo mapper o revalidar contenido desde cada componente. |
 | Ordenación y derivación SEO en funciones puras. | Hace deterministas los desempates y permite probar fechas, colación y límite de palabra sin Astro/Sanity. | Ordenar dentro del markup o duplicar la lógica en las ocho rutas. |
+| Omitir la meta description crítica si su primer término excede 155 caracteres sin límite de palabra admisible. | Evita truncar un término editorial o exceder el máximo RF-11; no recurre a fallback ni inventa texto. Esta regla quedó aclarada y aprobada en `spec.md`. | Cortar el término a 155 caracteres o escribir una descripción alternativa. |
+| Autoalojar fuentes y no usar Google Fonts en runtime. | Reproduce las familias de diseño sin solicitudes a terceros; las tres familias se distribuyen bajo SIL OFL 1.1 con sus licencias. | Dejar que el dispositivo use cualquier fuente de sistema o añadir un servicio externo en runtime. |
+| Enlace de salto oculto hasta foco de teclado. | Permite saltar la cabecera repetida al `<main>` con texto localizado y tokens ya aprobados, sin alterar el layout en reposo. | Hacer la cabecera el único primer bloque navegable en cada página. |
 | Reutilizar las páginas de detalle existentes como componentes. | Ya cumplen la presentación y filtros de relaciones especificados; las páginas nuevas se ocupan de rutas y metadatos. | Crear componentes de detalle duplicados o alterar el contenido del artista. |
 | Ampliar los generadores de sitemap existentes. | Su contrato es datos más URL y ya maneja alternates, escape XML e imágenes transformadas. | Plugin/dependencia de sitemap o generación en cliente. |
 | Datos estructurados: evento factual para exposiciones y artículo factual para textos críticos. | Representan tipo, fechas/lugar o cuerpo/idioma y relaciones visibles sin datos comerciales. El campo actual de autoría es texto libre; no se inferirá si es persona u organización ni se tipará como tal en JSON-LD. | Afirmar `Person`/`Organization` sin dato editorial, o añadir un tipo de autor al CMS sin autorización y sin requisito en la spec. |
@@ -141,7 +153,7 @@ El patrón exacto de listado editorial no está definido literalmente en `design
 
 ## Puntos de «⚠️ Preguntar antes» de AGENTS.md
 
-1. **Composición visual en páginas nuevas:** el patrón de listado editorial no está explicitado; obtener aprobación de la composición antes de implementarla. Si requiere patrón o token nuevo, actualizar `design/tokens.md` con changelog antes del código.
+1. **Composición visual:** la lista de una columna fue aprobada en T3. El usuario aprobó el patrón de enlace de salto descrito en este plan; documentarlo primero en `design/tokens.md` y su changelog. No se añaden valores nuevos de tokens.
 2. **Cambio de pantalla existente:** añadir enlace en la ficha de obra cambia su contenido y puede afectar el layout. Aprobar la ubicación visual exacta antes de tocar `ArtworkContent.astro`/`ArtworkCriticalTexts.astro`; no cambiar paleta, tipografía ni estructura sin permiso.
 3. **Schemas/tipos públicos:** no se prevé cambiarlos. Si se decide representar tipología de autor en datos estructurados, requeriría un campo/editorial type y aprobación previa; no se infiere ni se añade en este plan.
 4. **Dependencias, servicios y JavaScript de cliente:** no se proponen. Cualquier necesidad detectada debe detenerse y consultarse antes.
@@ -165,10 +177,10 @@ El patrón exacto de listado editorial no está definido literalmente en `design
 
 1. **Vitest — dominio/presentación:** probar exposición por inicio descendente; desempate determinista; títulos críticos con colación ES/EN y desempate estable; descripción de exposición formada solo con título/lugar/fechas; descripción crítica de 155 caracteres en límite de palabra, incluidos caracteres Unicode; metadatos repetidos rechazados.
 2. **Vitest — mapper/loader:** conservar pruebas existentes de `mapSanityContent` para traducción original EN sin ES, traducción incompleta, imagen opcional inválida y relaciones a destinos visibles/no visibles. Ampliar `catalog-content.test.ts` para las cuatro consultas concurrentes, resultados mapeados, asociaciones de exposición/texto y matching de asset de imagen. Comprobar en `queries.test.ts` que las consultas siguen usando perspectiva publicada y no incluyen credenciales/drafts; modificarlo solo si falta una aserción de contrato.
-3. **Vitest — interfaz/i18n:** actualizar pruebas de componente para el enlace añadido en obra y sumar paridad ES/EN. Usar pruebas de salida para contenido de listado/detail, estado vacío, sin fallback, no renderizar relaciones vacías y no incluir acciones comerciales.
+3. **Vitest — interfaz/i18n:** comprobar mensajes de salto y unidad `cm` en ES/EN, paridad de diccionarios y unidad localizada en la ficha/datos estructurados. Los códigos `ES`/`EN` del selector siguen siendo códigos estándar. Usar pruebas de salida para contenido de listado/detail, estado vacío, sin fallback, no renderizar relaciones vacías y no incluir acciones comerciales.
 4. **Vitest — metadatos/sitemaps:** comprobar titles/descriptions únicos, descripción crítica truncada, rutas de índice siempre presentes, detalle únicamente con idioma publicado, alternates coherentes, y sitemap de imágenes con solo assets de exposición válidos.
 5. **Build y salida:** `pnpm --dir web verify`. Inspeccionar HTML de cada plantilla ES/EN: canonicals, hreflang, metadatos, JSON-LD parseable/escapado, contenido disponible sin JavaScript cliente, sitemaps y ausencia de rutas no visibles. Confirmar fallo del gate ante metadatos duplicados.
-6. **Chrome DevTools:** revisar preview en 375×812, 768×1024 y 1280×900. Casos: listados vacíos y poblados; título/autor/lugar largo; exposición con/sin imagen; relación presente y cero relaciones; crítico original EN sin ES; cuatro estados de una obra relacionada. Comprobar teclado/foco, etiquetas de enlace, contraste AA, idioma, no overflow, `alt`, `width`/`height`, `srcset`, contenido completo y 404 HTTP de páginas no generadas. No crear ni publicar contenido Sanity sin autorización.
+6. **Chrome DevTools:** revisar preview en 375×812, 768×1024 y 1280×900. Casos: listados vacíos y poblados; título/autor/lugar largo; exposición con/sin imagen; relación presente y cero relaciones; crítico original EN sin ES; cuatro estados de una obra relacionada; salto al `<main>` y fuentes locales cargadas. Comprobar teclado/foco, etiquetas de enlace, contraste AA, idioma, no overflow, `alt`, dimensiones, `srcset`, contenido completo y 404 HTTP de páginas no generadas. No crear ni publicar contenido Sanity sin autorización.
 7. **Lighthouse manual:** evaluar en móvil un listado ES y una página propia ES de cada tipo con contenido representativo disponible; objetivos ≥90 rendimiento, ≥95 accesibilidad y 100 SEO. Si development no contiene datos suficientes, no alterar producción: solicitar contenido/permiso para development o registrar el bloqueo de QA.
 
 ## Cobertura de requisitos
@@ -189,4 +201,4 @@ El patrón exacto de listado editorial no está definido literalmente en `design
 | RF-14–RF-15 | Relaciones filtradas en mapper, sin filtro por Availability ni contenido comercial/inventado. |
 | RNF-1–RNF-7 | Diccionarios, componentes y tokens existentes; salida estática; revisión responsive, accesibilidad, imágenes y Lighthouse. |
 
-La fase siguiente será revisar y aprobar este plan. No se redactan tareas ni se inicia implementación hasta esa aprobación explícita.
+Implementación y verificación completadas. Las decisiones y resultados por tarea quedan registrados en `tasks.md`.

@@ -1,0 +1,34 @@
+---
+import CriticalTextIndex from '../../components/CriticalTextIndex.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sortCriticalTextsForIndex } from '../../domain/catalog-presentation';
+import { getMessages } from '../../i18n';
+import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+
+const locale = 'es' as const;
+const messages = getMessages(locale);
+const catalog = await loadCatalogContent();
+const criticalTexts = sortCriticalTextsForIndex(
+	catalog.criticalTexts.filter((criticalText) => criticalText.translations[locale] !== undefined),
+	locale,
+).flatMap((criticalText) => {
+	const translation = criticalText.translations[locale];
+	return translation
+		? [{
+			title: translation.title,
+			author: translation.author,
+			href: `/textos-criticos/${encodeURIComponent(criticalText.id)}/`,
+		}]
+		: [];
+});
+---
+
+<BaseLayout
+	locale={locale}
+	title={messages.criticalTextsTitle}
+	description={messages.criticalTextsMetaDescription}
+	canonicalPath="/textos-criticos/"
+	alternatePaths={{ en: '/en/critical-texts/' }}
+>
+	<CriticalTextIndex locale={locale} criticalTexts={criticalTexts} />
+</BaseLayout>

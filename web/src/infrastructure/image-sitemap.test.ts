@@ -8,9 +8,12 @@ const artworkProjection: SanityImageProjection = {
 const seriesProjection: SanityImageProjection = {
 	asset: { _id: 'image-series-1200x800-jpg', metadata: { dimensions: { width: 1200, height: 800 } } },
 };
+const exhibitionProjection: SanityImageProjection = {
+	asset: { _id: 'image-exhibition-800x600-jpg', metadata: { dimensions: { width: 800, height: 600 } } },
+};
 
 describe('createImageSitemapXml', () => {
-	it('includes transformed images for visible artworks and valid series images only', () => {
+	it('includes transformed images for artworks, valid series, and localized exhibitions', () => {
 		const xml = createImageSitemapXml({
 			artworks: [{ id: 'artwork-1', mainImage: { projection: artworkProjection } }],
 			series: [{ id: 'series-valid' }, { id: 'series-no-image' }, { id: 'series-invalid-image' }],
@@ -18,6 +21,43 @@ describe('createImageSitemapXml', () => {
 				['series-valid', seriesProjection],
 				['series-invalid-image', {
 					...seriesProjection,
+					crop: { top: 1, bottom: 1, left: 0, right: 0 },
+				}],
+			]),
+			exhibitions: [
+				{
+					id: 'exhibition-bilingual',
+					translations: {
+						es: { image: { assetId: 'image-exhibition-800x600-jpg' } },
+						en: { image: { assetId: 'image-exhibition-800x600-jpg' } },
+					},
+				},
+				{
+					id: 'exhibition-spanish-image',
+					translations: {
+						es: { image: { assetId: 'image-exhibition-800x600-jpg' } },
+						en: {},
+					},
+				},
+				{
+					id: 'exhibition-no-image',
+					translations: { es: {}, en: {} },
+				},
+				{
+					id: 'exhibition-mismatched-asset',
+					translations: { es: { image: { assetId: 'different-image' } } },
+				},
+				{
+					id: 'exhibition-invalid-image',
+					translations: { es: { image: { assetId: 'image-exhibition-800x600-jpg' } } },
+				},
+			],
+			exhibitionImageProjections: new Map([
+				['exhibition-bilingual', exhibitionProjection],
+				['exhibition-spanish-image', exhibitionProjection],
+				['exhibition-no-image', exhibitionProjection],
+				['exhibition-invalid-image', {
+					...exhibitionProjection,
 					crop: { top: 1, bottom: 1, left: 0, right: 0 },
 				}],
 			]),
@@ -30,6 +70,14 @@ describe('createImageSitemapXml', () => {
 		expect(xml).toContain('series-1200x800.jpg');
 		expect(xml).not.toContain('series-no-image');
 		expect(xml).not.toContain('series-invalid-image');
+		expect(xml).toContain('<loc>https://example.com/exposiciones/exhibition-bilingual/</loc>');
+		expect(xml).toContain('<loc>https://example.com/en/exhibitions/exhibition-bilingual/</loc>');
+		expect(xml).toContain('<loc>https://example.com/exposiciones/exhibition-spanish-image/</loc>');
+		expect(xml).not.toContain('/en/exhibitions/exhibition-spanish-image/');
+		expect(xml).not.toContain('exhibition-no-image');
+		expect(xml).not.toContain('exhibition-mismatched-asset');
+		expect(xml).not.toContain('exhibition-invalid-image');
+		expect(xml).toContain('exhibition-800x600.jpg');
 	});
 
 	it('emits a valid empty image sitemap when there are no visible image entries', () => {
@@ -37,6 +85,8 @@ describe('createImageSitemapXml', () => {
 			artworks: [],
 			series: [{ id: 'series-without-valid-image' }],
 			seriesImageProjections: new Map(),
+			exhibitions: [{ id: 'exhibition-without-image', translations: { es: {}, en: {} } }],
+			exhibitionImageProjections: new Map(),
 		}, new URL('https://example.com'), { projectId: 'project', dataset: 'development' });
 
 		expect(xml).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"');

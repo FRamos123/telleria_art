@@ -1,0 +1,37 @@
+---
+import ExhibitionIndex from '../../components/ExhibitionIndex.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sortExhibitionsForIndex } from '../../domain/catalog-presentation';
+import { getMessages } from '../../i18n';
+import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+
+const locale = 'es' as const;
+const messages = getMessages(locale);
+const catalog = await loadCatalogContent();
+const exhibitions = sortExhibitionsForIndex(
+	catalog.exhibitions.filter((exhibition) => exhibition.translations[locale] !== undefined),
+	locale,
+).flatMap((exhibition) => {
+	const translation = exhibition.translations[locale];
+	return translation
+		? [{
+			id: exhibition.id,
+			title: translation.title,
+			venue: translation.venue,
+			startDate: exhibition.startDate,
+			...(exhibition.endDate ? { endDate: exhibition.endDate } : {}),
+			href: `/exposiciones/${encodeURIComponent(exhibition.id)}/`,
+		}]
+		: [];
+});
+---
+
+<BaseLayout
+	locale={locale}
+	title={messages.exhibitionsTitle}
+	description={messages.exhibitionsMetaDescription}
+	canonicalPath="/exposiciones/"
+	alternatePaths={{ en: '/en/exhibitions/' }}
+>
+	<ExhibitionIndex locale={locale} exhibitions={exhibitions} />
+</BaseLayout>

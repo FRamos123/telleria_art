@@ -17,7 +17,7 @@ interface Props {
 const { availability, heightCm, locale, support, technique, widthCm, year } = Astro.props;
 const messages = getMessages(locale);
 const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
-const dimensions = `${numberFormat.format(heightCm)} × ${numberFormat.format(widthCm)} cm`;
+const dimensions = `${numberFormat.format(heightCm)} × ${numberFormat.format(widthCm)} ${messages.centimeterUnit}`;
 ---
 
 <section aria-labelledby="artwork-technical-sheet-title" class="bg-surface-container-low p-space-md">

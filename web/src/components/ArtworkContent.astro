@@ -38,8 +38,11 @@ const relatedCriticalTexts = criticalTexts.flatMap((criticalText) => {
 	const title = translation?.title.trim();
 	const body = translation?.body.trim();
 	const author = translation?.author.trim();
+	const href = locale === 'es'
+		? `/textos-criticos/${encodeURIComponent(criticalText.id)}/`
+		: `/en/critical-texts/${encodeURIComponent(criticalText.id)}/`;
 	return title && body && author
-		? [{ id: criticalText.id, title, body, author }]
+		? [{ id: criticalText.id, title, body, author, href }]
 		: [];
 });
 if (
@@ -69,13 +72,13 @@ const visualArtwork = {
 		'@type': 'QuantitativeValue',
 		value: artwork.heightCm,
 		unitCode: 'CMT',
-		unitText: 'cm',
+		unitText: messages.centimeterUnit,
 	},
 	width: {
 		'@type': 'QuantitativeValue',
 		value: artwork.widthCm,
 		unitCode: 'CMT',
-		unitText: 'cm',
+		unitText: messages.centimeterUnit,
 	},
 	image: image.src,
 	inLanguage: locale,
