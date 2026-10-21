@@ -1,17 +1,25 @@
 ---
-import type { Messages } from '../i18n';
+import type { Locale, Messages } from '../i18n';
 
 interface Props {
+	locale: Locale;
 	messages: Messages;
 }
 
-const { messages } = Astro.props;
+const { locale, messages } = Astro.props;
+const contactHref = locale === 'es' ? '/contacto/' : '/en/contact/';
 ---
 
 <footer class="border-t border-surface-variant bg-surface-container-lowest">
-	<div class="mx-auto w-full max-w-7xl px-margin-mobile py-space-lg desktop:px-gutter">
+	<div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-space-sm px-margin-mobile py-space-lg desktop:px-gutter">
 		<p class="m-0 font-label-technical text-label-caption uppercase text-on-surface">
 			{messages.brandName}
 		</p>
+		<a
+			class="font-label-technical text-label-technical text-on-surface underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			href={contactHref}
+		>
+			{messages.contactFooterLink}
+		</a>
 	</div>
 </footer>

@@ -4,6 +4,80 @@ import { en } from './en';
 import { es } from './es';
 
 describe('foundation translations', () => {
+	it('provides non-empty Spanish and English messages for the contact form and marks legal copy pending', () => {
+		const contactMessageKeys = [
+			'contactTitle',
+			'contactMetaDescription',
+			'contactIntro',
+			'contactNameLabel',
+			'contactEmailLabel',
+			'contactInstitutionLabel',
+			'contactPhoneLabel',
+			'contactArtworkLabel',
+			'contactArtworkNone',
+			'contactMessageLabel',
+			'contactRequired',
+			'contactOptional',
+			'contactPhoneHelp',
+			'contactArtworkHelp',
+			'contactArtworkAction',
+			'contactFooterLink',
+			'contactFormDraftOnly',
+			'contactAntiSpamLabel',
+			'contactAntiSpamPending',
+			'contactSubmit',
+			'contactSubmitting',
+			'contactSuccess',
+			'contactSendFailed',
+			'contactSpamRejected',
+			'contactSpamExpired',
+			'contactErrorSummary',
+			'contactArtworkUnavailable',
+			'contactConsentRequired',
+			'contactInvalidRequest',
+			'contactPrivacyNoticeLink',
+			'contactConsentHelp',
+			'contactNameRequired',
+			'contactNameTooLong',
+			'contactEmailRequired',
+			'contactEmailInvalid',
+			'contactEmailTooLong',
+			'contactInstitutionTooLong',
+			'contactPhoneInvalid',
+			'contactPhoneTooLong',
+			'contactMessageRequired',
+			'contactMessageTooLong',
+			'contactPrivacyNoticeTitle',
+			'contactPrivacyNoticeStatus',
+			'contactPrivacyControllerLabel',
+			'contactPrivacyController',
+			'contactPrivacyContactLabel',
+			'contactPrivacyContact',
+			'contactPrivacyPurposeLabel',
+			'contactPrivacyPurpose',
+			'contactPrivacyDataLabel',
+			'contactPrivacyData',
+			'contactPrivacyLegalBasisLabel',
+			'contactPrivacyLegalBasis',
+			'contactPrivacyProvidersLabel',
+			'contactPrivacyProviders',
+			'contactPrivacyRetentionLabel',
+			'contactPrivacyRetention',
+			'contactPrivacyRightsLabel',
+			'contactPrivacyRights',
+			'contactConsentDraft',
+		] as const
+		const spanish = es as unknown as Record<string, string>
+		const english = en as unknown as Record<string, string>
+
+		for (const key of contactMessageKeys) {
+			expect(spanish[key]?.trim().length, `Spanish ${key}`).toBeGreaterThan(0)
+			expect(english[key]?.trim().length, `English ${key}`).toBeGreaterThan(0)
+		}
+		expect(es.contactPrivacyNoticeStatus).toContain('PENDIENTE')
+		expect(en.contactPrivacyNoticeStatus).toContain('PENDING')
+	})
+
 	it('provides non-empty localized labels for every artwork availability state', () => {
 		const availabilityKeys = [
 			'availabilityAvailable',

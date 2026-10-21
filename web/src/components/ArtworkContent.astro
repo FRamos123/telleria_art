@@ -30,6 +30,9 @@ if (!translation.title.trim() || !isValidAlternativeText(translation.altText, tr
 }
 
 const messages = getMessages(locale);
+const contactHref = locale === 'es'
+	? `/contacto/?artwork=${encodeURIComponent(artwork.id)}`
+	: `/en/contact/?artwork=${encodeURIComponent(artwork.id)}`;
 const associatedCriticalTextIds = new Set(artwork.optional.criticalTextIds ?? []);
 const relatedCriticalTexts = criticalTexts.flatMap((criticalText) => {
 	if (!associatedCriticalTextIds.has(criticalText.id)) return [];
@@ -120,6 +123,15 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 			widthCm={artwork.widthCm}
 			year={artwork.year}
 		/>
+
+		<p class="m-0 font-label-technical text-label-technical">
+			<a
+				class="text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				href={contactHref}
+			>
+				{messages.contactArtworkAction}
+			</a>
+		</p>
 
 		{workshopNote && (
 			<section aria-labelledby="artwork-workshop-note-title" class="bg-surface-container p-space-md">

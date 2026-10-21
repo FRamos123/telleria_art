@@ -1,0 +1,652 @@
+---
+import type { Locale, Messages } from '../i18n';
+
+interface Props {
+	locale: Locale;
+	messages: Messages;
+	artworks: readonly { id: string; title: string }[];
+}
+
+const { locale, messages, artworks } = Astro.props;
+const isPrivacyNoticePending = /PENDIENTE|PENDING/u.test(messages.contactPrivacyNoticeStatus);
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
+const contactReady = !isPrivacyNoticePending;
+---
+
+<div class="grid grid-cols-1 gap-space-lg">
+	<section
+		id="contact-privacy-notice"
+		aria-labelledby="contact-privacy-notice-title"
+		class="border border-outline-variant bg-surface-container p-space-md"
+	>
+		<p
+			class="mb-space-sm mt-0 font-label-technical text-label-technical text-primary"
+			role="status"
+		>
+			{messages.contactPrivacyNoticeStatus}
+		</p>
+		<h2
+			id="contact-privacy-notice-title"
+			class="mb-space-md mt-0 font-headline-sm text-headline-sm text-on-surface"
+		>
+			{messages.contactPrivacyNoticeTitle}
+		</h2>
+		<dl class="m-0 grid gap-space-md">
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyControllerLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyController}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyContactLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyContact}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyPurposeLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyPurpose}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyDataLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyData}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyLegalBasisLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyLegalBasis}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyProvidersLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyProviders}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyRetentionLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyRetention}
+				</dd>
+			</div>
+			<div>
+				<dt class="font-label-technical text-label-technical text-on-surface">
+					{messages.contactPrivacyRightsLabel}
+				</dt>
+				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPrivacyRights}
+				</dd>
+			</div>
+		</dl>
+	</section>
+
+	<p
+		id="contact-form-draft-status"
+		class="m-0 border border-primary bg-surface-container p-space-md font-body-md text-body-md text-on-surface"
+		role="status"
+	>
+		{messages.contactFormDraftOnly}
+	</p>
+
+	<form
+		id="contact-form"
+		action="/api/contact"
+		method="post"
+		novalidate
+		aria-describedby="contact-form-draft-status"
+		data-contact-ready={contactReady ? 'true' : 'false'}
+		data-turnstile-sitekey={turnstileSiteKey}
+		data-message-draft-pending={messages.contactFormDraftOnly}
+		data-message-error-summary={messages.contactErrorSummary}
+		data-message-accepted={messages.contactSuccess}
+		data-message-send-failed={messages.contactSendFailed}
+		data-message-spam-rejected={messages.contactSpamRejected}
+		data-message-spam-expired={messages.contactSpamExpired}
+		data-message-consent-required={messages.contactConsentRequired}
+		data-message-invalid-request={messages.contactInvalidRequest}
+		data-message-artwork-unavailable={messages.contactArtworkUnavailable}
+	>
+		<input type="hidden" name="locale" value={locale} />
+
+		<div class="grid grid-cols-1 gap-space-lg tablet:grid-cols-2">
+			<div>
+				<label for="contact-name" class="block font-label-technical text-label-technical text-on-surface">
+					<span>{messages.contactNameLabel}</span>
+					<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
+				</label>
+				<input
+					id="contact-name"
+					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="name"
+					type="text"
+					autocomplete="name"
+					maxlength="100"
+					required
+				/>
+				<p id="contact-name-required-error" data-field-error="name" data-error-code="required" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactNameRequired}
+				</p>
+				<p id="contact-name-too-long-error" data-field-error="name" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactNameTooLong}
+				</p>
+			</div>
+
+			<div>
+				<label for="contact-email" class="block font-label-technical text-label-technical text-on-surface">
+					<span>{messages.contactEmailLabel}</span>
+					<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
+				</label>
+				<input
+					id="contact-email"
+					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="email"
+					type="email"
+					autocomplete="email"
+					maxlength="254"
+					required
+				/>
+				<p id="contact-email-required-error" data-field-error="email" data-error-code="required" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactEmailRequired}
+				</p>
+				<p id="contact-email-invalid-error" data-field-error="email" data-error-code="invalidFormat" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactEmailInvalid}
+				</p>
+				<p id="contact-email-too-long-error" data-field-error="email" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactEmailTooLong}
+				</p>
+			</div>
+		</div>
+
+		<div class="mt-space-lg grid grid-cols-1 gap-space-lg tablet:grid-cols-2">
+			<div>
+				<label for="contact-institution" class="block font-label-technical text-label-technical text-on-surface">
+					<span>{messages.contactInstitutionLabel}</span>
+					<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
+				</label>
+				<input
+					id="contact-institution"
+					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="institution"
+					type="text"
+					autocomplete="organization"
+					maxlength="150"
+				/>
+				<p id="contact-institution-too-long-error" data-field-error="institution" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactInstitutionTooLong}
+				</p>
+			</div>
+
+			<div>
+				<label for="contact-phone" class="block font-label-technical text-label-technical text-on-surface">
+					<span>{messages.contactPhoneLabel}</span>
+					<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
+				</label>
+				<input
+					id="contact-phone"
+					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="phone"
+					type="tel"
+					autocomplete="tel"
+					maxlength="30"
+					aria-describedby="contact-phone-help"
+				/>
+				<p id="contact-phone-help" class="mb-0 mt-space-xs font-body-md text-body-md text-on-surface-variant">
+					{messages.contactPhoneHelp}
+				</p>
+				<p id="contact-phone-invalid-error" data-field-error="phone" data-error-code="invalidFormat" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactPhoneInvalid}
+				</p>
+				<p id="contact-phone-too-long-error" data-field-error="phone" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactPhoneTooLong}
+				</p>
+			</div>
+		</div>
+
+		<div class="mt-space-lg">
+			<label for="contact-artwork" class="block font-label-technical text-label-technical text-on-surface">
+				<span>{messages.contactArtworkLabel}</span>
+				<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
+			</label>
+			<select
+				id="contact-artwork"
+				class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				name="artworkId"
+				aria-describedby="contact-artwork-help"
+			>
+				<option value="">{messages.contactArtworkNone}</option>
+				{artworks.map((artwork) => <option value={artwork.id}>{artwork.title}</option>)}
+			</select>
+			<p id="contact-artwork-help" class="mb-0 mt-space-xs font-body-md text-body-md text-on-surface-variant">
+				{messages.contactArtworkHelp}
+			</p>
+			<p id="contact-artwork-unavailable-error" data-field-error="artworkId" data-error-code="artworkUnavailable" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+				{messages.contactArtworkUnavailable}
+			</p>
+		</div>
+
+		<div class="mt-space-lg">
+			<label for="contact-message" class="block font-label-technical text-label-technical text-on-surface">
+				<span>{messages.contactMessageLabel}</span>
+				<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
+			</label>
+			<textarea
+				id="contact-message"
+				class="mt-space-sm w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				name="message"
+				rows="6"
+				maxlength="5000"
+				required
+			></textarea>
+			<p id="contact-message-required-error" data-field-error="message" data-error-code="required" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+				{messages.contactMessageRequired}
+			</p>
+			<p id="contact-message-too-long-error" data-field-error="message" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+				{messages.contactMessageTooLong}
+			</p>
+		</div>
+
+		<section
+			class="mt-space-lg border border-outline-variant bg-surface-low p-space-md"
+			aria-labelledby="contact-anti-spam-title"
+		>
+			<h2 id="contact-anti-spam-title" class="m-0 font-label-technical text-label-technical text-on-surface">
+				{messages.contactAntiSpamLabel}
+			</h2>
+			<div id="contact-turnstile" data-turnstile-container data-sitekey={turnstileSiteKey}></div>
+			<p id="contact-antispam-status" class="mb-0 mt-space-sm font-body-md text-body-md text-on-surface-variant" role="status" aria-live="polite">
+				{messages.contactAntiSpamPending}
+			</p>
+		</section>
+
+		<div class="mt-space-lg">
+			<label for="contact-consent" class="flex items-start gap-space-sm font-body-md text-body-md text-on-surface">
+				<input
+					id="contact-consent"
+					class="mt-space-xs h-space-md w-space-md shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="consent"
+					type="checkbox"
+					aria-describedby="contact-consent-help"
+					required
+				/>
+				<span>{messages.contactConsentDraft}</span>
+			</label>
+			<p id="contact-consent-help" class="mb-0 mt-space-sm font-body-md text-body-md text-on-surface-variant">
+				<a
+					class="text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href="#contact-privacy-notice"
+				>
+					{messages.contactPrivacyNoticeLink}
+				</a>
+				{messages.contactConsentHelp}
+			</p>
+			<p id="contact-consent-required-error" data-field-error="consent" data-error-code="consentRequired" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+				{messages.contactConsentRequired}
+			</p>
+		</div>
+
+		<div id="contact-error-summary" class="mt-space-lg" role="alert" aria-live="assertive" hidden>
+			<p class="m-0 font-body-md text-body-md text-secondary">{messages.contactErrorSummary}</p>
+		</div>
+		<p id="contact-response-status" class="mt-space-lg font-body-md text-body-md text-on-surface" role="status" aria-live="polite"></p>
+
+		<button
+			class="mt-space-lg h-11 rounded-none border border-outline bg-surface-container-high px-space-md font-label-technical text-label-technical text-on-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			type="submit"
+			disabled={!contactReady || !turnstileSiteKey}
+		>
+			{messages.contactSubmit}
+		</button>
+	</form>
+</div>
+
+<script>
+	import { validateContactInquiry, type ContactInquiryField, type ContactInquiryInput } from '../domain/contact-inquiry'
+
+	interface TurnstileRenderOptions {
+		sitekey: string
+		language: string
+		callback: (token: string) => void
+		'expired-callback': () => void
+		'error-callback': () => void
+	}
+
+	interface TurnstileApi {
+		render: (container: HTMLElement, options: TurnstileRenderOptions) => string | number
+		reset: (widgetId?: string | number) => void
+		getResponse: (widgetId?: string | number) => string
+	}
+
+	type WindowWithTurnstile = Window & { turnstile?: TurnstileApi }
+
+	const contactArtworkSelect = document.querySelector<HTMLSelectElement>('#contact-artwork')
+	const artworkId = new URLSearchParams(window.location.search).get('artwork')
+	if (
+		contactArtworkSelect
+		&& artworkId
+		&& Array.from(contactArtworkSelect.options).some((option) => option.value === artworkId)
+	) {
+		contactArtworkSelect.value = artworkId
+	}
+
+	const form = document.querySelector<HTMLFormElement>('#contact-form')
+	if (form) {
+		const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+		const errorSummary = form.querySelector<HTMLElement>('#contact-error-summary')
+		const responseStatus = form.querySelector<HTMLElement>('#contact-response-status')
+		const antiSpamStatus = form.querySelector<HTMLElement>('#contact-antispam-status')
+		const turnstileContainer = form.querySelector<HTMLElement>('[data-turnstile-container]')
+		const fieldNames = ['name', 'email', 'institution', 'phone', 'artworkId', 'message', 'consent'] as const
+		const fieldNameSet = new Set<string>(fieldNames)
+		const baseDescriptions = new Map<string, string>()
+		let turnstileWidgetId: string | number | undefined
+		let turnstileToken = ''
+
+		for (const fieldName of fieldNames) {
+			const control = form.elements.namedItem(fieldName)
+			if (control instanceof HTMLElement) {
+				baseDescriptions.set(fieldName, control.getAttribute('aria-describedby') ?? '')
+			}
+		}
+
+		const turnstile = () => (window as WindowWithTurnstile).turnstile
+		const isReadyForContact = () => form.dataset.contactReady === 'true'
+		const siteKey = () => form.dataset.turnstileSitekey?.trim() ?? ''
+
+		function getTurnstileToken(): string {
+			const apiToken = turnstile()?.getResponse(turnstileWidgetId) ?? ''
+			const tokenField = form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+				'[name="cf-turnstile-response"]',
+			)
+			return turnstileToken || apiToken || tokenField?.value || ''
+		}
+
+		function updateSubmitButton(): void {
+			if (submitButton) {
+				submitButton.disabled = !isReadyForContact() || !siteKey() || !getTurnstileToken()
+			}
+		}
+
+		function setResponseStatus(message: string): void {
+			if (responseStatus) responseStatus.textContent = message
+		}
+
+		function getControl(fieldName: string): HTMLElement | undefined {
+			const control = form.elements.namedItem(fieldName)
+			return control instanceof HTMLElement ? control : undefined
+		}
+
+		function clearFieldError(fieldName: string): void {
+			for (const error of form.querySelectorAll<HTMLElement>('[data-field-error]')) {
+				if (error.dataset.fieldError === fieldName) error.hidden = true
+			}
+
+			const control = getControl(fieldName)
+			if (control) {
+				control.removeAttribute('aria-invalid')
+				const description = baseDescriptions.get(fieldName) ?? ''
+				if (description) control.setAttribute('aria-describedby', description)
+				else control.removeAttribute('aria-describedby')
+			}
+
+			const anyVisibleErrors = [...form.querySelectorAll<HTMLElement>('[data-field-error]')]
+				.some((error) => !error.hidden)
+			if (errorSummary && !anyVisibleErrors) errorSummary.hidden = true
+		}
+
+		function clearAllFieldErrors(): void {
+			for (const fieldName of fieldNameSet) clearFieldError(fieldName)
+			if (errorSummary) errorSummary.hidden = true
+		}
+
+		function showFieldError(fieldName: string, errorCode: string): boolean {
+			const error = [...form.querySelectorAll<HTMLElement>('[data-field-error]')]
+				.find((candidate) => candidate.dataset.fieldError === fieldName
+					&& candidate.dataset.errorCode === errorCode)
+			const control = getControl(fieldName)
+			if (!error || !control) return false
+
+			clearFieldError(fieldName)
+			error.hidden = false
+			control.setAttribute('aria-invalid', 'true')
+			const descriptions = [baseDescriptions.get(fieldName), error.id].filter(Boolean).join(' ')
+			if (descriptions) control.setAttribute('aria-describedby', descriptions)
+			return true
+		}
+
+		function focusField(fieldName: string): void {
+			getControl(fieldName)?.focus()
+		}
+
+		function showErrorSummary(): void {
+			if (errorSummary) errorSummary.hidden = false
+		}
+
+		function resetTurnstile(): void {
+			turnstileToken = ''
+			const tokenField = form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+				'[name="cf-turnstile-response"]',
+			)
+			if (tokenField) tokenField.value = ''
+			if (turnstileWidgetId !== undefined) turnstile()?.reset(turnstileWidgetId)
+			updateSubmitButton()
+		}
+
+		function renderTurnstile(): void {
+			const api = turnstile()
+			const key = siteKey()
+			if (!api || !key || !turnstileContainer || turnstileWidgetId !== undefined) return
+
+			try {
+				turnstileWidgetId = api.render(turnstileContainer, {
+					sitekey: key,
+					language: document.documentElement.lang,
+					callback: (token) => {
+						turnstileToken = token
+						if (antiSpamStatus) antiSpamStatus.hidden = true
+						setResponseStatus('')
+						updateSubmitButton()
+					},
+					'expired-callback': () => {
+						resetTurnstile()
+						setResponseStatus(form.dataset.messageSpamExpired ?? '')
+					},
+					'error-callback': () => {
+						resetTurnstile()
+						setResponseStatus(form.dataset.messageSpamRejected ?? '')
+					},
+				})
+				if (antiSpamStatus) antiSpamStatus.hidden = true
+			} catch {
+				if (antiSpamStatus) antiSpamStatus.hidden = false
+				setResponseStatus(form.dataset.messageSpamRejected ?? '')
+			}
+		}
+
+		function loadTurnstile(): void {
+			if (!isReadyForContact() || !siteKey() || !turnstileContainer) return
+			if (turnstile()) {
+				renderTurnstile()
+				return
+			}
+
+			const script = document.createElement('script')
+			script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+			script.async = true
+			script.defer = true
+			script.addEventListener('load', renderTurnstile, { once: true })
+			script.addEventListener('error', () => {
+				if (antiSpamStatus) antiSpamStatus.hidden = false
+				setResponseStatus(form.dataset.messageSpamRejected ?? '')
+			}, { once: true })
+			document.head.append(script)
+		}
+
+		function showValidationErrors(errors: Record<string, unknown>): void {
+			clearAllFieldErrors()
+			const invalidFields: string[] = []
+			for (const [fieldName, errorCode] of Object.entries(errors)) {
+				if (fieldNameSet.has(fieldName) && typeof errorCode === 'string'
+					&& showFieldError(fieldName, errorCode)) {
+					invalidFields.push(fieldName)
+				}
+			}
+			if (invalidFields.length > 0) {
+				showErrorSummary()
+				focusField(invalidFields[0] ?? '')
+			}
+		}
+
+		function showConsentError(): void {
+			clearAllFieldErrors()
+			showFieldError('consent', 'consentRequired')
+			showErrorSummary()
+			focusField('consent')
+		}
+
+		function showArtworkError(): void {
+			clearAllFieldErrors()
+			showFieldError('artworkId', 'artworkUnavailable')
+			showErrorSummary()
+			focusField('artworkId')
+		}
+
+		for (const control of form.querySelectorAll<HTMLElement>('[name]')) {
+			const fieldName = control.getAttribute('name') ?? ''
+			if (!fieldNameSet.has(fieldName)) continue
+			control.addEventListener('input', () => {
+				clearFieldError(fieldName)
+				setResponseStatus('')
+				updateSubmitButton()
+			})
+			control.addEventListener('change', () => {
+				clearFieldError(fieldName)
+				setResponseStatus('')
+				updateSubmitButton()
+			})
+		}
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault()
+			if (!isReadyForContact()) {
+				setResponseStatus(form.dataset.messageDraftPending ?? '')
+				return
+			}
+
+			const formData = new FormData(form)
+			const input: ContactInquiryInput = {
+				name: String(formData.get('name') ?? ''),
+				email: String(formData.get('email') ?? ''),
+				message: String(formData.get('message') ?? ''),
+				locale: document.documentElement.lang === 'en' ? 'en' : 'es',
+				institution: String(formData.get('institution') ?? ''),
+				phone: String(formData.get('phone') ?? ''),
+				artworkId: String(formData.get('artworkId') ?? ''),
+			}
+			const validation = validateContactInquiry(input)
+			if (Object.keys(validation.errors).length > 0) {
+				showValidationErrors(validation.errors)
+				return
+			}
+
+			const consent = form.elements.namedItem('consent')
+			if (!(consent instanceof HTMLInputElement) || !consent.checked) {
+				showConsentError()
+				return
+			}
+
+			const inquiry = validation.inquiry
+			const token = getTurnstileToken()
+			if (!inquiry || !token) {
+				setResponseStatus(form.dataset.messageSpamExpired ?? '')
+				resetTurnstile()
+				return
+			}
+
+			clearAllFieldErrors()
+			setResponseStatus('')
+			if (submitButton) submitButton.disabled = true
+			const requestBody = new FormData()
+			requestBody.set('name', inquiry.name)
+			requestBody.set('email', inquiry.email)
+			requestBody.set('message', inquiry.message)
+			requestBody.set('locale', inquiry.locale)
+			requestBody.set('consent', 'true')
+			requestBody.set('turnstileToken', token)
+			if (inquiry.institution) requestBody.set('institution', inquiry.institution)
+			if (inquiry.phone) requestBody.set('phone', inquiry.phone)
+			if (inquiry.artworkId) requestBody.set('artworkId', inquiry.artworkId)
+
+			try {
+				const response = await fetch(form.action, {
+					method: 'POST',
+					headers: { Accept: 'application/json' },
+					body: requestBody,
+				})
+				const result = await response.json().catch(() => null)
+				const payload = typeof result === 'object' && result !== null
+					? result as Record<string, unknown>
+					: {}
+
+				if (response.ok && payload.ok === true && payload.code === 'accepted') {
+					form.reset()
+					clearAllFieldErrors()
+					setResponseStatus(form.dataset.messageAccepted ?? '')
+					resetTurnstile()
+					return
+				}
+
+				if (payload.code === 'validation' && typeof payload.errors === 'object' && payload.errors !== null) {
+					showValidationErrors(payload.errors as Record<string, unknown>)
+					return
+				}
+				if (payload.code === 'consentRequired') {
+					showConsentError()
+					return
+				}
+				if (payload.code === 'invalidRequest') {
+					setResponseStatus(form.dataset.messageInvalidRequest ?? form.dataset.messageSendFailed ?? '')
+					return
+				}
+				if (payload.code === 'artworkUnavailable') {
+					showArtworkError()
+					return
+				}
+				if (payload.code === 'spamRejected') {
+					setResponseStatus(form.dataset.messageSpamRejected ?? '')
+					resetTurnstile()
+					return
+				}
+
+				setResponseStatus(form.dataset.messageSendFailed ?? '')
+				resetTurnstile()
+			} catch {
+				setResponseStatus(form.dataset.messageSendFailed ?? '')
+				resetTurnstile()
+			} finally {
+				updateSubmitButton()
+			}
+		})
+
+		updateSubmitButton()
+		loadTurnstile()
+	}
+</script>

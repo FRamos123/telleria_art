@@ -1,0 +1,38 @@
+---
+import ContactForm from '../components/ContactForm.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getMessages } from '../i18n';
+import { loadCatalogContent } from '../infrastructure/sanity/catalog-content';
+
+const locale = 'es' as const;
+const messages = getMessages(locale);
+const catalog = await loadCatalogContent();
+const artworks = catalog.artworks.flatMap((artwork) => {
+	const translation = artwork.translations[locale];
+	return translation ? [{ id: artwork.id, title: translation.title }] : [];
+});
+---
+
+<BaseLayout
+	locale={locale}
+	title={messages.contactTitle}
+	description={messages.contactMetaDescription}
+	canonicalPath="/contacto/"
+	alternatePaths={{ en: '/en/contact/' }}
+>
+	<section
+		class="mx-auto w-full max-w-3xl px-margin-mobile py-space-lg tablet:px-margin-mobile desktop:px-gutter"
+		aria-labelledby="contact-page-title"
+	>
+		<h1
+			id="contact-page-title"
+			class="mb-space-md mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+		>
+			{messages.contactTitle}
+		</h1>
+		<p class="mb-space-lg mt-0 font-body-md text-body-md text-on-surface-variant">
+			{messages.contactIntro}
+		</p>
+		<ContactForm locale={locale} messages={messages} artworks={artworks} />
+	</section>
+</BaseLayout>

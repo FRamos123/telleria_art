@@ -25,6 +25,7 @@ export function createSitemapXml(content: SitemapContent, siteUrl: URL): string 
 	addLocalizedPages(pages, { es: '/obras/', en: '/en/works/' });
 	addLocalizedPages(pages, { es: '/exposiciones/', en: '/en/exhibitions/' });
 	addLocalizedPages(pages, { es: '/textos-criticos/', en: '/en/critical-texts/' });
+	addLocalizedPages(pages, { es: '/contacto/', en: '/en/contact/' });
 	addEntityPages(pages, content.series, (id, locale) =>
 		locale === 'es' ? `/series/${id}/` : `/en/series/${id}/`,
 	);

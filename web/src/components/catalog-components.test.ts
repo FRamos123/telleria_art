@@ -27,6 +27,8 @@ const criticalTextContentPath = new URL('./CriticalTextContent.astro', import.me
 const spanishCriticalTextPagePath = new URL('../pages/textos-criticos/[criticalTextId].astro', import.meta.url);
 const englishCriticalTextPagePath = new URL('../pages/en/critical-texts/[criticalTextId].astro', import.meta.url);
 const baseLayoutPath = new URL('../layouts/BaseLayout.astro', import.meta.url);
+const siteFooterPath = new URL('./SiteFooter.astro', import.meta.url);
+const contactFormPath = new URL('./ContactForm.astro', import.meta.url);
 const readOptionalComponent = (path: URL): string => {
 	try {
 		return readFileSync(path, 'utf8');
@@ -51,6 +53,8 @@ const criticalTextContent = readOptionalComponent(criticalTextContentPath);
 const spanishCriticalTextPage = readOptionalComponent(spanishCriticalTextPagePath);
 const englishCriticalTextPage = readOptionalComponent(englishCriticalTextPagePath);
 const baseLayout = readOptionalComponent(baseLayoutPath);
+const siteFooter = readOptionalComponent(siteFooterPath);
+const contactForm = readOptionalComponent(contactFormPath);
 
 const availabilityCases = [
 	{ availability: 'disponible', messageKey: 'availabilityAvailable', classEntry: "disponible: 'text-primary'", es: 'Disponible', en: 'Available' },
@@ -424,6 +428,25 @@ describe('catalog presentation components', () => {
 		expect(artworkCatalog).toContain('grid-cols-1');
 		expect(artworkCatalog).toContain('tablet:grid-cols-8');
 		expect(artworkCatalog).toContain('desktop:grid-cols-12');
+	});
+
+	it('links from a localized artwork page to contact with only that published artwork ID', () => {
+		expect(artworkContent).toContain('messages.contactArtworkAction');
+		expect(artworkContent).toContain('encodeURIComponent(artwork.id)');
+		expect(artworkContent).toContain('`/contacto/?artwork=');
+		expect(artworkContent).toContain('`/en/contact/?artwork=');
+		expect(artworkContent).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+	});
+
+	it('adds a localized contact link to the existing footer and preselects only localized artwork options', () => {
+		expect(baseLayout).toContain('<SiteFooter locale={locale}');
+		expect(siteFooter).toContain('messages.contactFooterLink');
+		expect(siteFooter).toContain("locale === 'es'");
+		expect(siteFooter).toContain("'/contacto/'");
+		expect(siteFooter).toContain("'/en/contact/'");
+		expect(contactForm).toContain('new URLSearchParams(window.location.search)');
+		expect(contactForm).toContain('option.value === artworkId');
+		expect(contactForm).toContain('contactArtworkSelect.value = artworkId');
 	});
 
 	it.each([

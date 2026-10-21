@@ -47,7 +47,7 @@ const languagePaths: Partial<Record<Locale, string>> = {
 			<main id="main-content" class="flex-1">
 				<slot />
 			</main>
-			<SiteFooter messages={messages} />
+			<SiteFooter locale={locale} messages={messages} />
 		</div>
 	</body>
 </html>

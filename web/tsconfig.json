@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "types": ["astro/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "functions/**/*.ts"]
 }

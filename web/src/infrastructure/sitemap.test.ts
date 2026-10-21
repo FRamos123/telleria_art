@@ -26,6 +26,8 @@ describe('createSitemapXml', () => {
 		expect(xml).toContain('<loc>https://example.com/en/</loc>');
 		expect(xml).toContain('<loc>https://example.com/obras/</loc>');
 		expect(xml).toContain('<loc>https://example.com/en/works/</loc>');
+		expect(xml).toContain('<loc>https://example.com/contacto/</loc>');
+		expect(xml).toContain('<loc>https://example.com/en/contact/</loc>');
 		expect(xml).toContain('<loc>https://example.com/series/serie-bilingue/</loc>');
 		expect(xml).toContain('<loc>https://example.com/en/series/serie-bilingue/</loc>');
 		expect(xml).toContain('<loc>https://example.com/series/serie-solo-es/</loc>');
@@ -56,6 +58,8 @@ describe('createSitemapXml', () => {
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/obras/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/works/"');
+		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/contacto/"');
+		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/contact/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="es" href="https://example.com/series/serie-es/"');
 		expect(xml).not.toContain('hreflang="en" href="https://example.com/en/series/serie-es/"');
 		expect(xml).toContain('<xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/work/obra-en/"');

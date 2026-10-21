@@ -89,7 +89,7 @@ describe('static build output', () => {
 		expect(englishCatalog).not.toMatch(/<script\b/i);
 	});
 
-	it('generates localized exhibition indexes with unique metadata and published alternates', () => {
+	 it('generates localized exhibition indexes with unique metadata and published alternates', () => {
 		const spanishIndex = readBuildPage('exposiciones/index.html');
 		const englishIndex = readBuildPage('en/exhibitions/index.html');
 
@@ -117,6 +117,62 @@ describe('static build output', () => {
 			if (!index.includes('<li')) expect(index).toContain(emptyMessage);
 		}
 	});
+
+	it('renders the localized contact draft as static HTML with accessible fields and sending disabled', () => {
+		const spanishPage = readBuildPage('contacto/index.html');
+		const englishPage = readBuildPage('en/contact/index.html');
+
+		for (const [page, locale, title, description, canonical, alternate] of [
+			[
+				spanishPage,
+				'es',
+				messages.es.contactTitle,
+				messages.es.contactMetaDescription,
+				'https://telleria-art.pages.dev/contacto/',
+				'https://telleria-art.pages.dev/en/contact/',
+			],
+			[
+				englishPage,
+				'en',
+				messages.en.contactTitle,
+				messages.en.contactMetaDescription,
+				'https://telleria-art.pages.dev/en/contact/',
+				'https://telleria-art.pages.dev/contacto/',
+			],
+		] as const) {
+			expect(page).toContain(`<html lang="${locale}">`);
+			expect(page).toContain(`<title>${title}</title>`);
+			expect(readMetaDescription(page)).toBe(description);
+			expect(page).toContain(`rel="canonical" href="${canonical}"`);
+			expect(page).toContain(`rel="alternate" hreflang="${locale === 'es' ? 'en' : 'es'}" href="${alternate}"`);
+			expect(page).toContain('id="contact-form"');
+			expect(page).toContain('name="name"');
+			expect(page).toContain('name="email"');
+			expect(page).toContain('name="institution"');
+			expect(page).toContain('name="phone"');
+			expect(page).toContain('name="artworkId"');
+			expect(page).toContain('name="message"');
+			expect(page).toContain('name="consent"');
+			expect(page).toContain('disabled');
+			expect(page).toContain(locale === 'es' ? 'NO DESPLEGAR' : 'DO NOT DEPLOY');
+			expect(page).toContain(locale === 'es' ? 'no acepta consultas' : 'not accepting inquiries yet');
+		}
+	})
+
+	it('projects only localized contact artwork options from the deployed artwork index', () => {
+		const index = JSON.parse(readBuildPage('contact-artworks.json')) as Record<'es' | 'en', string[]>;
+		const pages = [
+			{ page: readBuildPage('contacto/index.html'), locale: 'es' as const },
+			{ page: readBuildPage('en/contact/index.html'), locale: 'en' as const },
+		];
+
+		for (const { page, locale } of pages) {
+			const optionIds = [...page.matchAll(/<option value="([^"]+)"/gu)]
+				.map(([, id]) => id ?? '')
+				.filter(Boolean);
+			expect(optionIds).toEqual(index[locale]);
+		}
+	})
 
 	it('generates localized critical-text indexes with functional metadata and published alternates', () => {
 		const spanishIndex = readBuildPage('textos-criticos/index.html');
@@ -173,6 +229,8 @@ describe('static build output', () => {
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/obras/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/works/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/contacto/</loc>');
+		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/contact/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/exposiciones/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/en/exhibitions/</loc>');
 		expect(sitemap).toContain('<loc>https://telleria-art.pages.dev/textos-criticos/</loc>');
@@ -181,6 +239,8 @@ describe('static build output', () => {
 		expect(sitemap).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/"');
 		expect(sitemap).toContain('hreflang="es" href="https://telleria-art.pages.dev/obras/"');
 		expect(sitemap).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/works/"');
+		expect(sitemap).toContain('hreflang="es" href="https://telleria-art.pages.dev/contacto/"');
+		expect(sitemap).toContain('hreflang="en" href="https://telleria-art.pages.dev/en/contact/"');
 		expect(sitemap).toContain('</urlset>');
 	});
 
@@ -250,9 +310,13 @@ describe('static build output', () => {
 			expect(html).toContain('<main');
 			const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/giu)];
 			expect(html.match(/<script\b/giu) ?? []).toHaveLength(scripts.length);
-			expect(scripts.every(([, attributes]) => attributes.includes('type="application/ld+json"'))).toBe(true);
+			const structuredDataScripts = scripts.filter(([, attributes]) => attributes.includes('type="application/ld+json"'));
+			const clientScripts = scripts.filter(([, attributes]) => attributes.includes('type="module"'));
+			const isContactPage = /\/(?:en\/contact|contacto)\/$/u.test(new URL(location).pathname);
+			expect(clientScripts).toHaveLength(isContactPage ? 1 : 0);
+			expect(scripts).toHaveLength(structuredDataScripts.length + clientScripts.length);
 
-			const structuredData = scripts.map(([, , json]) => JSON.parse(json ?? ''));
+			const structuredData = structuredDataScripts.map(([, , json]) => JSON.parse(json ?? ''));
 			const pathname = new URL(location).pathname;
 			if (/\/(?:en\/)?series\//u.test(pathname)) {
 				expect(structuredData).toHaveLength(1);
