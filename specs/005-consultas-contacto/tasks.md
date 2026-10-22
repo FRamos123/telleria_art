@@ -65,7 +65,7 @@ Estado: aprobado
 
 - [ ] **T14. Configurar buzón real, remitente verificado y secretos de preview.** RF-6, RF-7, RF-10, RF-11
   - Hecho cuando: el alias del dominio reenvía al Gmail dedicado, las respuestas salen desde Gmail, el remitente usa un dominio verificado en Resend, los secretos están solo en la configuración de Pages y están configurados/registrados el procedimiento manual de 90 días y la excepción aprobada de respaldos de Gmail de hasta 6 meses.
-  - Bloqueada: falta el dominio/alias real y su configuración DNS, la cuenta Gmail destino verificada, el dominio remitente verificado en Resend, y las claves de preview. No inventar valores ni compartir secretos en Git/chat. Variables previstas: `PUBLIC_TURNSTILE_SITE_KEY` (pública, de build), `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `CONTACT_RECIPIENT` y `CONTACT_FROM` (Function).
+  - Bloqueada: el dominio `artelleria.com` está comprado, pero falta activarlo como zona DNS en Cloudflare y crear/verificar el alias y el destino Gmail; también falta el remitente verificado en Resend y las claves de preview. No inventar valores ni compartir secretos en Git/chat. Variables previstas: `PUBLIC_TURNSTILE_SITE_KEY` (pública, de build), `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `CONTACT_RECIPIENT` y `CONTACT_FROM` (Function).
 
 - [ ] **T15. Incorporar el aviso y consentimiento aprobados en ambos idiomas.** RF-9, RF-11; RNF-1, RNF-5
   - Hecho cuando: el texto aportado por la persona autorizada está aprobado por la persona responsable, informa los datos confirmados y comunica el plazo provisional vigente; ningún placeholder legal llega a producción.
