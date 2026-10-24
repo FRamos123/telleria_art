@@ -95,14 +95,15 @@ Estado: aprobado (actualización de base jurídica art. 6.1.f)
   - Envío manual confirmado por la persona usuaria (2026-10-24): completó Turnstile, Resend aceptó el mensaje, la interfaz limpió los campos y la persona confirma recepción en el buzón. El payload confirma destino al alias `consultas@artelleria.com`, remitente `consultas@envios.artelleria.com` y `reply_to` con el email del formulario.
   - Prueba segura de replay añadida a `contact.test.ts`: el mismo token sintético recibe primero aceptación mock de Siteverify y luego `success: false` con `timeout-or-duplicate`; la Function devuelve 403 `spamRejected` y solo hay una llamada a Resend. No se repitió el token real para evitar el riesgo de un correo duplicado. El placeholder también se comprueba en tests. Verificación completa: `pnpm --dir web verify` pasa con 408 tests en 26 archivos.
 
-- [ ] **T19. Verificar Lighthouse y SEO en la página de contacto.** RNF-3, RNF-4
-  - Hecho cuando: Lighthouse móvil alcanza ≥90 rendimiento, ≥95 accesibilidad y 100 SEO; se comprueban metadatos, canonical, alternates e inclusión en sitemap. Requiere un Preview desplegado tras aprobar T15.
-  - Auditoría del Preview estable (2026-10-24): Lighthouse mobile: rendimiento 98, accesibilidad 100, SEO 66. El único fallo SEO es `is-crawlable`: Cloudflare añade `X-Robots-Tag: noindex` a deployments Preview, comportamiento esperado que no debe quitarse para esta prueba.
-  - Verificado en Preview ES/EN: títulos y descripciones localizados, `lang` correcto, canonical y alternates recíprocos a `telleria-art.pages.dev`, ambas rutas incluidas en `sitemap.xml`.
-  - Bloqueada para cerrar: la ruta canónica de producción `https://telleria-art.pages.dev/contacto/` todavía sirve el aviso anterior con estado de borrador y placeholders. Para obtener SEO de producción para la versión final hace falta desplegar allí el código aprobado y volver a auditar; no se desplegó Production.
+- [x] **T19. Verificar Lighthouse y SEO en la página de contacto.** RNF-3, RNF-4
+  - Hecho cuando: Lighthouse móvil alcanza ≥90 rendimiento, ≥95 accesibilidad y 100 SEO; se comprueban metadatos, canonical, alternates e inclusión en sitemap en un despliegue indexable con el aviso aprobado.
+  - Lighthouse móvil de producción ES (2026-10-24): rendimiento 100, accesibilidad 100 y SEO 100. EN: accesibilidad 100 y SEO 100.
+  - Producción confirma el aviso final sin borrador/placeholders ni `X-Robots-Tag: noindex`. Verificado en ES/EN: títulos, descripciones y `lang` localizados; canonical y alternates recíprocos a `telleria-art.pages.dev`; ambas rutas aparecen en `sitemap.xml`.
+  - Referencia: el Preview conserva correctamente `X-Robots-Tag: noindex`; por ello Lighthouse allí marcó SEO 66, mientras que la auditoría de producción indexable cumple 100.
 
-- [ ] **T20. Auditar la política efectiva de retención.** RF-11
+- [x] **T20. Auditar la política efectiva de retención.** RF-11
   - Hecho cuando: se documenta la retención de Resend y del buzón receptor, incluida la regla para respuestas y última interacción sustantiva; cualquier límite no cubierto vuelve a la spec antes de cerrar RF-11.
+  - Cerrada con confirmación de la responsable y documentación en `spec.md`, el aviso ES/EN y `docs/legitimate-interest-assessment.md`: revisión diaria del buzón; borrado manual del hilo completo, enviados, adjuntos y papelera a los 90 días de la última interacción sustantiva; excepción para obligación/reclamación y respaldos Google cifrados hasta 6 meses. Resend: 30 días activo, respaldos 7 días, eliminación hasta 90 días tras cierre. Email Routing: metadatos 31 días, sin contenido. Turnstile: sin plazo fijo publicado; Pages HTTP logs sin retención adicional habilitada. No quedan periodos desconocidos dentro del alcance acordado; revisar de nuevo si cambian servicio, cuenta, política o configuración.
 
 ## Alcance de entrega
 
