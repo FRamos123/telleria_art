@@ -189,6 +189,49 @@ describe('contact Pages Function', () => {
 		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
 	})
 
+	it('rejects a reused Turnstile token reported as a duplicate without calling Resend again', async () => {
+		const token = 'turnstile-token-used-once'
+		const calls: string[] = []
+		let verifyCount = 0
+		const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input)
+			calls.push(url)
+			if (url === turnstileVerifyUrl) {
+				verifyCount += 1
+				const result = verifyCount === 1
+					? { success: true, action: 'contact', hostname: 'portfolio.test' }
+					: { success: false, 'error-codes': ['timeout-or-duplicate'] }
+				return new Response(JSON.stringify(result), {
+					status: 200,
+					headers: { 'content-type': 'application/json' },
+				})
+			}
+			if (url === 'https://api.resend.com/emails') {
+				return new Response(JSON.stringify({ id: 'resend-test-id' }), {
+					status: 200,
+					headers: { 'content-type': 'application/json' },
+				})
+			}
+			throw new Error(`Unexpected request URL: ${url}`)
+		})
+		const env = createEnvironment()
+
+		const firstResponse = await onRequest({
+			request: createRequest(createFormData({ turnstileToken: token })),
+			env,
+		}, fetcher)
+		const replayResponse = await onRequest({
+			request: createRequest(createFormData({ turnstileToken: token })),
+			env,
+		}, fetcher)
+
+		expect(firstResponse.status).toBe(200)
+		expect(await responseBody(firstResponse)).toEqual({ ok: true, code: 'accepted' })
+		expect(replayResponse.status).toBe(403)
+		expect(await responseBody(replayResponse)).toEqual({ ok: false, code: 'spamRejected' })
+		expect(calls).toEqual([turnstileVerifyUrl, 'https://api.resend.com/emails', turnstileVerifyUrl])
+	})
+
 	it.each([
 		{ siteverifyResult: { success: true }, label: 'missing action and hostname' },
 		{ siteverifyResult: { success: true, hostname: 'portfolio.test' }, label: 'missing action' },
