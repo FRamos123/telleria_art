@@ -4,7 +4,7 @@ import { en } from './en';
 import { es } from './es';
 
 describe('foundation translations', () => {
-	it('provides non-empty Spanish and English messages for the contact form and marks legal copy pending', () => {
+	it('provides non-empty Spanish and English messages for the contact form and final privacy notice', () => {
 		const contactMessageKeys = [
 			'contactTitle',
 			'contactMetaDescription',
@@ -22,9 +22,9 @@ describe('foundation translations', () => {
 			'contactArtworkHelp',
 			'contactArtworkAction',
 			'contactFooterLink',
-			'contactFormDraftOnly',
 			'contactAntiSpamLabel',
 			'contactAntiSpamPending',
+			'contactAntiSpamUnavailable',
 			'contactSubmit',
 			'contactSubmitting',
 			'contactSuccess',
@@ -45,7 +45,6 @@ describe('foundation translations', () => {
 			'contactMessageRequired',
 			'contactMessageTooLong',
 			'contactPrivacyNoticeTitle',
-			'contactPrivacyNoticeStatus',
 			'contactPrivacyControllerLabel',
 			'contactPrivacyController',
 			'contactPrivacyContactLabel',
@@ -70,11 +69,9 @@ describe('foundation translations', () => {
 			expect(spanish[key]?.trim().length, `Spanish ${key}`).toBeGreaterThan(0)
 			expect(english[key]?.trim().length, `English ${key}`).toBeGreaterThan(0)
 		}
-		expect(es.contactPrivacyNoticeStatus).toContain('PENDIENTE')
-		expect(en.contactPrivacyNoticeStatus).toContain('PENDING')
 	})
 
-	it('uses the selected legitimate-interest draft and general-inquiry scope in both locales', () => {
+	it('uses the approved legitimate-interest basis and general-inquiry scope in both locales', () => {
 		expect(es.contactPrivacyContact).toContain('consultas@artelleria.com')
 		expect(en.contactPrivacyContact).toContain('consultas@artelleria.com')
 		expect(es.contactPrivacyPurpose).toContain('consultas generales')
@@ -82,13 +79,23 @@ describe('foundation translations', () => {
 		expect(en.contactPrivacyPurpose).toContain('general inquiries')
 		expect(en.contactPrivacyPurpose).toContain('does not handle purchases')
 		expect(es.contactPrivacyLegalBasis).toContain('artículo 6.1.f')
-		expect(es.contactPrivacyLegalBasis).toContain('pendiente de documentar')
+		expect(es.contactPrivacyLegalBasis).toContain('interés legítimo')
 		expect(en.contactPrivacyLegalBasis).toContain('Article 6(1)(f)')
-		expect(en.contactPrivacyLegalBasis).toContain('pending documentation')
+		expect(en.contactPrivacyLegalBasis).toContain('legitimate interest')
 		expect(es.contactPrivacyRights).toContain('oponerte')
 		expect(es.contactPrivacyRights).toContain('AEPD')
 		expect(en.contactPrivacyRights).toContain('object')
 		expect(en.contactPrivacyRights).toContain('AEPD')
+		for (const value of [
+			es.contactPrivacyLegalBasis,
+			es.contactPrivacyProviders,
+			es.contactPrivacyRetention,
+			en.contactPrivacyLegalBasis,
+			en.contactPrivacyProviders,
+			en.contactPrivacyRetention,
+		]) {
+			expect(value).not.toMatch(/\b(?:draft|pending|borrador|pendiente)\b|\[(?:confirm|confirmar)/iu)
+		}
 
 		for (const key of [
 			'contactConsentRequired',

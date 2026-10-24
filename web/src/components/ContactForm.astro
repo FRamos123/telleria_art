@@ -8,9 +8,7 @@ interface Props {
 }
 
 const { locale, messages, artworks } = Astro.props;
-const isPrivacyNoticePending = /PENDIENTE|PENDING/u.test(messages.contactPrivacyNoticeStatus);
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
-const contactReady = !isPrivacyNoticePending;
 ---
 
 <div class="grid grid-cols-1 gap-space-lg">
@@ -19,12 +17,6 @@ const contactReady = !isPrivacyNoticePending;
 		aria-labelledby="contact-privacy-notice-title"
 		class="border border-outline-variant bg-surface-container p-space-md"
 	>
-		<p
-			class="mb-space-sm mt-0 font-label-technical text-label-technical text-primary"
-			role="status"
-		>
-			{messages.contactPrivacyNoticeStatus}
-		</p>
 		<h2
 			id="contact-privacy-notice-title"
 			class="mb-space-md mt-0 font-headline-sm text-headline-sm text-on-surface"
@@ -99,23 +91,12 @@ const contactReady = !isPrivacyNoticePending;
 		</dl>
 	</section>
 
-	<p
-		id="contact-form-draft-status"
-		class="m-0 border border-primary bg-surface-container p-space-md font-body-md text-body-md text-on-surface"
-		role="status"
-	>
-		{messages.contactFormDraftOnly}
-	</p>
-
 	<form
 		id="contact-form"
 		action="/api/contact"
 		method="post"
 		novalidate
-		aria-describedby="contact-form-draft-status"
-		data-contact-ready={contactReady ? 'true' : 'false'}
 		data-turnstile-sitekey={turnstileSiteKey}
-		data-message-draft-pending={messages.contactFormDraftOnly}
 		data-message-error-summary={messages.contactErrorSummary}
 		data-message-accepted={messages.contactSuccess}
 		data-message-send-failed={messages.contactSendFailed}
@@ -272,7 +253,7 @@ const contactReady = !isPrivacyNoticePending;
 			</h2>
 			<div id="contact-turnstile" data-turnstile-container data-sitekey={turnstileSiteKey}></div>
 			<p id="contact-antispam-status" class="mb-0 mt-space-sm font-body-md text-body-md text-on-surface-variant" role="status" aria-live="polite">
-				{messages.contactAntiSpamPending}
+				{turnstileSiteKey ? messages.contactAntiSpamPending : messages.contactAntiSpamUnavailable}
 			</p>
 		</section>
 
@@ -284,7 +265,7 @@ const contactReady = !isPrivacyNoticePending;
 		<button
 			class="mt-space-lg h-11 rounded-none border border-outline bg-surface-container-high px-space-md font-label-technical text-label-technical text-on-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 			type="submit"
-			disabled={!contactReady || !turnstileSiteKey}
+			disabled={!turnstileSiteKey}
 		>
 			{messages.contactSubmit}
 		</button>
@@ -342,7 +323,6 @@ const contactReady = !isPrivacyNoticePending;
 		}
 
 		const turnstile = () => (window as WindowWithTurnstile).turnstile
-		const isReadyForContact = () => form.dataset.contactReady === 'true'
 		const siteKey = () => form.dataset.turnstileSitekey?.trim() ?? ''
 
 		function getTurnstileToken(): string {
@@ -355,7 +335,7 @@ const contactReady = !isPrivacyNoticePending;
 
 		function updateSubmitButton(): void {
 			if (submitButton) {
-				submitButton.disabled = !isReadyForContact() || !siteKey() || !getTurnstileToken()
+				submitButton.disabled = !siteKey() || !getTurnstileToken()
 			}
 		}
 
@@ -457,7 +437,7 @@ const contactReady = !isPrivacyNoticePending;
 		}
 
 		function loadTurnstile(): void {
-			if (!isReadyForContact() || !siteKey() || !turnstileContainer) return
+			if (!siteKey() || !turnstileContainer) return
 			if (turnstile()) {
 				renderTurnstile()
 				return
@@ -514,10 +494,6 @@ const contactReady = !isPrivacyNoticePending;
 
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault()
-			if (!isReadyForContact()) {
-				setResponseStatus(form.dataset.messageDraftPending ?? '')
-				return
-			}
 
 			const formData = new FormData(form)
 			const input: ContactInquiryInput = {

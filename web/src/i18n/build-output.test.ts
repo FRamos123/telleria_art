@@ -158,9 +158,9 @@ describe('static build output', () => {
 			expect(page).toContain(messages[locale].contactPrivacyNoticeTitle);
 			expect(page).toContain(messages[locale].contactPrivacyRights);
 			expect(page).not.toMatch(/<(?:a|button)[^>]*>[^<]*(?:comprar|buy|purchase|checkout|reservar|price|precio)/iu);
-			expect(page).toContain('disabled');
-			expect(page).toContain(locale === 'es' ? 'NO DESPLEGAR' : 'DO NOT DEPLOY');
-			expect(page).toContain(locale === 'es' ? 'no acepta consultas' : 'not accepting inquiries yet');
+			expect(page).not.toMatch(/BORRADOR|DRAFT|PENDIENTE DE APROBACIÓN|PENDING APPROVAL|\[(?:Confirmar|Confirm)/u);
+			expect(page).not.toContain('contact-form-draft-status');
+			expect(page).not.toContain('contactFormDraftOnly');
 		}
 	})
 
