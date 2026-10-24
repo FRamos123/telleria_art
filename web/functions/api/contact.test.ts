@@ -10,7 +10,6 @@ function createFormData(overrides: Record<string, string> = {}): FormData {
 		email: ' ana@example.org ',
 		message: ' [TEST] Consulta sintética ',
 		locale: 'es',
-		consent: 'true',
 		turnstileToken: 'turnstile-test-token',
 		...overrides,
 	}
@@ -27,6 +26,7 @@ function createEnvironment(overrides: Partial<ContactEnvironment> = {}): Contact
 	return {
 		CONTACT_RECIPIENT: 'consultas@gmail.com',
 		TURNSTILE_SECRET_KEY: 'test-turnstile-secret',
+		TURNSTILE_HOSTNAMES: 'portfolio.test',
 		RESEND_API_KEY: 'test-resend-api-key',
 		CONTACT_FROM: 'Alejandro Fernández Tellería <contact@example.org>',
 		ASSETS: {
@@ -39,14 +39,18 @@ function createEnvironment(overrides: Partial<ContactEnvironment> = {}): Contact
 	}
 }
 
-function turnstileFetcher(success: boolean) {
+function turnstileFetcher(result: boolean | Record<string, unknown>, expectedToken = 'turnstile-test-token') {
 	return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 		expect(String(input)).toBe(turnstileVerifyUrl)
 		expect(init?.method).toBe('POST')
+		expect(init?.signal).toBeInstanceOf(AbortSignal)
 		const body = init?.body as URLSearchParams
 		expect(body.get('secret')).toBe('test-turnstile-secret')
-		expect(body.get('response')).toBe('turnstile-test-token')
-		return new Response(JSON.stringify({ success }), {
+		expect(body.get('response')).toBe(expectedToken)
+		const siteverifyResult = typeof result === 'boolean'
+			? { success: result, action: 'contact', hostname: 'portfolio.test' }
+			: result
+		return new Response(JSON.stringify(siteverifyResult), {
 			status: 200,
 			headers: { 'content-type': 'application/json' },
 		})
@@ -55,6 +59,7 @@ function turnstileFetcher(success: boolean) {
 
 function resendFetcher(options: {
 	turnstileSuccess?: boolean
+	turnstileResult?: Record<string, unknown>
 	resendStatus?: number
 	resendBody?: unknown
 	resendError?: Error
@@ -64,7 +69,9 @@ function resendFetcher(options: {
 		const url = String(input)
 		calls.push({ url, init })
 		if (url === turnstileVerifyUrl) {
-			return new Response(JSON.stringify({ success: options.turnstileSuccess ?? true }), {
+			const siteverifyResult = options.turnstileResult
+				?? { success: options.turnstileSuccess ?? true, action: 'contact', hostname: 'portfolio.test' }
+			return new Response(JSON.stringify(siteverifyResult), {
 				status: 200,
 				headers: { 'content-type': 'application/json' },
 			})
@@ -135,16 +142,14 @@ describe('contact Pages Function', () => {
 		expect(fetcher).not.toHaveBeenCalled()
 	})
 
-	it('rejects missing consent before contacting Turnstile', async () => {
-		const fetcher = vi.fn()
+	it('accepts a valid general inquiry without a consent field', async () => {
 		const response = await onRequest({
-			request: createRequest(createFormData({ consent: 'false' })),
+			request: createRequest(createFormData()),
 			env: createEnvironment(),
-		}, fetcher)
+		}, resendFetcher().fetcher)
 
-		expect(response.status).toBe(400)
-		expect(await responseBody(response)).toEqual({ ok: false, code: 'consentRequired' })
-		expect(fetcher).not.toHaveBeenCalled()
+		expect(response.status).toBe(200)
+		expect(await responseBody(response)).toEqual({ ok: true, code: 'accepted' })
 	})
 
 	it('rejects artwork absent from the deployed locale index without exposing artwork data', async () => {
@@ -182,6 +187,94 @@ describe('contact Pages Function', () => {
 
 		expect(response.status).toBe(403)
 		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
+	})
+
+	it.each([
+		{ siteverifyResult: { success: true }, label: 'missing action and hostname' },
+		{ siteverifyResult: { success: true, hostname: 'portfolio.test' }, label: 'missing action' },
+		{ siteverifyResult: { success: true, action: 'contact' }, label: 'missing hostname' },
+		{ siteverifyResult: { success: true, action: 'newsletter', hostname: 'portfolio.test' }, label: 'unexpected action' },
+		{ siteverifyResult: { success: true, action: 'contact', hostname: 'other.test' }, label: 'unapproved hostname' },
+	])('rejects Siteverify results with $label', async ({ siteverifyResult }) => {
+		const { fetcher, calls } = resendFetcher({ turnstileResult: siteverifyResult })
+		const response = await onRequest({
+			request: createRequest(createFormData()),
+			env: createEnvironment(),
+		}, fetcher)
+
+		expect(response.status).toBe(403)
+		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
+		expect(calls.map(({ url }) => url)).toEqual([turnstileVerifyUrl])
+	})
+
+	it.each([
+		{ environment: { TURNSTILE_HOSTNAMES: undefined }, label: 'missing hostname allowlist' },
+		{ environment: { TURNSTILE_HOSTNAMES: '   ' }, label: 'empty hostname allowlist' },
+	])('fails closed before Siteverify for $label', async ({ environment }) => {
+		const fetcher = vi.fn()
+		const response = await onRequest({
+			request: createRequest(createFormData()),
+			env: createEnvironment(environment),
+		}, fetcher)
+
+		expect(response.status).toBe(403)
+		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
+		expect(fetcher).not.toHaveBeenCalled()
+	})
+
+	it.each(['', '   ', 'x'.repeat(2049), `${' '.repeat(2048)}x`])('rejects a Turnstile token outside the 1–2048 character limit', async (token) => {
+		const fetcher = vi.fn()
+		const response = await onRequest({
+			request: createRequest(createFormData({ turnstileToken: token })),
+			env: createEnvironment(),
+		}, fetcher)
+
+		expect(response.status).toBe(403)
+		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
+		expect(fetcher).not.toHaveBeenCalled()
+	})
+
+	it('accepts a Turnstile token at the 2048-character limit', async () => {
+		const token = 'x'.repeat(2048)
+		const result = await validateContactRequest(
+			createRequest(createFormData({ turnstileToken: token })),
+			createEnvironment(),
+			turnstileFetcher(true, token),
+		)
+
+		expect(result.ok).toBe(true)
+	})
+
+	it('uses a 10-second timeout for Siteverify', async () => {
+		const timeoutSpy = vi.spyOn(AbortSignal, 'timeout')
+		try {
+			await validateContactRequest(
+				createRequest(createFormData()),
+				createEnvironment(),
+				turnstileFetcher(true),
+			)
+			expect(timeoutSpy).toHaveBeenCalledWith(10_000)
+		} finally {
+			timeoutSpy.mockRestore()
+		}
+	})
+
+	it('rejects a Siteverify timeout or network failure without calling Resend', async () => {
+		const { fetcher, calls } = resendFetcher({ turnstileResult: { success: true } })
+		fetcher.mockImplementation(async (input) => {
+			const url = String(input)
+			calls.push({ url })
+			if (url === turnstileVerifyUrl) throw new Error('simulated timeout')
+			throw new Error(`Unexpected request URL: ${url}`)
+		})
+		const response = await onRequest({
+			request: createRequest(createFormData()),
+			env: createEnvironment(),
+		}, fetcher)
+
+		expect(response.status).toBe(403)
+		expect(await responseBody(response)).toEqual({ ok: false, code: 'spamRejected' })
+		expect(calls.map(({ url }) => url)).toEqual([turnstileVerifyUrl])
 	})
 
 	it('returns a validated normalized inquiry after Turnstile and locale-specific artwork checks pass', async () => {

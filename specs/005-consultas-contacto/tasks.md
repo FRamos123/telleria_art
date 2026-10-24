@@ -1,5 +1,5 @@
 # Tareas 005 — Consultas de contacto
-Estado: aprobado
+Estado: aprobado (actualización de base jurídica art. 6.1.f)
 
 ## Tareas
 
@@ -16,22 +16,26 @@ Estado: aprobado
   - Hecho cuando: queda registrada la aprobación o el ajuste de alcance para el JavaScript mínimo de cliente, los cambios de layout en ficha/pie y el patrón nuevo de formulario; no se implementa ningún punto rechazado.
   - Aprobaciones expresas recibidas: JavaScript mínimo sí; enlaces en ficha y pie sí; documentar patrón con tokens existentes sí; Cloudflare Email Routing solo como reenvío entrante a Gmail sí. Sin cambios a `@theme`, Workers ni Cloudflare Email Sending.
 
-- [x] **T4. Documentar el patrón de formulario con tokens existentes.** RF-1, RF-2, RF-4, RF-9; RNF-2, RNF-6
-  - Hecho cuando: `design/tokens.md` describe campos, errores, consentimiento, antispam y confirmación usando solo los tokens existentes, sin cambiar `@theme`.
+- [x] **T4. Actualizar el patrón de formulario según el interés legítimo.** RF-1, RF-2, RF-4, RF-9; RNF-2, RNF-6
+  - Hecho cuando: `design/tokens.md` describe campos, errores, aviso informativo/derecho de oposición, antispam y confirmación usando solo tokens existentes, sin casilla obligatoria de consentimiento ni cambios a `@theme`.
+  - Verificado: patrón documental actualizado en `design/tokens.md`; no se modificaron tokens `@theme`. `pnpm --dir web verify` pasa (405 tests).
 
 - [x] **T5. Crear el modelo de entrada y validación pura con Vitest.** RF-2, RF-3, RF-4
   - Hecho cuando: los tests cubren obligatorios, opcionales, espacios externos, email, máximos, teléfono internacional y que validar no muta ni pierde los valores originales.
   - Contrato implementado: `validateContactInquiry(input)` devuelve `inquiry` normalizada solo si es válida y errores neutrales por campo (`required`, `tooLong`, `invalidFormat`); no muta la entrada. Recorta espacios externos y omite opcionales vacíos. No comprueba DNS ni existencia del email/teléfono. El teléfono limita caracteres a dígitos, `+` inicial, espacios, guiones y paréntesis balanceados, además de 7–15 dígitos y 30 caracteres.
 
-- [x] **T6. Añadir mensajes de interfaz ES/EN y pruebas de paridad.** RF-1, RF-2, RF-3, RF-4, RF-6, RF-7, RF-8; RNF-1
-  - Hecho cuando: cada etiqueta, instrucción y estado de interfaz necesario tiene traducción no vacía en ambos idiomas y Vitest verifica la paridad; no se inventa el texto legal.
-  - Borrador ES/EN del aviso y consentimiento incorporado a i18n por autorización de la persona usuaria, con estado explícito pendiente; no es texto aprobado para producción. T7 lo renderiza solo en builds locales, sin desplegar.
+- [x] **T6. Actualizar mensajes ES/EN para interés legítimo y derecho de oposición.** RF-1, RF-2, RF-3, RF-4, RF-6, RF-7, RF-8, RF-9; RNF-1
+  - Hecho cuando: etiquetas, instrucciones, aviso, oposición, errores y estados tienen traducción no vacía en ambos idiomas y Vitest verifica paridad; se retiran los mensajes de consentimiento obligatorio sin inventar el contenido legal pendiente.
+  - Implementado: mensajes ES/EN actualizados a consultas generales, interés legítimo 6.1.f y derecho de oposición; alias confirmado incorporado al borrador local; transferencias/retenciones y evaluación continúan claramente pendientes. Se retiraron las claves i18n de consentimiento obligatorio.
+  - `pnpm --dir web verify` pasa (lint, tipos, build estático de 15 páginas y 406 tests en 26 archivos). El borrador sigue sin aprobar para producción.
 
-- [x] **T7. Crear las páginas estáticas y el marcado accesible del formulario.** RF-1, RF-2, RF-9; RNF-1–RNF-4
-  - Hecho cuando: existen las rutas ES/EN con canonical, descripción y alternates correctos; el HTML incluye campos, etiquetas, consentimiento y estados accesibles, sin depender de JavaScript para mostrar el contenido; queda definido el contrato de respuestas localizables que usarán la interfaz y la Function.
-  - Aprobación recibida: se permite mostrar el borrador ES/EN marcado como pendiente en builds locales para revisión. No desplegar las rutas de contacto hasta que el texto se revise y apruebe; mantener los envíos reales cerrados hasta la configuración de T14.
-  - Contrato de respuestas acordado para las tareas cliente/Function: `200 { ok: true, code: 'accepted' }`; errores con `{ ok: false, code: 'validation', errors }`, `consentRequired`, `invalidRequest`, `artworkUnavailable`, `spamRejected` o `deliveryUnavailable`. `errors` usa códigos por campo sin textos ni datos personales.
-  - Revisión Chrome DevTools: ES/EN a 375 px y 1280 px, sin overflow; árbol accesible con etiquetas, estados y consentimiento asociado al enlace del aviso. El envío permanece deshabilitado en este borrador local.
+- [x] **T7. Actualizar el marcado accesible del formulario sin consentimiento obligatorio.** RF-1, RF-2, RF-9, RF-12; RNF-1–RNF-4
+  - Hecho cuando: existen las rutas ES/EN con canonical, descripción y alternates correctos; el HTML incluye campos, etiquetas, aviso informativo, acceso a derechos y estados accesibles, sin casilla de consentimiento obligatoria ni dependencia de JavaScript para mostrar el contenido; queda definido el contrato actualizado de respuestas.
+  - Aprobación recibida: se permite mostrar el borrador del aviso ES/EN marcado como pendiente en builds locales para revisión. No desplegar las rutas de contacto hasta cerrar T15 y mantener envíos reales cerrados hasta completar la configuración de T14.
+  - Contrato propuesto: `200 { ok: true, code: 'accepted' }`; errores con `{ ok: false, code: 'validation', errors }`, `invalidRequest`, `artworkUnavailable`, `spamRejected` o `deliveryUnavailable`. Se elimina `consentRequired`; `errors` usa códigos por campo sin textos ni datos personales.
+  - QA Chrome DevTools en `astro preview`: ES/EN a 375×812 y 1280×900, sin overflow; aviso y derechos aparecen en el árbol accesible; Tab recorre skip link, idiomas, campos y pie con foco visible de 2 px. No hay casilla de consentimiento; el botón permanece deshabilitado por el aviso en borrador. Sin errores de consola.
+  - Progreso adelantado para dependencia T6, ya cerrada: se retiró el bloque HTML de consentimiento y su atributo; el build comprueba que no se renderiza `name="consent"`.
+  - T7 y T11 están cerradas; queda pendiente T12, que retirará la validación de consentimiento del servidor. Mantener envíos cerrados hasta verificar T12 y cerrar T15.
 
 - [x] **T8. Añadir la selección y preselección de obra localizada.** RF-5
   - Hecho cuando: la lista contiene solo obras incluidas en la última versión desplegada con traducción del idioma activo, incluye los cuatro estados de disponibilidad, el enlace desde una ficha preselecciona únicamente un ID válido, el pie ofrece el enlace localizado a contacto y el artefacto estático de IDs queda listo para la comprobación de la Function.
@@ -46,46 +50,47 @@ Estado: aprobado
   - Hecho cuando: a 375, 768 y 1280 px no hay overflow; se comprueban enlace, selector de obra, etiquetas, foco visible y navegación por teclado en ambos idiomas.
   - QA completado: ES/EN a 375, 768 y 1280 px, sin overflow; enlaces a contacto, selector y preselección revisados. La navegación con Tab alcanza el skip link, selector de idioma, campos, consentimiento y footer, con foco visible tokenizado.
 
-- [x] **T11. Conectar la interacción de cliente con el contrato del formulario.** RF-4, RF-6, RF-7, RF-8
-  - Hecho cuando: errores y reintentos conservan los campos y la selección, permiten obtener un token Turnstile nuevo, anuncian el estado accesiblemente y solo limpian el formulario tras aceptación; los estados se prueban con respuestas simuladas conforme al contrato definido en T7.
-  - Implementación: valida en cliente sin mutar el formulario, envía solo campos normalizados, asocia errores a controles, mantiene valores/selección ante rechazo o fallo y reinicia Turnstile cuando el token pudo consumirse; solo `accepted` limpia los campos. El botón permanece bloqueado mientras el borrador legal no esté aprobado o falte sitekey.
-  - QA Chrome DevTools con `fetch` y token simulados: validación, rechazo antispam y fallo de correo preservan valores/selección; token renovado permite reintentar; aceptación anuncia estado y limpia. La sitekey real aún no está configurada; se verificará con T14/T17.
-
-- [x] **T12. Implementar la recepción server-side, validación y verificación Turnstile.** RF-3, RF-4, RF-6, RF-7, RF-10
-  - Hecho cuando: la Function rechaza métodos/configuración inválidos, revalida todos los campos y consentimiento, verifica el token en servidor, consulta el artefacto de la última versión desplegada y devuelve resultados localizables sin incluir datos personales en logs; Vitest cubre éxito y rechazos simulados.
-  - Contrato implementado: `CONTACT_RECIPIENT`, `TURNSTILE_SECRET_KEY` y binding `ASSETS`; métodos/configuración inválidos fallan cerrados, se validan campos y consentimiento, el artefacto contiene solo IDs y la respuesta Turnstile se verifica con `fetch` server-side. No se registran datos personales ni tokens.
-  - QA: 12 tests con Resend/Turnstile/assets simulados, incluidas validación, consentimiento, obra ausente, error de asset, rechazo de Turnstile y entrada válida. La ruta responde `deliveryUnavailable` tras validación hasta que T13 integre Resend; nunca reporta aceptación prematura.
-  - Progreso adelantado para dependencia (T1): el helper puro de pertenencia por idioma y sus pruebas se consumen ahora en la Function.
-  - Configuración de servidor prevista: `CONTACT_RECIPIENT`, `TURNSTILE_SECRET_KEY` y el binding `ASSETS`; el placeholder `.invalid` y los valores ausentes fallan de forma cerrada. `invalidRequest` se traduce al mensaje genérico de error; no incluye datos de la consulta.
+- [x] **T11. Actualizar la interacción de cliente al contrato sin consentimiento obligatorio.** RF-4, RF-6, RF-7, RF-8, RF-9
+  - Hecho cuando: errores y reintentos conservan campos/selección, permiten obtener un token Turnstile nuevo, anuncian los estados accesiblemente y solo limpian tras aceptación; no se valida ni envía el campo `consent` y no se maneja `consentRequired`.
+  - Implementado: cliente omite el campo de consentimiento y sus ramas de error. Mantiene valores/obra ante errores y reinicia Turnstile tras rechazo/posible consumo; solo `accepted` limpia. El botón sigue deshabilitado mientras el aviso esté en borrador o falte sitekey.
+  - QA Chrome local con `fetch` y token Turnstile simulados: validación email preserva valor y evita fetch; rechazo spam y fallo delivery preservan campos y reinician token; callback de token nuevo habilita reintento; aceptación limpia solo después del estado aceptado. El cuerpo no incluye `consent`.
+  - `pnpm --dir web verify` pasó tras T11/T12 (lint, tipos, build de 15 páginas y 407 tests en 26 archivos). No se probó Resend real ni se desplegó.
+- [x] **T12. Actualizar la recepción server-side al tratamiento sin consentimiento obligatorio.** RF-3, RF-4, RF-6, RF-7, RF-9, RF-10, RF-12
+  - Hecho cuando: la Function rechaza métodos/configuración inválidos, revalida campos, consulta el artefacto de la última versión desplegada y no requiere ni recibe el campo `consent`. Turnstile conserva las comprobaciones aprobadas (`success`, acción `contact`, hostname, límite del token y timeout); el código no registra datos personales. Vitest cubre éxito y rechazos.
+  - Configuración runtime: `CONTACT_RECIPIENT`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_HOSTNAMES` y binding `ASSETS`; el placeholder `.invalid` y valores ausentes siguen fallando cerrados.
+  - Verificado: pruebas simuladas de validación, obra, Siteverify, Resend y fallo/aceptación sin el campo de consentimiento; `pnpm --dir web verify` pasa con 407 tests en 26 archivos. No se probó Resend real ni se desplegó.
+  - Enmienda Spin aprobada e implementada; la prueba real de token fresco/replay queda para T18 y no se hará ni desplegará mientras T15 siga pendiente.
 
 - [x] **T13. Integrar el envío por Resend y el resultado de aceptación.** RF-7, RF-8, RF-10
   - Hecho cuando: Resend se llama solo tras validación y antispam correctos; solo una aceptación para entrega devuelve éxito; errores, timeout y placeholder no aceptan el envío ni exponen secretos; Vitest cubre esos resultados.
   - Implementación: `POST /emails` con `RESEND_API_KEY`, `CONTACT_FROM` y destinatario configurados fuera de Git; `reply_to` usa el email validado. Solo un 2xx con ID de Resend devuelve `accepted`; fallos, timeout, respuestas inválidas y placeholders devuelven `deliveryUnavailable` sin detalles ni secretos.
   - Vitest simula validación→Turnstile→Resend, rechazo, falta de credenciales, fallo HTTP, timeout y respuesta 2xx sin ID. No se hizo envío real.
 
-- [ ] **T14. Configurar buzón real, remitente verificado y secretos de preview.** RF-6, RF-7, RF-10, RF-11
+- [x] **T14. Configurar buzón real, remitente verificado y secretos de preview.** RF-6, RF-7, RF-10, RF-11
   - Hecho cuando: el alias del dominio reenvía al Gmail dedicado, las respuestas salen desde Gmail, el remitente usa un dominio verificado en Resend, los secretos están solo en la configuración de Pages y están configurados/registrados el procedimiento manual de 90 días y la excepción aprobada de respaldos de Gmail de hasta 6 meses.
-  - Bloqueada: el dominio `artelleria.com` está comprado, pero falta activarlo como zona DNS en Cloudflare y crear/verificar el alias y el destino Gmail; también falta el remitente verificado en Resend y las claves de preview. No inventar valores ni compartir secretos en Git/chat. Variables previstas: `PUBLIC_TURNSTILE_SITE_KEY` (pública, de build), `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `CONTACT_RECIPIENT` y `CONTACT_FROM` (Function).
+  - Cerrada con confirmación de la persona usuaria: `consultas@artelleria.com` reenvía al Gmail dedicado y se comprobó responder desde esa cuenta; `envios.artelleria.com` aparece como Verified en Resend; variables y secretos están guardados en Pages en Preview y Production; la persona usuaria confirmó que aplicará la revisión diaria y el borrado manual a 90 días, con la excepción aprobada de respaldos hasta 6 meses. Widget Turnstile creado, secreto rotado y API key de Resend obtenida; widget permite `telleria-art.pages.dev`, `artelleria.com`, `localhost` y `127.0.0.1`. `TURNSTILE_HOSTNAMES=telleria-art.pages.dev` está configurado en ambos entornos. La comprobación/actualización al hostname exacto del Preview (que puede ser una URL con hash) se traslada a T17, cuando vuelva a desplegar.
 
-- [ ] **T15. Incorporar el aviso y consentimiento aprobados en ambos idiomas.** RF-9, RF-11; RNF-1, RNF-5
-  - Hecho cuando: el texto aportado por la persona autorizada está aprobado por la persona responsable, informa los datos confirmados y comunica el plazo provisional vigente; ningún placeholder legal llega a producción.
-  - El borrador preliminar ES/EN está en i18n con estado «pendiente de revisión y aprobación — no publicar»; no satisface esta tarea.
+- [ ] **T15. Incorporar el aviso de privacidad aprobado en ambos idiomas y documentar el interés legítimo.** RF-9, RF-11; RNF-1, RNF-5
+  - Hecho cuando: la persona responsable documenta una evaluación de interés legítimo para responder consultas voluntarias, el aviso ES/EN describe la base, el interés específico, la oposición, derechos, proveedores/transferencias y retención, y aprueba el texto final sin placeholders antes de cualquier despliegue o envío real.
+  - La responsable seleccionó el artículo 6.1.f RGPD para responder consultas generales. Falta documentar la evaluación de necesidad/ponderación y confirmar por separado el tratamiento Turnstile, proveedores y transferencias. El borrador sigue marcado «pendiente de revisión y aprobación — no publicar».
 
-- [ ] **T16. Ejecutar la verificación completa del paquete web.** RF-1–RF-11; RNF-1–RNF-6
+- [x] **T16. Ejecutar la verificación completa del paquete web.** RF-1–RF-12; RNF-1–RNF-6
   - Hecho cuando: `pnpm --dir web verify` pasa con tests de dominio, proyección de catálogo y Functions incluidos, y el build contiene las páginas y el sitemap esperados.
+  - Verificado tras T12: `pnpm --dir web verify` pasó (lint, TypeScript, build estático de 15 páginas y 407 tests en 26 archivos).
 
-- [ ] **T17. Probar errores y reintentos en el preview de Pages.** RF-3–RF-7; RNF-1, RNF-2
-  - Hecho cuando: Chrome DevTools confirma rechazo por validación, consentimiento ausente, Turnstile fallido y fallo de correo; los datos se conservan, los mensajes son ES/EN y nunca aparece éxito prematuro.
+- [ ] **T17. Probar errores, alcance no comercial y reintentos en el preview de Pages.** RF-3–RF-7, RF-9, RF-12; RNF-1, RNF-2
+  - Hecho cuando: el Preview funciona con `TURNSTILE_HOSTNAMES` igual al hostname exacto de la URL que lo sirve; Chrome DevTools confirma rechazo por validación, Turnstile fallido (incluidos acción/hostname) y fallo de correo; conserva datos; no requiere casilla de consentimiento; el aviso informa la base y el derecho de oposición; el contacto es solo general y sin CTAs de venta; no hay éxito prematuro.
+  - Bloqueada (2026-10-24): la persona usuaria informa que Pages Preview no despliega; además, las rutas de contacto no pueden desplegarse hasta cerrar T15. Para reanudar hacen falta un Preview operativo y T15 aprobado.
 
 - [ ] **T18. Probar un envío real en preview con Turnstile activo.** RF-6, RF-7, RF-8, RF-10
-  - Hecho cuando: una consulta sintética llega al buzón controlado, la interfaz confirma solo después de aceptación de Resend y el placeholder no puede enviar; no se exponen secretos.
+  - Hecho cuando: una consulta sintética con token fresco llega al buzón controlado, la interfaz confirma solo después de aceptación de Resend, repetir el mismo token se rechaza y el placeholder no puede enviar; no se exponen secretos. Bloqueada hasta T15 y Preview operativo.
 
 - [ ] **T19. Verificar Lighthouse y SEO en la página de contacto.** RNF-3, RNF-4
-  - Hecho cuando: Lighthouse móvil alcanza ≥90 rendimiento, ≥95 accesibilidad y 100 SEO; se comprueban metadatos, canonical, alternates e inclusión en sitemap.
+  - Hecho cuando: Lighthouse móvil alcanza ≥90 rendimiento, ≥95 accesibilidad y 100 SEO; se comprueban metadatos, canonical, alternates e inclusión en sitemap. Requiere un Preview desplegado tras aprobar T15.
 
 - [ ] **T20. Auditar la política efectiva de retención.** RF-11
   - Hecho cuando: se documenta la retención de Resend y del buzón receptor, incluida la regla para respuestas y última interacción sustantiva; cualquier límite no cubierto vuelve a la spec antes de cerrar RF-11.
 
 ## Alcance de entrega
 
-La persona usuaria rechazó la división propuesta y aprobó mantener las 20 tareas en esta única entrega. No se crearán specs adicionales. RF-11 queda cubierta por el procedimiento manual aprobado y la excepción limitada de respaldos Google; el aviso legal aprobado y la configuración real siguen siendo requisitos previos a los envíos reales.
+La persona usuaria rechazó la división propuesta y aprobó mantener las 20 tareas en esta única entrega. No se crearán specs adicionales. El producto actual es portfolio informativo/contacto general; no hay ventas por consulta, checkout, pagos ni pedidos. Cualquier comercio futuro requerirá reabrir el alcance y aprobar su propia spec. RF-11 queda cubierta por el procedimiento manual aprobado y la excepción limitada de respaldos Google; el aviso legal aprobado y la configuración real siguen siendo requisitos previos a los envíos reales.

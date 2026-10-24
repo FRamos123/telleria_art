@@ -121,7 +121,6 @@ const contactReady = !isPrivacyNoticePending;
 		data-message-send-failed={messages.contactSendFailed}
 		data-message-spam-rejected={messages.contactSpamRejected}
 		data-message-spam-expired={messages.contactSpamExpired}
-		data-message-consent-required={messages.contactConsentRequired}
 		data-message-invalid-request={messages.contactInvalidRequest}
 		data-message-artwork-unavailable={messages.contactArtworkUnavailable}
 	>
@@ -277,32 +276,6 @@ const contactReady = !isPrivacyNoticePending;
 			</p>
 		</section>
 
-		<div class="mt-space-lg">
-			<label for="contact-consent" class="flex items-start gap-space-sm font-body-md text-body-md text-on-surface">
-				<input
-					id="contact-consent"
-					class="mt-space-xs h-space-md w-space-md shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-					name="consent"
-					type="checkbox"
-					aria-describedby="contact-consent-help"
-					required
-				/>
-				<span>{messages.contactConsentDraft}</span>
-			</label>
-			<p id="contact-consent-help" class="mb-0 mt-space-sm font-body-md text-body-md text-on-surface-variant">
-				<a
-					class="text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-					href="#contact-privacy-notice"
-				>
-					{messages.contactPrivacyNoticeLink}
-				</a>
-				{messages.contactConsentHelp}
-			</p>
-			<p id="contact-consent-required-error" data-field-error="consent" data-error-code="consentRequired" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
-				{messages.contactConsentRequired}
-			</p>
-		</div>
-
 		<div id="contact-error-summary" class="mt-space-lg" role="alert" aria-live="assertive" hidden>
 			<p class="m-0 font-body-md text-body-md text-secondary">{messages.contactErrorSummary}</p>
 		</div>
@@ -323,6 +296,7 @@ const contactReady = !isPrivacyNoticePending;
 
 	interface TurnstileRenderOptions {
 		sitekey: string
+		action: string
 		language: string
 		callback: (token: string) => void
 		'expired-callback': () => void
@@ -354,7 +328,7 @@ const contactReady = !isPrivacyNoticePending;
 		const responseStatus = form.querySelector<HTMLElement>('#contact-response-status')
 		const antiSpamStatus = form.querySelector<HTMLElement>('#contact-antispam-status')
 		const turnstileContainer = form.querySelector<HTMLElement>('[data-turnstile-container]')
-		const fieldNames = ['name', 'email', 'institution', 'phone', 'artworkId', 'message', 'consent'] as const
+		const fieldNames = ['name', 'email', 'institution', 'phone', 'artworkId', 'message'] as const
 		const fieldNameSet = new Set<string>(fieldNames)
 		const baseDescriptions = new Map<string, string>()
 		let turnstileWidgetId: string | number | undefined
@@ -458,6 +432,7 @@ const contactReady = !isPrivacyNoticePending;
 			try {
 				turnstileWidgetId = api.render(turnstileContainer, {
 					sitekey: key,
+					action: 'contact',
 					language: document.documentElement.lang,
 					callback: (token) => {
 						turnstileToken = token
@@ -515,13 +490,6 @@ const contactReady = !isPrivacyNoticePending;
 			}
 		}
 
-		function showConsentError(): void {
-			clearAllFieldErrors()
-			showFieldError('consent', 'consentRequired')
-			showErrorSummary()
-			focusField('consent')
-		}
-
 		function showArtworkError(): void {
 			clearAllFieldErrors()
 			showFieldError('artworkId', 'artworkUnavailable')
@@ -567,12 +535,6 @@ const contactReady = !isPrivacyNoticePending;
 				return
 			}
 
-			const consent = form.elements.namedItem('consent')
-			if (!(consent instanceof HTMLInputElement) || !consent.checked) {
-				showConsentError()
-				return
-			}
-
 			const inquiry = validation.inquiry
 			const token = getTurnstileToken()
 			if (!inquiry || !token) {
@@ -589,7 +551,6 @@ const contactReady = !isPrivacyNoticePending;
 			requestBody.set('email', inquiry.email)
 			requestBody.set('message', inquiry.message)
 			requestBody.set('locale', inquiry.locale)
-			requestBody.set('consent', 'true')
 			requestBody.set('turnstileToken', token)
 			if (inquiry.institution) requestBody.set('institution', inquiry.institution)
 			if (inquiry.phone) requestBody.set('phone', inquiry.phone)
@@ -616,10 +577,6 @@ const contactReady = !isPrivacyNoticePending;
 
 				if (payload.code === 'validation' && typeof payload.errors === 'object' && payload.errors !== null) {
 					showValidationErrors(payload.errors as Record<string, unknown>)
-					return
-				}
-				if (payload.code === 'consentRequired') {
-					showConsentError()
 					return
 				}
 				if (payload.code === 'invalidRequest') {

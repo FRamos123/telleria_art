@@ -152,7 +152,12 @@ describe('static build output', () => {
 			expect(page).toContain('name="phone"');
 			expect(page).toContain('name="artworkId"');
 			expect(page).toContain('name="message"');
-			expect(page).toContain('name="consent"');
+			expect(page).not.toContain('name="consent"');
+			expect(page).not.toContain('contactConsentRequired');
+			expect(page).toContain('id="contact-privacy-notice"');
+			expect(page).toContain(messages[locale].contactPrivacyNoticeTitle);
+			expect(page).toContain(messages[locale].contactPrivacyRights);
+			expect(page).not.toMatch(/<(?:a|button)[^>]*>[^<]*(?:comprar|buy|purchase|checkout|reservar|price|precio)/iu);
 			expect(page).toContain('disabled');
 			expect(page).toContain(locale === 'es' ? 'NO DESPLEGAR' : 'DO NOT DEPLOY');
 			expect(page).toContain(locale === 'es' ? 'no acepta consultas' : 'not accepting inquiries yet');

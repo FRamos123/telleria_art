@@ -1,6 +1,6 @@
 # AGENTS.md — AF Tellería (portfolio de Alejandro Fernández Tellería)
 
-Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fernández Tellería (Vigo). Presenta su obra por series, con ficha técnica de cada pieza, textos críticos y exposiciones. Su objetivo es dar visibilidad (SEO), captar consultas de coleccionistas e instituciones y permitir comprar obras originales disponibles o prints configurados mediante pasarela de pago. Los detalles comerciales pendientes deben cerrarse en una spec aprobada antes de implementarse.
+Portfolio/galería informativa bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fernández Tellería (Vigo). Presenta obras por series, fichas técnicas, textos críticos y exposiciones; permite consultas generales/artísticas/institucionales. El alcance vigente no incluye tienda ni ventas por consulta. Originales y prints quedan como posibilidad futura, sujeta a revisión fiscal/legal y a una spec comercial aprobada.
 
 ## Principios y flujo de trabajo
 
@@ -13,7 +13,7 @@ Web portfolio bilingüe (ES/EN) del pintor figurativo expresionista Alejandro Fe
 - **Astro** (generación estática, TypeScript estricto). Versiones exactas en `web/package.json`.
 - **Sanity** (plan gratuito) como CMS headless. El contenido lo edita el artista desde el Studio.
 - **Cloudflare Pages** (hosting) con webhook de Sanity que dispara rebuild al publicar.
-- **Pages Functions** para el formulario de consultas, con **Resend** (email) y **Cloudflare Turnstile** (anti-spam). La integración de compra y pasarela queda pendiente de una spec aprobada; no se ha elegido proveedor.
+- **Pages Functions** para el formulario de consultas generales, con **Resend** (email) y **Cloudflare Turnstile** (anti-spam). No hay checkout, venta por email ni pagos activos. Cualquier comercio futuro requiere reabrir el alcance y aprobar una spec propia.
 - **i18n:** ES (por defecto) y EN, con `hreflang`.
 - **Estilos:** Tailwind CSS v4 con tokens declarados en `@theme` dentro de `web/src/styles/global.css`.
 
@@ -63,8 +63,8 @@ studio/                    Sanity Studio y esquemas, paquete independiente
 
 ## Reglas de dominio / trampas conocidas
 
-- **Comercio pendiente de especificación.** Se prevén compras de obra original y prints de tamaños por determinar. No implementar carrito, checkout ni pagos hasta aprobar su spec, incluidos proveedor, precios, variantes, logística y políticas.
-- **`Availability`:** `disponible | reservada | vendida | en colección`. La cambia el artista a mano en Sanity. La compra de la obra original solo podrá ofrecerse si está `disponible`; cada estado se muestra siempre con etiqueta de texto, nunca solo con color. No inferir la disponibilidad de prints a partir del estado del original: la regla queda pendiente de la spec comercial.
+- **Comercio aplazado (decisión 2026-10-23).** El producto vigente es una galería/portfolio informativo y contacto general; no implementar tienda, ventas por consulta, precios, reservas comerciales, pedidos, checkout ni pagos. La eventual venta de originales o prints requiere reactivación expresa del alcance, revisión profesional fiscal/legal y una spec comercial aprobada que cierre proveedor, precios, variantes, logística y políticas.
+- **`Availability`:** `disponible | reservada | vendida | en colección`. La cambia el artista a mano en Sanity y se muestra como dato catalográfico informativo con etiqueta textual, nunca solo color. En el alcance actual no ofrece ni habilita compra. Si se aprueba comercio en el futuro, el original solo podrá ofrecerse si está `disponible`; la disponibilidad de prints se definirá por separado.
 - **`InventoryNumber`:** formato `AFT-AAAA-NNN` (ej. `AFT-2023-018`), value object con validación.
 - **`Dimensions`:** siempre en cm (`alto × ancho`). "Formato Figura 60" es una etiqueta de contenido, no se calcula.
 - **Dominio ligero:** modelo tipado, value objects y capa de mapeo desde Sanity. Sin bounded contexts, agregados, repositorios genéricos ni CQRS.

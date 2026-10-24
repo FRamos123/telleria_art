@@ -66,16 +66,16 @@ Pega este bloque antes del texto de la spec elegida:
 
 > Redacta la spec 006 para evolucionar la home mínima a la entrada del portfolio y añadir la navegación aprobada hacia obras, series, exposiciones y contacto. Usa las referencias de `design/` y exclusivamente patrones y tokens de `design/tokens.md`; define los textos e imágenes solo a partir de contenido real disponible. Incluye versión ES/EN, accesibilidad, responsive, SEO y rendimiento. No añadas secciones o contenido editorial inventado ni enlaces a rutas inexistentes.
 
-### 007 — Comercio electrónico
+### 007 — Comercio electrónico (futuro, aplazado)
 
 **Ruta:** `specs/007-comercio/spec.md`  
-**Bloqueada hasta resolver las decisiones comerciales abiertas del brief.**
+**Estado:** fuera del alcance vigente por decisión del 2026-10-23. No iniciar ni calendarizar hasta que la persona usuaria reactive expresamente el comercio, se revise la viabilidad fiscal/legal con asesoría y se cierren las decisiones comerciales.
 
-**Texto para lanzar cuando estén resueltas:**
+**Texto para lanzar solo si se reactiva esta fase y se resuelven sus decisiones:**
 
 > Redacta la spec 007 para la compra de originales disponibles y prints configurados, usando únicamente las decisiones comerciales que ya haya confirmado. Antes de cerrar el borrador, verifica que están definidos proveedor y flujo de checkout, países y moneda, precios/impuestos/gastos, variantes y edición de prints, stock y su relación con `Availability`, logística, devoluciones/reembolsos, privacidad, datos conservados y emails. Si falta algo, detente y pregúntamelo; no elijas proveedor ni infieras políticas. Prohíbe procesar o almacenar datos sensibles de tarjeta en el proyecto y separa claramente consulta de compra.
 
-**Antes de lanzar esta spec, responder las dudas 118–126 de `docs/product-brief.md`.**
+**Antes de lanzar esta spec, responder las dudas comerciales futuras de `docs/product-brief.md`.** La galería actual y las consultas generales no dependen de esta spec.
 
 ### 008 — Dominio propio
 

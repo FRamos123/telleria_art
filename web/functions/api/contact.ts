@@ -10,6 +10,7 @@ export interface ContactEnvironment {
 	CONTACT_FROM?: string
 	RESEND_API_KEY?: string
 	TURNSTILE_SECRET_KEY?: string
+	TURNSTILE_HOSTNAMES?: string
 	ASSETS?: { fetch: (request: Request) => Promise<Response> }
 }
 
@@ -74,7 +75,6 @@ export async function validateContactRequest(
 		return rejected({ ok: false, code: 'invalidRequest' }, 400)
 	}
 
-	const consent = readFormText(formData, 'consent')
 	const inquiryInput = {
 		name: readFormText(formData, 'name') ?? '',
 		email: readFormText(formData, 'email') ?? '',
@@ -94,10 +94,6 @@ export async function validateContactRequest(
 	if (Object.keys(validation.errors).length > 0 || !validation.inquiry) {
 		return rejected({ ok: false, code: 'validation', errors: validation.errors }, 400)
 	}
-	if (consent !== 'true' && consent !== 'on') {
-		return rejected({ ok: false, code: 'consentRequired' }, 400)
-	}
-
 	if (validation.inquiry.artworkId) {
 		if (!env.ASSETS) return rejected({ ok: false, code: 'deliveryUnavailable' }, 503)
 
@@ -116,25 +112,50 @@ export async function validateContactRequest(
 		}
 	}
 
-	const token = readFormText(formData, 'turnstileToken')?.trim()
-	if (!token || !await verifyTurnstile(token, turnstileSecret, fetcher)) {
+	const token = readFormText(formData, 'turnstileToken')
+	const expectedHostnames = getExpectedTurnstileHostnames(env.TURNSTILE_HOSTNAMES)
+	if (
+		!token?.trim()
+		|| token.length > 2048
+		|| expectedHostnames.size === 0
+		|| !await verifyTurnstile(token, turnstileSecret, expectedHostnames, fetcher)
+	) {
 		return rejected({ ok: false, code: 'spamRejected' }, 403)
 	}
 
 	return { ok: true, inquiry: validation.inquiry }
 }
 
-async function verifyTurnstile(token: string, secret: string, fetcher: ContactFetch): Promise<boolean> {
+function getExpectedTurnstileHostnames(value: string | undefined): Set<string> {
+	return new Set(
+		(value ?? '')
+			.split(',')
+			.map((hostname) => hostname.trim().toLowerCase())
+			.filter(Boolean),
+	)
+}
+
+async function verifyTurnstile(
+	token: string,
+	secret: string,
+	expectedHostnames: ReadonlySet<string>,
+	fetcher: ContactFetch,
+): Promise<boolean> {
 	try {
 		const body = new URLSearchParams({ secret, response: token })
 		const response = await fetcher(TURNSTILE_VERIFY_URL, {
 			method: 'POST',
 			headers: { 'content-type': 'application/x-www-form-urlencoded' },
+			signal: AbortSignal.timeout(10_000),
 			body,
 		})
 		if (!response.ok) return false
 		const result: unknown = await response.json()
-		return isRecord(result) && result.success === true
+		return isRecord(result)
+			&& result.success === true
+			&& result.action === 'contact'
+			&& typeof result.hostname === 'string'
+			&& expectedHostnames.has(result.hostname.toLowerCase())
 	} catch {
 		return false
 	}

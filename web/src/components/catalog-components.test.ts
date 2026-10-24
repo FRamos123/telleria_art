@@ -449,6 +449,18 @@ describe('catalog presentation components', () => {
 		expect(contactForm).toContain('contactArtworkSelect.value = artworkId');
 	});
 
+	it('marks the Turnstile token with the stable contact action', () => {
+		expect(contactForm).toContain("action: 'contact'");
+	});
+
+	it('submits general inquiries without a consent checkbox or consent response contract', () => {
+		expect(contactForm).not.toContain('name="consent"');
+		expect(contactForm).not.toContain("'consent'");
+		expect(contactForm).not.toContain("requestBody.set('consent'");
+		expect(contactForm).not.toContain('showConsentError');
+		expect(contactForm).not.toContain('consentRequired');
+	});
+
 	it.each([
 		{ locale: 'es', source: spanishCatalogPage, path: '/obras/' },
 		{ locale: 'en', source: englishCatalogPage, path: '/en/works/' },

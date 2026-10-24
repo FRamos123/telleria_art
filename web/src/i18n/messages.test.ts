@@ -33,10 +33,7 @@ describe('foundation translations', () => {
 			'contactSpamExpired',
 			'contactErrorSummary',
 			'contactArtworkUnavailable',
-			'contactConsentRequired',
 			'contactInvalidRequest',
-			'contactPrivacyNoticeLink',
-			'contactConsentHelp',
 			'contactNameRequired',
 			'contactNameTooLong',
 			'contactEmailRequired',
@@ -65,7 +62,6 @@ describe('foundation translations', () => {
 			'contactPrivacyRetention',
 			'contactPrivacyRightsLabel',
 			'contactPrivacyRights',
-			'contactConsentDraft',
 		] as const
 		const spanish = es as unknown as Record<string, string>
 		const english = en as unknown as Record<string, string>
@@ -76,6 +72,33 @@ describe('foundation translations', () => {
 		}
 		expect(es.contactPrivacyNoticeStatus).toContain('PENDIENTE')
 		expect(en.contactPrivacyNoticeStatus).toContain('PENDING')
+	})
+
+	it('uses the selected legitimate-interest draft and general-inquiry scope in both locales', () => {
+		expect(es.contactPrivacyContact).toContain('consultas@artelleria.com')
+		expect(en.contactPrivacyContact).toContain('consultas@artelleria.com')
+		expect(es.contactPrivacyPurpose).toContain('consultas generales')
+		expect(es.contactPrivacyPurpose).toContain('no tramita compras')
+		expect(en.contactPrivacyPurpose).toContain('general inquiries')
+		expect(en.contactPrivacyPurpose).toContain('does not handle purchases')
+		expect(es.contactPrivacyLegalBasis).toContain('artículo 6.1.f')
+		expect(es.contactPrivacyLegalBasis).toContain('pendiente de documentar')
+		expect(en.contactPrivacyLegalBasis).toContain('Article 6(1)(f)')
+		expect(en.contactPrivacyLegalBasis).toContain('pending documentation')
+		expect(es.contactPrivacyRights).toContain('oponerte')
+		expect(es.contactPrivacyRights).toContain('AEPD')
+		expect(en.contactPrivacyRights).toContain('object')
+		expect(en.contactPrivacyRights).toContain('AEPD')
+
+		for (const key of [
+			'contactConsentRequired',
+			'contactConsentHelp',
+			'contactConsentDraft',
+			'contactPrivacyNoticeLink',
+		]) {
+			expect(es).not.toHaveProperty(key)
+			expect(en).not.toHaveProperty(key)
+		}
 	})
 
 	it('provides non-empty localized labels for every artwork availability state', () => {
