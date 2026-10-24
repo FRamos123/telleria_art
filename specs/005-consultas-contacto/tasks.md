@@ -75,12 +75,13 @@ Estado: aprobado (actualización de base jurídica art. 6.1.f)
   - La responsable seleccionó el artículo 6.1.f RGPD para responder consultas generales. Falta documentar la evaluación de necesidad/ponderación y confirmar por separado el tratamiento Turnstile, proveedores y transferencias. El borrador sigue marcado «pendiente de revisión y aprobación — no publicar».
 
 - [x] **T16. Ejecutar la verificación completa del paquete web.** RF-1–RF-12; RNF-1–RNF-6
-  - Hecho cuando: `pnpm --dir web verify` pasa con tests de dominio, proyección de catálogo y Functions incluidos, y el build contiene las páginas y el sitemap esperados.
-  - Verificado tras T12: `pnpm --dir web verify` pasó (lint, TypeScript, build estático de 15 páginas y 407 tests en 26 archivos).
+  - Hecho cuando: una instalación limpia de `web` incluye de forma explícita los tipos Node requeridos, `pnpm --dir web verify` pasa (lint, tipos, build y tests) y el build contiene las páginas y el sitemap esperados.
+  - Causa del build limpio: `web` no declaraba `@types/node` y `src/env.d.ts` tenía un shim parcial para `node:fs`, que ocultaba exports y firmas reales. Añadido `@types/node` 22.20.5 fijado, incluido `node` en `tsconfig` y retirado el shim. El lockfile pasa `pnpm install --frozen-lockfile`.
+  - Verificado: `pnpm --dir web verify` pasa con lint, TypeScript, build estático de 15 páginas y 407 tests en 26 archivos. No se desplegó ni se probó Resend real.
 
 - [ ] **T17. Probar errores, alcance no comercial y reintentos en el preview de Pages.** RF-3–RF-7, RF-9, RF-12; RNF-1, RNF-2
   - Hecho cuando: el Preview funciona con `TURNSTILE_HOSTNAMES` igual al hostname exacto de la URL que lo sirve; Chrome DevTools confirma rechazo por validación, Turnstile fallido (incluidos acción/hostname) y fallo de correo; conserva datos; no requiere casilla de consentimiento; el aviso informa la base y el derecho de oposición; el contacto es solo general y sin CTAs de venta; no hay éxito prematuro.
-  - Bloqueada (2026-10-24): la persona usuaria informa que Pages Preview no despliega; además, las rutas de contacto no pueden desplegarse hasta cerrar T15. Para reanudar hacen falta un Preview operativo y T15 aprobado.
+  - Bloqueada (2026-10-24): el intento de Pages aportado usó el commit `c387791`, anterior a la corrección de T16; ahora el gate local pasa, pero no se ha confirmado con un build remoto. Requiere un Preview operativo y T15 aprobado antes de desplegar las rutas de contacto y ejecutar QA.
 
 - [ ] **T18. Probar un envío real en preview con Turnstile activo.** RF-6, RF-7, RF-8, RF-10
   - Hecho cuando: una consulta sintética con token fresco llega al buzón controlado, la interfaz confirma solo después de aceptación de Resend, repetir el mismo token se rechaza y el placeholder no puede enviar; no se exponen secretos. Bloqueada hasta T15 y Preview operativo.
