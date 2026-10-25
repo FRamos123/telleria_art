@@ -17,7 +17,7 @@ Spec aprobada: `spec.md`. Este plan cubre modelo editorial, validación, publica
 | `studio/schemaTypes/index.ts` | Registro de tipos y objetos de contenido. | RF-1–RF-8 |
 | `studio/schemaTypes/documents/artwork.ts` | Datos compartidos obligatorios de obra, imagen principal y nota de taller opcional. La referencia a serie y las asociaciones a textos críticos se incorporan en T14 y T15, respectivamente, cuando los tipos de destino están registrados. | RF-1, RF-3, RF-9, RF-10, RF-12, RF-13, RF-20, RF-22 |
 | `studio/schemaTypes/documents/artworkTranslation.ts` | Referencia a la obra y versión ES o EN de título, técnica, soporte y alt; cada idioma es un documento independiente con ciclo de borrador/publicación propio. | RF-2, RF-11, RF-14–RF-17 |
-| `studio/schemaTypes/documents/series.ts`, `seriesTranslation.ts` | Datos compartidos e imagen opcional de serie; nombre y descripción editorial por idioma. | RF-4, RF-5, RF-13–RF-18, RNF-2 |
+| `studio/schemaTypes/documents/series.ts`, `seriesTranslation.ts` | Datos compartidos e imagen opcional de serie; nombre interno para identificarla en Studio y nombre/descripción editorial por idioma. El preview del documento compartido se usa en listados y selectores de referencias. | RF-4, RF-5, RF-13–RF-18, RF-23, RNF-2 |
 | `studio/schemaTypes/documents/exhibition.ts`, `exhibitionTranslation.ts` | Fechas, imagen y relaciones compartidas; título, lugar y alt por idioma. | RF-6, RF-7, RF-11, RF-13–RF-19 |
 | `studio/schemaTypes/documents/criticalText.ts`, `criticalTextTranslation.ts` | Idioma original y asociaciones; título, cuerpo y autor independientes por idioma. La traducción se modela como documento opcional; nunca se copia la pieza original para cubrir otro idioma. | RF-3, RF-7, RF-8, RF-13, RF-16–RF-19 |
 | `studio/schemaTypes/fields/*.ts` | Campos reutilizables de dimensiones, disponibilidad, referencias e imágenes localizadas, sin lógica de dominio duplicada. | RF-1, RF-6, RF-9, RF-11–RF-13 |
@@ -50,7 +50,7 @@ No se modifica `web/src/styles/global.css`: el plan usa los tokens vigentes. Las
 Los schemas se incorporan en orden de disponibilidad de sus tipos de referencia: T13 registra la obra y su traducción; T14 añade la relación con series al schema de obra; T15 añade las asociaciones a textos críticos. Esta secuencia evita registrar referencias a tipos que aún no existen en Studio.
 
 - **`Artwork`**: ID estable, referencia obligatoria a `Series`, una imagen principal, año, dimensiones en cm, `InventoryNumber`, `Availability`, nota de taller opcional y relaciones a textos críticos. La traducción contiene título, técnica, soporte y alt. Año/dimensiones/inventario/disponibilidad son compartidos.
-- **`Series`**: ID estable, traducciones con nombre obligatorio y descripción editorial opcional; imagen y alt opcionales. No contiene descripción SEO.
+- **`Series`**: ID estable, nombre interno obligatorio que solo identifica la serie en Studio, traducciones con nombre obligatorio y descripción editorial opcional; imagen y alt opcionales. El nombre interno no se mapea ni se muestra públicamente. No contiene descripción SEO.
 - **`Exhibition`**: ID estable, fechas compartidas, imagen/alt opcionales, referencias a cero o más obras/series; traducciones con título y lugar obligatorios.
 - **`CriticalText`**: ID estable, idioma original (`es | en`), asociaciones opcionales a obras/series y traducciones independientes con título, cuerpo y autor. La traducción opcional solo se emite si está completa.
 - **Value objects**: `Dimensions` acepta alto/ancho numéricos positivos con hasta un decimal; `InventoryNumber` valida `AFT-AAAA-NNN`, rango de año y secuencia; `Availability` es la unión cerrada de los cuatro estados; fecha de exposición es fecha de calendario real y fin no anterior al inicio.
@@ -85,7 +85,7 @@ La acción de publicación en Studio es explícita. Completar campos no publica.
 
 ## Interfaz y tokens
 
-- **Sanity Studio** ofrece campos agrupados por datos compartidos/idioma, validación próxima al campo y estado de referencias. Se mantiene la interfaz estándar de Studio; Tailwind/tokens del sitio no se aplican a esa aplicación externa.
+- **Sanity Studio** ofrece campos agrupados por datos compartidos/idioma, validación próxima al campo y estado de referencias. El documento compartido de serie usa el nombre interno como título y la imagen como media de su preview, también en selectores de referencia. Se mantiene la interfaz estándar de Studio; Tailwind/tokens del sitio no se aplican a esa aplicación externa.
 - **Componentes Astro de contenido** son presentacionales y sin hidratación. Los datos llegan desde los mappers. `ArtworkContent` compone `EditorialImage`, `ArtworkTechnicalSheet`, `InventoryBadge`, `AvailabilityLabel` y contenido relacionado. Series, exposiciones y textos críticos usan sus componentes indicados arriba.
 - **Tokens**: fondo `surface-container-lowest`; panel de ficha `surface-container-low`; títulos `headline-md`/`headline-sm` con Bodoni Moda; cuerpo `body-md` con Newsreader; etiquetas/datos catalográficos `label-technical`/`label-caption` con Geist; espacios `space-md`/`space-lg`, gutters responsive y breakpoints `tablet` (768 px)/`desktop` (1280 px). Inventario usa placa opaca según el patrón documentado. Texto siempre sólido con combinaciones AA; sin valores arbitrarios, radios nuevos ni cambios de `@theme`.
 - La disponibilidad siempre incluye texto localizado. Como la spec asigna el tratamiento visual de estados a spec 002, aquí no se inventa una codificación cromática por estado; se usa texto sólido legible hasta que el patrón de spec 002 esté aprobado.
@@ -101,6 +101,7 @@ La acción de publicación en Studio es explícita. Completar campos no publica.
 | Consultas GROQ hacen elegibilidad de publicación; reglas de visibilidad se verifican además en dominio. | Evita salida incompleta y permite pruebas rápidas sin Sanity. | Resolver las relaciones únicamente en componentes Astro o consultar en navegador. |
 | WebP transformado con anchos responsive hasta 2000 px y dimensiones de asset en HTML. | Cumple límite de imagen servida, responsive y layout estable. | Entregar URL original o depender del navegador para transformar el asset. |
 | Relación a texto crítico por referencia, nunca duplicar contenido en obra. | Conserva fuente editorial única y permite editar asociaciones sin copiar título/cuerpo/autor. | Campos de texto crítico embebidos/copiados en obras y series. |
+| Nombre interno separado de los nombres traducidos de serie, usado como título de preview editorial. | Permite reconocer el documento compartido al enlazarlo con sus traducciones sin imponer un nombre público ni elegir arbitrariamente un idioma. | Usar el objeto de imagen como título automático o reutilizar el nombre de una traducción localizada. |
 
 ### Garantías de Sanity: alcanzabilidad y límites
 
@@ -149,6 +150,7 @@ Antes de implementación, pedir aprobación explícita para:
 | RF-20 | `AvailabilityLabel` localizada; no existe mapper/regla que derive disponibilidad de prints. |
 | RF-21 | `ArtworkTechnicalSheet` compone la línea desde los campos de dominio, sin campo duplicado. |
 | RF-22 | Mapper sin generación/fallback de contenido y pruebas con faltantes, relaciones e idiomas ausentes. |
+| RF-23 | Campo obligatorio y preview legible del documento compartido de serie en Studio; el nombre interno queda fuera del modelo y la salida pública. |
 
 ## Dependencias y condiciones de cierre
 

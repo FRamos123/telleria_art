@@ -161,8 +161,14 @@
 
 - [ ] **T28. Ejecutar verificación de integración y revisión visual.** RF-1–RF-22, RNF-1–RNF-4
   - Hecho cuando: `pnpm --dir web verify` pasa; Chrome DevTools confirma HTML sin JS, accesibilidad/links correctos y revisión a 375 px y ≥1280 px frente a `design/`.
-  - Verificación parcial (2026-10-08): `pnpm --dir web verify` pasó (lint, tipos, build estático de 3 rutas y 218 tests). En el preview estático, Chrome comprobó la home en 375×812 y 1280×900: sin overflow (375/375 y 1280/1280), cero scripts, landmark `main` y enlaces ES/EN accesibles. Esto no valida los componentes editoriales de T23–T27.
-  - Bloqueada, no marcar como hecha: el build solo genera `/`, `/en/` y `/404`; no hay página navegable que consuma los componentes editoriales. La tarea ya prohíbe añadir rutas en esta spec y depende de las rutas de una spec de páginas.
+  - Verificación parcial (2026-10-25): `pnpm --dir web verify` pasó (15 páginas, 423 tests). El bloqueo de rutas anotado en 2026-10-08 está resuelto por las specs de páginas posteriores. Chrome revisó el catálogo ES a 375/1280 px, la ficha ES a 375/1280 px y la serie ES a 375 px; los enlaces visibles cargan.
+  - Bloqueo actual, no marcar como hecha: la imagen de serie presenta alt ES «aupa madrid» y EN «shadow man», que no describen suficientemente la imagen abstracta. No se modificó contenido de Sanity. Falta alt descriptivo aprobado por el artista en ambos idiomas; después se debe completar la revisión Chrome de las rutas restantes.
+
+- [x] **T29. Añadir nombre interno y preview legible a las series en Studio.** RF-23
+  - Hecho cuando: el documento compartido exige un nombre interno no vacío; Sanity lo muestra como título en listados y selectores de referencias, conservando la imagen como media; los nombres ES/EN de las traducciones siguen independientes y el nombre interno no aparece en la salida pública.
+  - Implementación: `series.referenceName` es obligatorio y su preview usa ese valor como título y `image` como media. El campo explica que es interno; las queries públicas no seleccionan este campo.
+  - Verificación (2026-10-25): `pnpm --dir studio build` y `pnpm --dir web verify` pasaron (423 tests). Chrome a 1280×900 confirmó el campo y descripción en el formulario de serie y la referencia `Serie` en el formulario de traducción; no se guardó ni publicó contenido. El selector de una serie nueva con nombre no se pudo comprobar sin crear un documento de prueba. Las series preexistentes del dataset de desarrollo, que aún carecen del campo, aparecen como «Untitled» hasta que el artista les asigne manualmente un nombre interno.
+  - Independiente de T28: no añade rutas ni modifica contenido Sanity.
 
 ## Bloqueo de verificación visual
 

@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import ArtworkCard from './ArtworkCard.astro';
+
+interface HomeArtworkCard {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	href: string;
+}
+
+interface Props {
+	locale: Locale;
+	cards: readonly HomeArtworkCard[];
+}
+
+const { locale, cards } = Astro.props;
+const messages = getMessages(locale);
+---
+
+{cards.length > 0 && (
+	<section
+		aria-labelledby="home-artwork-selection-heading"
+		class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter"
+	>
+		<h2
+			id="home-artwork-selection-heading"
+			class="mb-space-lg mt-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+		>
+			{messages.homeArtworkSelectionTitle}
+		</h2>
+		<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
+			{cards.map(({ artwork, image, href }, index) => (
+				<ArtworkCard
+					artwork={artwork}
+					image={image}
+					href={href}
+					locale={locale}
+					loading={index === 0 ? 'eager' : 'lazy'}
+					reserveImageSpace={index === 0}
+				/>
+			))}
+		</ul>
+	</section>
+)}

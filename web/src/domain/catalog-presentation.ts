@@ -37,6 +37,24 @@ export interface ExhibitionMetaDescriptionInput {
 }
 
 const MAX_META_DESCRIPTION_LENGTH = 155
+const MAX_HOME_ARTWORKS = 3
+
+interface HomeArtworkSortable {
+	id: string
+	year: number
+}
+
+/** Selects the three most recent artworks, with an ordinal ID tie-breaker. */
+export function selectRecentHomeArtworks<T extends HomeArtworkSortable>(
+	artworks: readonly T[],
+): T[] {
+	return [...artworks]
+		.sort((first, second) => {
+			const yearOrder = second.year - first.year
+			return yearOrder || compareStableIds(first.id, second.id)
+		})
+		.slice(0, MAX_HOME_ARTWORKS)
+}
 
 /** Sorts mapped artworks by publication year descending and inventory ascending. */
 export function sortArtworksForCatalog<T extends CatalogSortableArtwork>(

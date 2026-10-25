@@ -32,6 +32,7 @@ El proyecto parte de cero, sin esquemas ni contenido de producción que preserva
 - **Texto crítico:** pieza editorial independiente con idioma original declarado (`ES` o `EN`), título, cuerpo y autor en ese idioma. Las traducciones y asociaciones son opcionales.
 - **Obra visible:** obra cuya versión en el idioma considerado está publicada y completa.
 - **Disponibilidad del original:** uno de cuatro estados: `disponible`, `reservada`, `vendida` o `en colección`. No establece ni modifica la disponibilidad de prints.
+- **Nombre interno de referencia de una serie:** etiqueta editorial para identificar la serie en el Studio; no es un nombre público ni sustituye sus nombres localizados.
 
 ## Requisitos funcionales
 
@@ -57,6 +58,7 @@ El proyecto parte de cero, sin esquemas ni contenido de producción que preserva
 - **RF-20:** EL SISTEMA mostrará la disponibilidad del original mediante su etiqueta textual localizada y no la utilizará para inferir, establecer o modificar la disponibilidad de prints.
 - **RF-21:** EL SISTEMA compondrá la línea catalográfica breve de una obra a partir de su título y datos técnicos existentes, sin exigir ni guardar un texto duplicado con esa función.
 - **RF-22:** EL SISTEMA no completará campos ausentes con datos, traducciones, atribuciones, textos alternativos o relaciones inventados.
+- **RF-23:** EL SISTEMA permitirá asignar un nombre interno obligatorio a cada serie y lo mostrará para identificarla en los listados y selectores editoriales. Este nombre no se mostrará en el sitio público ni sustituirá los nombres español e inglés de las traducciones.
 
 ## Requisitos no funcionales
 
@@ -71,6 +73,7 @@ El proyecto parte de cero, sin esquemas ni contenido de producción que preserva
 - La imagen principal de una obra tiene texto alternativo vacío, superior a 150 caracteres o igual al título: la versión queda incompleta.
 - Una obra carece en inglés de título, técnica, soporte o texto alternativo válido: no se publica su versión inglesa; la española puede publicarse si está completa y el editor solicita publicarla.
 - Una serie carece de nombre inglés, o una exposición carece de título o lugar inglés: no se publica la versión inglesa; la española puede seguir publicada.
+- Una serie carece de nombre interno de referencia: el editor recibe un error de validación y no puede publicar el documento compartido; el nombre localizado de cada traducción sigue siendo independiente.
 - Falta alto o ancho, una dimensión no es numérica, es igual o menor que cero o tiene más de un decimal: la obra está incompleta. No se admite profundidad.
 - El año de obra es anterior a 1900, posterior al año en curso, no es un entero de cuatro cifras o está mal formado: la obra está incompleta.
 - El inventario está mal formado, duplicado, tiene `AAAA` fuera del rango 1900–año en curso o `NNN` fuera de 001–999: la obra está incompleta. El año del inventario puede diferir del año de la obra.
@@ -111,6 +114,7 @@ El proyecto parte de cero, sin esquemas ni contenido de producción que preserva
 - [ ] Los cuatro estados del original son válidos, sus etiquetas existen en ES y EN y ninguno determina la disponibilidad de prints.
 - [ ] Las reglas de existencia, obligatoriedad, texto alternativo y formato/tamaño de imágenes están delimitadas.
 - [ ] No se incluye contenido de ejemplo que pueda confundirse con contenido real ni se altera contenido de producción.
+- [ ] Cada serie tiene un nombre interno para identificarla en la gestión editorial, independiente de sus nombres públicos localizados.
 
 ## Decisiones cerradas
 

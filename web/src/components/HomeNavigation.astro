@@ -1,0 +1,54 @@
+---
+import { getMessages, type Locale } from '../i18n';
+
+interface Props {
+	locale: Locale;
+	hasWorksRoute: boolean;
+	hasSeriesDirectory: boolean;
+	hasExhibitionsRoute: boolean;
+	hasContactRoute: boolean;
+}
+
+const {
+	locale,
+	hasWorksRoute,
+	hasSeriesDirectory,
+	hasExhibitionsRoute,
+	hasContactRoute,
+} = Astro.props;
+const messages = getMessages(locale);
+const localizedPaths = locale === 'es'
+	? { works: '/obras/', exhibitions: '/exposiciones/', contact: '/contacto/' }
+	: { works: '/en/works/', exhibitions: '/en/exhibitions/', contact: '/en/contact/' };
+const links: { href: string; label: string }[] = [];
+
+if (hasWorksRoute) {
+	links.push({ href: localizedPaths.works, label: messages.homeWorksLink });
+}
+if (hasWorksRoute && hasSeriesDirectory) {
+	links.push({ href: `${localizedPaths.works}#series-directory`, label: messages.homeSeriesLink });
+}
+if (hasExhibitionsRoute) {
+	links.push({ href: localizedPaths.exhibitions, label: messages.homeExhibitionsLink });
+}
+if (hasContactRoute) {
+	links.push({ href: localizedPaths.contact, label: messages.homeContactLink });
+}
+---
+
+{links.length > 0 && (
+	<nav aria-label={messages.homeNavigationLabel} class="mx-auto mb-space-lg w-full max-w-7xl px-margin-mobile tablet:px-gutter-mobile desktop:px-gutter">
+		<ul class="m-0 flex list-none flex-wrap gap-x-space-md gap-y-space-sm p-0">
+			{links.map((link) => (
+				<li>
+					<a
+						class="inline-flex items-center px-space-sm py-space-sm font-label-technical text-label-technical text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						href={link.href}
+					>
+						{link.label}
+					</a>
+				</li>
+			))}
+		</ul>
+	</nav>
+)}

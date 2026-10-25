@@ -9,6 +9,8 @@ const artworkTechnicalSheet = readFileSync(new URL('./ArtworkTechnicalSheet.astr
 const artworkCriticalTextsPath = new URL('./ArtworkCriticalTexts.astro', import.meta.url);
 const artworkCardPath = new URL('./ArtworkCard.astro', import.meta.url);
 const seriesDirectoryPath = new URL('./SeriesDirectory.astro', import.meta.url);
+const homeNavigationPath = new URL('./HomeNavigation.astro', import.meta.url);
+const homeArtworkSelectionPath = new URL('./HomeArtworkSelection.astro', import.meta.url);
 const artworkCatalogPath = new URL('./ArtworkCatalog.astro', import.meta.url);
 const seriesContentPath = new URL('./SeriesContent.astro', import.meta.url);
 const spanishCatalogPage = readFileSync(new URL('../pages/obras/index.astro', import.meta.url), 'utf8');
@@ -18,6 +20,8 @@ const englishArtworkPage = readFileSync(new URL('../pages/en/work/[artworkId].as
 const spanishSeriesPagePath = new URL('../pages/series/[seriesId].astro', import.meta.url);
 const englishSeriesPagePath = new URL('../pages/en/series/[seriesId].astro', import.meta.url);
 const exhibitionIndexPath = new URL('./ExhibitionIndex.astro', import.meta.url);
+const spanishHomePage = readFileSync(new URL('../pages/index.astro', import.meta.url), 'utf8');
+const englishHomePage = readFileSync(new URL('../pages/en/index.astro', import.meta.url), 'utf8');
 const spanishExhibitionIndexPagePath = new URL('../pages/exposiciones/index.astro', import.meta.url);
 const englishExhibitionIndexPagePath = new URL('../pages/en/exhibitions/index.astro', import.meta.url);
 const criticalTextIndexPath = new URL('./CriticalTextIndex.astro', import.meta.url);
@@ -39,6 +43,8 @@ const readOptionalComponent = (path: URL): string => {
 const artworkCard = readOptionalComponent(artworkCardPath);
 const artworkCriticalTexts = readOptionalComponent(artworkCriticalTextsPath);
 const seriesDirectory = readOptionalComponent(seriesDirectoryPath);
+const homeNavigation = readOptionalComponent(homeNavigationPath);
+const homeArtworkSelection = readOptionalComponent(homeArtworkSelectionPath);
 const artworkCatalog = readOptionalComponent(artworkCatalogPath);
 const seriesContent = readOptionalComponent(seriesContentPath);
 const spanishSeriesPage = readOptionalComponent(spanishSeriesPagePath);
@@ -64,6 +70,62 @@ const availabilityCases = [
 ] as const;
 
 describe('catalog presentation components', () => {
+	it.each([
+		{
+			locale: 'es',
+			source: spanishHomePage,
+			worksRoute: './obras/index.astro',
+			exhibitionsRoute: './exposiciones/index.astro',
+			contactRoute: './contacto.astro',
+			canonicalPath: 'canonicalPath="/"',
+			artworkPath: '`/obra/${encodeURIComponent(artwork.id)}/`',
+		},
+		{
+			locale: 'en',
+			source: englishHomePage,
+			worksRoute: './works/index.astro',
+			exhibitionsRoute: './exhibitions/index.astro',
+			contactRoute: './contact.astro',
+			canonicalPath: 'canonicalPath="/en/"',
+			artworkPath: '`/en/work/${encodeURIComponent(artwork.id)}/`',
+		},
+	])('prepares the published $locale home with only eligible localized destinations', ({
+		locale,
+		source,
+		worksRoute,
+		exhibitionsRoute,
+		contactRoute,
+		canonicalPath,
+		artworkPath,
+	}) => {
+		expect(source).toContain(`const locale = '${locale}' as const;`);
+		expect(source).toContain('await loadCatalogContent()');
+		expect(source).toContain(`'${worksRoute}'`);
+		expect(source).toContain(`'${exhibitionsRoute}'`);
+		expect(source).toContain(`'${contactRoute}'`);
+		expect(source).toContain('Object.hasOwn(localizedRouteModules');
+		expect(source).toContain('catalog.series.some((series) => series.translations[locale] !== undefined)');
+		expect(source).toContain('generatedArtworkIds');
+		expect(source).toContain('artwork.translations[locale]');
+		expect(source).toContain('translation.title.trim()');
+		expect(source).toContain('isValidAlternativeText(translation.altText, translation.title)');
+		expect(source).toContain('isAvailability(artwork.availability)');
+		expect(source).toContain('selectRecentHomeArtworks(eligibleArtworks)');
+		expect(source).toContain('createResponsiveImage(artwork.mainImage.projection, imageOptions)');
+		expect(source).toContain(artworkPath);
+		expect(source).toContain('<HomeNavigation');
+		expect(source).toContain('hasSeriesDirectory={hasSeriesDirectory}');
+		expect(source).toContain('<HomeArtworkSelection locale={locale} cards={cards} />');
+		expect(source).toContain("'@type': 'WebPage'");
+		expect(source).toContain('url: canonicalUrl');
+		expect(source).toContain('name: messages.homeTitle');
+		expect(source).toContain('description: messages.homeDescription');
+		expect(source).toContain('inLanguage: locale');
+		expect(source).toContain(canonicalPath);
+		expect(source).toContain('messages.artistName');
+		expect(source).toContain('messages.artistIdentification');
+	});
+
 	it('renders exhibition entries as text-only, one-column links with localized fields and an empty message', () => {
 		expect(exhibitionIndex).toContain('entries.length > 0');
 		expect(exhibitionIndex).toContain('{messages.exhibitionsEmpty}');
@@ -418,6 +480,63 @@ describe('catalog presentation components', () => {
 		expect(seriesDirectory).toContain('{series.name}');
 		expect(seriesDirectory).toContain('messages.series');
 		expect(seriesDirectory).not.toMatch(/<(?:select|button)\b|\bfilter\b/i);
+	});
+
+	it('exposes the series-directory anchor only when the directory is rendered', () => {
+		expect(seriesDirectory).toMatch(/\{links\.length > 0 && \(\s*<section id="series-directory"/);
+	});
+
+	it('renders localized home navigation only for available routes and anchors', () => {
+		expect(homeNavigation).toContain('aria-label={messages.homeNavigationLabel}');
+		expect(homeNavigation).toContain("{ works: '/obras/', exhibitions: '/exposiciones/', contact: '/contacto/' }");
+		expect(homeNavigation).toContain("{ works: '/en/works/', exhibitions: '/en/exhibitions/', contact: '/en/contact/' }");
+		expect(homeNavigation).toMatch(/if \(hasWorksRoute\) \{\s*links\.push\(\{ href: localizedPaths\.works, label: messages\.homeWorksLink \}\);/);
+		expect(homeNavigation).toMatch(/if \(hasWorksRoute && hasSeriesDirectory\) \{\s*links\.push\(\{ href: `\$\{localizedPaths\.works\}#series-directory`, label: messages\.homeSeriesLink \}\);/);
+		expect(homeNavigation).toMatch(/if \(hasExhibitionsRoute\) \{\s*links\.push\(\{ href: localizedPaths\.exhibitions, label: messages\.homeExhibitionsLink \}\);/);
+		expect(homeNavigation).toMatch(/if \(hasContactRoute\) \{\s*links\.push\(\{ href: localizedPaths\.contact, label: messages\.homeContactLink \}\);/);
+		expect(homeNavigation).toContain('messages.homeWorksLink');
+		expect(homeNavigation).toContain('messages.homeSeriesLink');
+		expect(homeNavigation).toContain('messages.homeExhibitionsLink');
+		expect(homeNavigation).toContain('messages.homeContactLink');
+		expect(homeNavigation).toContain('links.length > 0 && (');
+		expect(homeNavigation).toContain('flex list-none flex-wrap');
+		expect(homeNavigation).toContain('focus-visible:outline-primary');
+		expect(homeNavigation).not.toMatch(/<(?:button|form)\b|client:[\w-]+/i);
+	});
+
+	it('omits an empty home selection and maps complete cards through ArtworkCard', () => {
+		expect(homeArtworkSelection).toMatch(/\{cards\.length > 0 && \([\s\S]*?<section/);
+		expect(homeArtworkSelection).toContain('messages.homeArtworkSelectionTitle');
+		expect(homeArtworkSelection).toContain('cards.map(({ artwork, image, href }, index) =>');
+		expect(homeArtworkSelection).toContain("loading={index === 0 ? 'eager' : 'lazy'}");
+		expect(homeArtworkSelection).toContain('reserveImageSpace={index === 0}');
+		expect(homeArtworkSelection).toContain('grid-cols-1');
+		expect(homeArtworkSelection).toContain('tablet:grid-cols-8');
+		expect(homeArtworkSelection).toContain('desktop:grid-cols-12');
+		expect(artworkCard).toContain('focus-visible:outline-primary');
+		expect(artworkCard).toContain("loading = 'lazy'");
+		expect(artworkCard).toContain('reserveImageSpace?: boolean');
+		expect(artworkCard).toContain('reserveImageSpace = false');
+		expect(artworkCard).toContain('style={reserveImageSpace ? `aspect-ratio: ${image.width} / ${image.height};` : undefined}');
+		expect(artworkCard).toContain('<EditorialImage');
+		expect(artworkCard).toContain('loading={loading}');
+		expect(homeArtworkSelection).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+		expect(artworkCard).toContain('<AvailabilityLabel availability={artwork.availability} locale={locale} />');
+	});
+
+	it('preloads only local home fonts when requested', () => {
+		expect(baseLayout).toContain('preloadHomeFonts?: boolean');
+		expect(baseLayout).toContain('preloadHomeFonts = false');
+		expect(baseLayout).toContain('preloadHomeFonts &&');
+		for (const font of [
+			'/fonts/bodoni-moda-400-latin.woff2',
+			'/fonts/newsreader-400-latin.woff2',
+			'/fonts/geist-latin.woff2',
+		]) {
+			expect(baseLayout).toContain(font);
+		}
+		expect(spanishHomePage).toContain('preloadHomeFonts={true}');
+		expect(englishHomePage).toContain('preloadHomeFonts={true}');
 	});
 
 	it('composes the series directory, responsive artwork grid, and localized empty state', () => {

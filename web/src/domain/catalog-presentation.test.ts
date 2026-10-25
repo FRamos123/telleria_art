@@ -6,12 +6,17 @@ import {
 	deriveCriticalTextMetaDescription,
 	deriveExhibitionMetaDescription,
 	deriveSeriesMetaDescription,
+	selectRecentHomeArtworks,
 	sortArtworksForCatalog,
 	sortCriticalTextsForIndex,
 	sortExhibitionsForIndex,
 } from './catalog-presentation'
 
 const currentYear = 2026
+
+function homeArtwork(id: string, year: number) {
+	return { id, year }
+}
 
 function artwork(id: string, year: number, inventory: string) {
 	const inventoryNumber = createInventoryNumber(inventory, currentYear)
@@ -81,6 +86,60 @@ describe('sortArtworksForCatalog', () => {
 		]
 
 		expect(sortArtworksForCatalog(artworks).map(({ id }) => id)).toEqual(['first', 'second'])
+	})
+})
+
+describe('selectRecentHomeArtworks', () => {
+	it('orders by year descending, then ID using ordinal case-sensitive comparison', () => {
+		const artworks = [
+			homeArtwork('older', 2022),
+			homeArtwork('b', 2025),
+			homeArtwork('a', 2025),
+			homeArtwork('A', 2025),
+		]
+
+		expect(selectRecentHomeArtworks(artworks).map(({ id }) => id)).toEqual([
+			'A',
+			'a',
+			'b',
+		])
+	})
+
+	it('returns at most three artworks after sorting', () => {
+		const artworks = [
+			homeArtwork('fourth', 2022),
+			homeArtwork('third', 2023),
+			homeArtwork('second', 2024),
+			homeArtwork('first', 2025),
+		]
+
+		expect(selectRecentHomeArtworks(artworks).map(({ id }) => id)).toEqual([
+			'first',
+			'second',
+			'third',
+		])
+	})
+
+	it.each([
+		{ label: 'zero', artworks: [], expected: [] },
+		{ label: 'one', artworks: [homeArtwork('single', 2025)], expected: ['single'] },
+		{
+			label: 'two',
+			artworks: [homeArtwork('older', 2024), homeArtwork('newer', 2025)],
+			expected: ['newer', 'older'],
+		},
+	])('preserves a list of $label artworks', ({ artworks, expected }) => {
+		expect(selectRecentHomeArtworks(artworks).map(({ id }) => id)).toEqual(expected)
+	})
+
+	it('returns a sorted copy without mutating the input', () => {
+		const artworks = [homeArtwork('older', 2023), homeArtwork('newer', 2025)]
+		const originalOrder = [...artworks]
+
+		const result = selectRecentHomeArtworks(artworks)
+
+		expect(result).not.toBe(artworks)
+		expect(artworks).toEqual(originalOrder)
 	})
 })
 

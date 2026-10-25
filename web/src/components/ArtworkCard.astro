@@ -10,9 +10,11 @@ interface Props {
 	image: ResponsiveImage;
 	locale: Locale;
 	href: string;
+	loading?: 'lazy' | 'eager';
+	reserveImageSpace?: boolean;
 }
 
-const { artwork, image, locale, href } = Astro.props;
+const { artwork, image, locale, href, loading = 'lazy', reserveImageSpace = false } = Astro.props;
 const translation = artwork.translations[locale];
 const title = translation?.title.trim();
 const destination = href.trim();
@@ -25,12 +27,16 @@ const validCard = translation
 {validCard && (
 	<li class="min-w-0 list-none tablet:col-span-4 desktop:col-span-4">
 		<a class="group block min-w-0 text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
-			<figure class="m-0 bg-surface-container-low">
-				<EditorialImage
-					image={image}
-					altText={translation.altText}
-					className="h-auto w-full object-contain"
-					sizes="(min-width: 768px) 33vw, 100vw"
+		<figure
+			class="m-0 bg-surface-container-low"
+			style={reserveImageSpace ? `aspect-ratio: ${image.width} / ${image.height};` : undefined}
+		>
+			<EditorialImage
+				image={image}
+				altText={translation.altText}
+				className="h-auto w-full object-contain"
+				loading={loading}
+				sizes="(min-width: 768px) 33vw, 100vw"
 				/>
 			</figure>
 			<div class="mt-space-md flex min-w-0 flex-col gap-space-sm">

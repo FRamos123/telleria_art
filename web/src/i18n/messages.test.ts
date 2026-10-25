@@ -4,6 +4,22 @@ import { en } from './en';
 import { es } from './es';
 
 describe('foundation translations', () => {
+	it('provides matching non-empty messages for home navigation and artwork selection', () => {
+		const homeMessageKeys = [
+			'homeNavigationLabel',
+			'homeWorksLink',
+			'homeSeriesLink',
+			'homeExhibitionsLink',
+			'homeContactLink',
+			'homeArtworkSelectionTitle',
+		] as const
+
+		for (const key of homeMessageKeys) {
+			expect(es[key].trim().length, `Spanish ${key}`).toBeGreaterThan(0)
+			expect(en[key].trim().length, `English ${key}`).toBeGreaterThan(0)
+		}
+	})
+
 	it('provides non-empty Spanish and English messages for the contact form and final privacy notice', () => {
 		const contactMessageKeys = [
 			'contactTitle',

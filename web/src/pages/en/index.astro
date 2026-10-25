@@ -1,8 +1,71 @@
 ---
+import HomeArtworkSelection from '../../components/HomeArtworkSelection.astro';
+import HomeNavigation from '../../components/HomeNavigation.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { isAvailability } from '../../domain/availability';
+import { isValidAlternativeText } from '../../domain/completeness';
+import { selectRecentHomeArtworks } from '../../domain/catalog-presentation';
 import { getMessages } from '../../i18n';
+import { createResponsiveImage } from '../../infrastructure/sanity/image-url';
+import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
 
-const messages = getMessages('en');
+const locale = 'en' as const;
+const messages = getMessages(locale);
+const catalog = await loadCatalogContent();
+const localizedRouteModules = import.meta.glob([
+	'./works/index.astro',
+	'./exhibitions/index.astro',
+	'./contact.astro',
+]);
+const hasWorksRoute = Object.hasOwn(localizedRouteModules, './works/index.astro');
+const hasExhibitionsRoute = Object.hasOwn(localizedRouteModules, './exhibitions/index.astro');
+const hasContactRoute = Object.hasOwn(localizedRouteModules, './contact.astro');
+const hasSeriesDirectory = hasWorksRoute
+	&& catalog.series.some((series) => series.translations[locale] !== undefined);
+const imageOptions = {
+	projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
+	dataset: import.meta.env.SANITY_DATASET ?? '',
+};
+const currentYear = new Date().getFullYear();
+const generatedArtworkIds = new Set(catalog.artworks.flatMap((artwork) => {
+	const translation = artwork.translations[locale];
+	const series = catalog.series.find((candidate) => candidate.id === artwork.seriesId);
+	return translation && series?.translations[locale] ? [artwork.id] : [];
+}));
+const eligibleArtworks = catalog.artworks.filter((artwork) => {
+	const translation = artwork.translations[locale];
+	const dimensions = artwork.mainImage.projection.asset.metadata.dimensions;
+	return Boolean(
+		translation
+		&& generatedArtworkIds.has(artwork.id)
+		&& translation.title.trim()
+		&& Number.isInteger(artwork.year)
+		&& artwork.year >= 1900
+		&& artwork.year <= currentYear
+		&& artwork.mainImage.assetId.trim()
+		&& Number.isInteger(dimensions.width)
+		&& dimensions.width > 0
+		&& Number.isInteger(dimensions.height)
+		&& dimensions.height > 0
+		&& isValidAlternativeText(translation.altText, translation.title)
+		&& isAvailability(artwork.availability),
+	);
+});
+const cards = selectRecentHomeArtworks(eligibleArtworks).map((artwork) => ({
+	artwork,
+	image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+	href: `/en/work/${encodeURIComponent(artwork.id)}/`,
+}));
+const canonicalPath = '/en/';
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? new URL('https://telleria-art.pages.dev')).href;
+const webPageJsonLd = JSON.stringify({
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	url: canonicalUrl,
+	name: messages.homeTitle,
+	description: messages.homeDescription,
+	inLanguage: locale,
+}).replaceAll('<', '\\u003c');
 ---
 
 <BaseLayout
@@ -11,6 +74,7 @@ const messages = getMessages('en');
 	description={messages.homeDescription}
 	canonicalPath="/en/"
 	alternatePaths={{ es: '/' }}
+	preloadHomeFonts={true}
 >
 	<section
 		class="mx-auto grid w-full max-w-7xl grid-cols-1 px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
@@ -28,4 +92,13 @@ const messages = getMessages('en');
 			{messages.artistIdentification}
 		</p>
 	</section>
+	<HomeNavigation
+		locale={locale}
+		hasWorksRoute={hasWorksRoute}
+		hasSeriesDirectory={hasSeriesDirectory}
+		hasExhibitionsRoute={hasExhibitionsRoute}
+		hasContactRoute={hasContactRoute}
+	/>
+	<HomeArtworkSelection locale={locale} cards={cards} />
+	<script type="application/ld+json" set:html={webPageJsonLd} />
 </BaseLayout>

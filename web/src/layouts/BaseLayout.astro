@@ -11,9 +11,10 @@ interface Props {
 	description?: string;
 	canonicalPath?: string;
 	alternatePaths?: Partial<Record<Locale, string>>;
+	preloadHomeFonts?: boolean;
 }
 
-const { locale, title, description, canonicalPath, alternatePaths = {} } = Astro.props;
+const { locale, title, description, canonicalPath, alternatePaths = {}, preloadHomeFonts = false } = Astro.props;
 const messages = getMessages(locale);
 const siteUrl = Astro.site ?? new URL('https://telleria-art.pages.dev');
 const canonicalUrl = canonicalPath ? new URL(canonicalPath, siteUrl).href : undefined;
@@ -28,6 +29,13 @@ const languagePaths: Partial<Record<Locale, string>> = {
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		{preloadHomeFonts && (
+			<>
+				<link rel="preload" href="/fonts/bodoni-moda-400-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+				<link rel="preload" href="/fonts/newsreader-400-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+				<link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+			</>
+		)}
 		<title>{title ?? messages.brandName}</title>
 		{description && <meta name="description" content={description} />}
 		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
