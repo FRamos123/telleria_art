@@ -45,6 +45,11 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - **RF-12. Rutas no publicadas.** SI una persona solicita una ficha que no está publicada, ENTONCES EL SISTEMA no expondrá una página pública con contenido incompleto o retirado.
 - **RF-13. Sin comercio.** EL SISTEMA no ofrecerá compra del original, checkout, precios, ofertas ni mensajes que inviten a comprar. EL SISTEMA no prometerá disponibilidad, variantes, tamaños ni venta de prints, independientemente del estado del original.
 - **RF-14. Fidelidad editorial.** SI falta cualquier dato de la obra o del artista, ENTONCES EL SISTEMA lo omitirá o bloqueará la publicación según las reglas anteriores, sin inventarlo, inferirlo ni sustituirlo por contenido que pueda parecer auténtico.
+- **RF-15. Barra curatorial, migas de pan y cita catalográfica.** CUANDO se consulte una ficha publicada, EL SISTEMA mostrará una barra superior con migas de pan localizadas hacia el catálogo general, la serie publicada de la obra y su número de inventario, junto con una acción para abrir el visor en Sala Oscura y una acción «Citar obra» que copie al portapapeles la referencia catalográfica factual de la obra y anuncie la confirmación de forma accesible.
+- **RF-16. Visor de examen en ficha.** CUANDO se consulte una ficha publicada, EL SISTEMA presentará la imagen principal dentro de un visor de examen que permita ampliar y reducir la escala (`100%` a `240%`), restablecer la vista `1:1`, desplazar el lienzo ampliado (mediante puntero o teclado), alternar entre los modos de iluminación «Galería» y «Taller Rasante» y activar o desactivar una retícula de referencia, sin ocultar ni reemplazar el contenido HTML estático de la obra.
+- **RF-17. Visor Sala Oscura a pantalla completa.** CUANDO la persona usuaria active «Examinar en Sala Oscura» o pulse sobre el lienzo para inspeccionarlo, EL SISTEMA abrirá un visor modal accesible a pantalla completa (`role="dialog"`, `aria-modal="true"`) con controles de zoom, restablecimiento `1:1`, desplazamiento (pan), minimapa de posición sincronizado, selector de iluminación («Galería» / «Taller Rasante»), retícula, pie informativo con los datos reales publicados de la obra (sin pines ni telemetría inventados) y cierre mediante botón visible o tecla `Escape` devolviendo el foco al control de origen.
+- **RF-18. Historial de exposiciones reales de la obra.** CUANDO existan exposiciones publicadas en el idioma de la ficha que asocien la obra actual, EL SISTEMA mostrará en la ficha el historial de esas exposiciones con enlace a su detalle publicado, sede y fechas; SI la obra no tiene exposiciones publicadas asociadas en ese idioma, ENTONCES EL SISTEMA omitirá el bloque sin mostrar texto inventado.
+- **RF-19. Siguiente obra en la secuencia de la serie.** CUANDO la serie de la obra tenga otra obra publicada y visible en el mismo idioma, EL SISTEMA mostrará al final de la ficha el bloque «Siguiente pieza en la secuencia» con los datos reales e imagen optimizada de la siguiente obra de la serie y enlaces tanto a su ficha como a la serie completa; SI la obra es la única visible de su serie en ese idioma, ENTONCES EL SISTEMA omitirá la tarjeta de siguiente obra sin inventar piezas.
 
 ## Requisitos no funcionales
 
@@ -76,8 +81,8 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - Compra de originales, botones o enlaces de compra, precios, checkout, pagos y gestión de pedidos.
 - Publicación de prints como productos, su disponibilidad, tamaños, variantes, precios o cualquier promesa comercial relacionada.
 - Definición de reglas comerciales sobre la relación entre el estado del original y los prints.
-- Invención, generación automática o traducción no proporcionada de contenido del artista, incluidos textos críticos, notas y descripciones SEO.
-- Visor interactivo de alta resolución o zoom de la obra.
+- Invención, generación automática o traducción no proporcionada de contenido del artista, incluidos textos críticos, notas, pines/hotspots sobre el lienzo, tablas de pigmentos, micrografías, telemetría de sensores y descripciones SEO.
+- Modo de iluminación por fluorescencia UV, simulador de marco o descarga de archivos PDF externos no existentes en Sanity.
 
 ## Criterios de finalización
 
@@ -90,6 +95,7 @@ Esta versión es informativa. No ofrece compras ni checkout y no afirma ni sugie
 - [x] Los datos estructurados no contienen ofertas, precios ni disponibilidad comercial de originales o prints.
 - [x] No hay compra, checkout, ni promesas de disponibilidad de prints en ningún estado del original.
 - [x] Las páginas cumplen WCAG 2.2 AA y los umbrales de Lighthouse definidos en RNF-7.
+- [x] La ficha incorpora la barra curatorial (migas de pan, «Examinar en Sala Oscura» y «Citar obra»), el visor interactivo en ficha y el modal de «Sala Oscura» a pantalla completa (zoom, pan, minimapa, modos de luz Galería/Taller Rasante y retícula), el historial de exposiciones publicadas asociadas y la siguiente obra en la secuencia de la serie, alimentados exclusivamente con datos reales publicados.
 
 ## Dudas abiertas
 

@@ -1,24 +1,49 @@
 ---
+import { sortExhibitionsForIndex } from '../domain/catalog-presentation';
 import { isValidAlternativeText } from '../domain/completeness';
 import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
-import type { MappedArtwork, MappedCriticalText } from '../infrastructure/sanity/mappers';
+import type {
+	MappedArtwork,
+	MappedCriticalText,
+	MappedExhibition,
+} from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import AvailabilityLabel from './AvailabilityLabel.astro';
 import EditorialImage from './EditorialImage.astro';
 import InventoryBadge from './InventoryBadge.astro';
 import ArtworkTechnicalSheet from './ArtworkTechnicalSheet.astro';
 import ArtworkCriticalTexts from './ArtworkCriticalTexts.astro';
 
+interface NextArtworkPreview {
+	artwork: MappedArtwork;
+	href: string;
+	image: ResponsiveImage;
+}
+
 interface Props {
 	artwork: MappedArtwork;
 	canonicalUrl: string;
 	criticalTexts: readonly MappedCriticalText[];
+	exhibitions?: readonly MappedExhibition[];
 	image: ResponsiveImage;
 	locale: Locale;
+	nextArtwork?: NextArtworkPreview;
+	seriesArtworkCount?: number;
 	visibleSeries: { id: string; name: string; href: string };
 }
 
-const { artwork, canonicalUrl, criticalTexts, image, locale, visibleSeries } = Astro.props;
+const {
+	artwork,
+	canonicalUrl,
+	criticalTexts,
+	exhibitions = [],
+	image,
+	locale,
+	nextArtwork,
+	seriesArtworkCount,
+	visibleSeries,
+} = Astro.props;
 const translation = artwork.translations[locale];
 
 if (!translation) {
@@ -30,9 +55,14 @@ if (!translation.title.trim() || !isValidAlternativeText(translation.altText, tr
 }
 
 const messages = getMessages(locale);
+const catalogHref = locale === 'es' ? '/obras/' : '/en/works/';
 const contactHref = locale === 'es'
 	? `/contacto/?artwork=${encodeURIComponent(artwork.id)}`
 	: `/en/contact/?artwork=${encodeURIComponent(artwork.id)}`;
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const dimensions = `${numberFormat.format(artwork.heightCm)} × ${numberFormat.format(artwork.widthCm)} ${messages.centimeterUnit}`;
+const citationText = `${messages.artistName}, «${translation.title}» (${artwork.year}). ${translation.technique}, ${translation.support}, ${dimensions}. ${artwork.inventoryNumber}. ${canonicalUrl}`;
+
 const associatedCriticalTextIds = new Set(artwork.optional.criticalTextIds ?? []);
 const relatedCriticalTexts = criticalTexts.flatMap((criticalText) => {
 	if (!associatedCriticalTextIds.has(criticalText.id)) return [];
@@ -48,6 +78,36 @@ const relatedCriticalTexts = criticalTexts.flatMap((criticalText) => {
 		? [{ id: criticalText.id, title, body, author, href }]
 		: [];
 });
+
+const dateFormatter = new Intl.DateTimeFormat(locale, {
+	year: 'numeric',
+	month: 'short',
+	day: 'numeric',
+	timeZone: 'UTC',
+});
+const formatDate = (isoDate: string): string => dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
+const relatedExhibitions = sortExhibitionsForIndex(exhibitions, locale).flatMap((exhibition) => {
+	const exhibitionTranslation = exhibition.translations[locale];
+	if (!exhibitionTranslation || !exhibitionTranslation.artworkIds.includes(artwork.id)) {
+		return [];
+	}
+	const title = exhibitionTranslation.title.trim();
+	const venue = exhibitionTranslation.venue.trim();
+	if (!title || !venue) return [];
+	const href = locale === 'es'
+		? `/exposiciones/${encodeURIComponent(exhibition.id)}/`
+		: `/en/exhibitions/${encodeURIComponent(exhibition.id)}/`;
+	const dateRange = exhibition.endDate
+		? `${formatDate(exhibition.startDate)} – ${formatDate(exhibition.endDate)}`
+		: formatDate(exhibition.startDate);
+	return [{ id: exhibition.id, title, venue, dateRange, href }];
+});
+
+const nextArtworkTranslation = nextArtwork?.artwork.translations[locale];
+const nextArtworkDimensions = nextArtwork
+	? `${numberFormat.format(nextArtwork.artwork.heightCm)} × ${numberFormat.format(nextArtwork.artwork.widthCm)} ${messages.centimeterUnit}`
+	: '';
+
 if (
 	visibleSeries.id !== artwork.seriesId
 	|| !visibleSeries.name.trim()
@@ -95,53 +155,776 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 
 <script type="application/ld+json" set:html={visualArtworkJsonLd} />
 
-<article class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
-	<figure class="relative m-0 flex items-center justify-center bg-surface-container-low tablet:col-span-8 desktop:col-span-7">
-		<EditorialImage image={image} altText={translation.altText} className="h-auto w-full object-contain" loading="eager" sizes="(min-width: 1280px) 58vw, 100vw" />
-		<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
-	</figure>
-
-	<div class="flex min-w-0 flex-col gap-space-lg tablet:col-span-8 desktop:col-span-5">
-		<header>
-			<h1 class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
-				{translation.title}
-			</h1>
-			<p class="m-0 font-body-md text-body-md text-on-surface-variant">
-				{messages.series}:{' '}
-				<a class="text-on-surface underline decoration-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={visibleSeries.href}>
-					{visibleSeries.name}
-				</a>
-			</p>
-		</header>
-
-		<ArtworkTechnicalSheet
-			availability={artwork.availability}
-			heightCm={artwork.heightCm}
-			locale={locale}
-			support={translation.support}
-			technique={translation.technique}
-			widthCm={artwork.widthCm}
-			year={artwork.year}
-		/>
-
-		<p class="m-0 font-label-technical text-label-technical">
+<section class="w-full border-b border-outline-variant bg-surface-container-lowest">
+	<div class="mx-auto flex w-full max-w-7xl flex-col justify-between gap-space-sm px-margin-mobile py-space-sm tablet:flex-row tablet:items-center desktop:px-gutter">
+		<nav aria-label={messages.artworkBreadcrumbLabel} class="flex flex-wrap items-center gap-space-xs font-label-technical text-label-technical uppercase text-on-surface-variant">
 			<a
-				class="text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-				href={contactHref}
+				class="text-on-surface-variant underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				href={catalogHref}
 			>
-				{messages.contactArtworkAction}
+				{messages.homeWorksLink}
 			</a>
-		</p>
+			<span aria-hidden="true">/</span>
+			<a
+				class="text-on-surface-variant underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				href={visibleSeries.href}
+			>
+				{visibleSeries.name}
+			</a>
+			<span aria-hidden="true">/</span>
+			<span class="text-on-surface">{artwork.inventoryNumber}</span>
+		</nav>
 
-		{workshopNote && (
-			<section aria-labelledby="artwork-workshop-note-title" class="bg-surface-container p-space-md">
-				<h2 id="artwork-workshop-note-title" class="mb-space-sm mt-0 font-headline-sm text-headline-sm text-on-surface">
-					{messages.workshopNote}
-				</h2>
-				<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">{workshopNote}</p>
-			</section>
-		)}
-
-		<ArtworkCriticalTexts texts={relatedCriticalTexts} locale={locale} />
+		<div class="flex flex-wrap items-center gap-space-sm">
+			<button
+				type="button"
+				data-open-darkroom
+				class="inline-flex cursor-pointer items-center gap-space-xs border border-outline-variant bg-surface-container-low px-space-sm py-space-xs font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			>
+				{messages.artworkOpenDarkroom}
+			</button>
+			<button
+				type="button"
+				data-cite-artwork
+				data-citation-text={citationText}
+				data-copied-label={messages.artworkCiteCopied}
+				class="inline-flex cursor-pointer items-center gap-space-xs border border-outline-variant bg-surface-container-low px-space-sm py-space-xs font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			>
+				{messages.artworkCiteAction}
+			</button>
+			<span
+				data-cite-feedback
+				role="status"
+				aria-live="polite"
+				class="font-label-caption text-label-caption uppercase text-primary"
+			></span>
+		</div>
 	</div>
+</section>
+
+<article class="w-full bg-surface-container-lowest">
+	<div class="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-y-space-lg px-margin-mobile py-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
+		<div class="flex min-w-0 flex-col gap-space-md tablet:col-span-8 desktop:col-span-7">
+			<figure
+				data-viewer-stage
+				class="relative m-0 flex aspect-3/4 w-full items-center justify-center overflow-hidden bg-surface-dim select-none"
+			>
+				<div
+					data-viewer-lighting
+					aria-hidden="true"
+					class="pointer-events-none absolute inset-0 z-10"
+					style="background: radial-gradient(ellipse at 48% 42%, rgba(196, 139, 60, 0.08) 0%, rgba(14, 14, 16, 0.55) 75%, rgba(14, 14, 16, 0.85) 100%);"
+				></div>
+				<div
+					data-viewer-grid
+					aria-hidden="true"
+					hidden
+					class="pointer-events-none absolute inset-0 z-10 hidden"
+					style="background-image: linear-gradient(to right, rgba(196, 139, 60, 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(196, 139, 60, 0.14) 1px, transparent 1px); background-size: 2rem 2rem;"
+				></div>
+				<div
+					data-viewer-canvas
+					class="relative flex max-h-full max-w-full items-center justify-center transition-transform duration-200 ease-out"
+				>
+					<EditorialImage
+						image={image}
+						altText={translation.altText}
+						className="h-auto max-h-full w-full object-contain select-none"
+						loading="eager"
+						sizes="(min-width: 1280px) 58vw, 100vw"
+					/>
+				</div>
+				<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
+				<div class="pointer-events-none absolute bottom-space-sm left-space-sm z-20 border border-outline-variant bg-surface-container-lowest px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface-variant">
+					{dimensions} · {translation.support}
+				</div>
+				<button
+					type="button"
+					data-open-darkroom
+					class="absolute bottom-space-sm right-space-sm z-20 cursor-pointer border border-outline-variant bg-surface-container-lowest px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-primary hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					{messages.artworkOpenDarkroom}
+				</button>
+			</figure>
+
+			<div class="flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low px-space-md py-space-sm">
+				<div class="flex flex-wrap items-center gap-space-xs font-label-technical text-label-technical uppercase">
+					<span class="text-on-surface-variant">{messages.artworkViewerZoomLabel}:</span>
+					<button
+						type="button"
+						data-viewer-zoom-out
+						aria-label={messages.artworkViewerZoomOut}
+						class="flex h-8 w-8 cursor-pointer items-center justify-center bg-surface-container text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						−
+					</button>
+					<span
+						data-viewer-zoom-label
+						aria-live="polite"
+						class="px-space-xs text-center font-label-caption text-label-caption text-on-surface"
+					>
+						100%
+					</span>
+					<button
+						type="button"
+						data-viewer-zoom-in
+						aria-label={messages.artworkViewerZoomIn}
+						class="flex h-8 w-8 cursor-pointer items-center justify-center bg-surface-container text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						+
+					</button>
+					<button
+						type="button"
+						data-viewer-zoom-reset
+						class="cursor-pointer bg-surface-container px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface-variant hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						{messages.artworkViewerResetZoom}
+					</button>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-space-xs font-label-technical text-label-technical uppercase">
+					<span class="text-on-surface-variant">{messages.artworkViewerLightLabel}:</span>
+					<button
+						type="button"
+						data-viewer-light="gallery"
+						aria-pressed="true"
+						class="cursor-pointer bg-primary px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						{messages.artworkViewerLightGallery}
+					</button>
+					<button
+						type="button"
+						data-viewer-light="raking"
+						aria-pressed="false"
+						class="cursor-pointer bg-surface-container px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						{messages.artworkViewerLightRaking}
+					</button>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-space-xs font-label-technical text-label-technical uppercase">
+					<button
+						type="button"
+						data-viewer-toggle-grid
+						aria-pressed="false"
+						class="cursor-pointer bg-surface-container px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						{messages.artworkViewerGrid}
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="flex min-w-0 flex-col gap-space-lg tablet:col-span-8 desktop:col-span-5">
+			<header>
+				<div class="mb-space-xs flex flex-wrap items-center gap-space-xs font-label-caption text-label-caption uppercase text-primary">
+					<span>{messages.artworkCatalogedPiece}</span>
+					<span aria-hidden="true">·</span>
+					<span>{artwork.inventoryNumber}</span>
+				</div>
+				<h1 class="mb-space-sm mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+					{translation.title}
+				</h1>
+				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.series}:{' '}
+					<a class="text-on-surface underline decoration-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={visibleSeries.href}>
+						{visibleSeries.name}
+					</a>
+					{' · '}
+					<span class="italic text-on-surface">{messages.artistName}</span>
+					{' '}
+					({artwork.year})
+				</p>
+			</header>
+
+			<ArtworkTechnicalSheet
+				availability={artwork.availability}
+				heightCm={artwork.heightCm}
+				locale={locale}
+				support={translation.support}
+				technique={translation.technique}
+				widthCm={artwork.widthCm}
+				year={artwork.year}
+			/>
+
+			<div class="flex flex-col gap-space-sm">
+				<p class="m-0 font-label-technical text-label-technical">
+					<a
+						class="inline-flex h-11 w-full items-center justify-center bg-primary px-space-md uppercase text-on-primary hover:bg-carmine-surface hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						href={contactHref}
+					>
+						{messages.contactArtworkAction}
+					</a>
+				</p>
+				<button
+					type="button"
+					data-open-darkroom
+					class="inline-flex h-11 w-full cursor-pointer items-center justify-center border border-outline-variant bg-surface-container px-space-md font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					{messages.artworkOpenDarkroom}
+				</button>
+			</div>
+
+			{relatedExhibitions.length > 0 && (
+				<section aria-labelledby="artwork-exhibitions-history-title" class="border-l-2 border-primary bg-surface-container p-space-md">
+					<h2 id="artwork-exhibitions-history-title" class="mb-space-sm mt-0 font-label-technical text-label-technical uppercase text-primary">
+						{messages.artworkExhibitionsHistoryTitle}
+					</h2>
+					<ul class="m-0 list-none space-y-space-sm p-0">
+						{relatedExhibitions.map((exhibition) => (
+							<li class="border-b border-outline-variant pb-space-xs last:border-b-0 last:pb-0">
+								<a
+									class="font-body-md text-body-md italic text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+									href={exhibition.href}
+								>
+									{exhibition.title}
+								</a>
+								<div class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+									{exhibition.venue} · {exhibition.dateRange}
+								</div>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+		</div>
+	</div>
+
+	{(workshopNote || relatedCriticalTexts.length > 0) && (
+		<div class="w-full border-t border-outline-variant bg-surface-container-low">
+			<div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-y-space-lg px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter">
+				{relatedCriticalTexts.length > 0 && (
+					<div class={workshopNote ? 'tablet:col-span-8 desktop:col-span-7' : 'tablet:col-span-8 desktop:col-span-12'}>
+						<ArtworkCriticalTexts texts={relatedCriticalTexts} locale={locale} />
+					</div>
+				)}
+				{workshopNote && (
+					<div class={relatedCriticalTexts.length > 0 ? 'tablet:col-span-8 desktop:col-span-5' : 'tablet:col-span-8 desktop:col-span-12'}>
+						<section aria-labelledby="artwork-workshop-note-title" class="border-l-2 border-primary bg-surface-container-lowest p-space-lg">
+							<div class="mb-space-xs font-label-caption text-label-caption uppercase text-primary">
+								{artwork.inventoryNumber} · {artwork.year}
+							</div>
+							<h2 id="artwork-workshop-note-title" class="mb-space-sm mt-0 font-headline-sm text-headline-sm text-on-surface">
+								{messages.workshopNote}
+							</h2>
+							<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">{workshopNote}</p>
+							<div class="mt-space-sm text-right font-label-caption text-label-caption uppercase text-on-surface-variant">
+								— {messages.artistName}
+							</div>
+						</section>
+					</div>
+				)}
+			</div>
+		</div>
+	)}
+
+	<section class="w-full border-t border-outline-variant bg-surface-container-lowest">
+		<div class="mx-auto flex w-full max-w-7xl flex-col gap-space-lg px-margin-mobile py-space-xl desktop:px-gutter">
+			<div class="flex flex-col justify-between gap-space-sm tablet:flex-row tablet:items-end">
+				<div>
+					<span class="font-label-technical text-label-technical uppercase text-primary">
+						{messages.artworkNextInSeriesEyebrow}
+					</span>
+					<h2 class="m-0 mt-space-xs font-headline-md text-headline-md text-on-surface">
+						{messages.artworkNextInSeriesTitle}
+					</h2>
+				</div>
+				<a
+					class="font-label-technical text-label-technical uppercase text-primary underline decoration-surface-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href={visibleSeries.href}
+				>
+					{messages.artworkViewFullSeries} ({visibleSeries.name}{seriesArtworkCount ? ` · ${seriesArtworkCount}` : ''})
+				</a>
+			</div>
+
+			{nextArtwork && nextArtworkTranslation && (
+				<div class="grid grid-cols-1 bg-surface-container-low tablet:grid-cols-8 desktop:grid-cols-12">
+					<a
+						class="relative flex aspect-3/4 items-center justify-center overflow-hidden bg-surface-dim tablet:col-span-3 desktop:col-span-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						href={nextArtwork.href}
+					>
+						<EditorialImage
+							image={nextArtwork.image}
+							altText={nextArtworkTranslation.altText}
+							className="h-full w-full object-cover"
+							loading="lazy"
+							sizes="(min-width: 1280px) 40vw, 100vw"
+						/>
+						<span class="absolute left-space-sm top-space-sm bg-carmine-surface px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-secondary">
+							{messages.artworkNextInSeriesBadge}
+						</span>
+					</a>
+					<div class="flex flex-col justify-between gap-space-md p-space-lg tablet:col-span-5 desktop:col-span-7">
+						<div class="space-y-space-sm">
+							<div class="flex flex-wrap items-center gap-space-xs font-label-caption text-label-caption uppercase text-on-surface-variant">
+								<span>{nextArtwork.artwork.inventoryNumber}</span>
+								<span aria-hidden="true">·</span>
+								<span>{nextArtworkTranslation.technique}</span>
+								<span aria-hidden="true">·</span>
+								<span>{nextArtworkDimensions}</span>
+							</div>
+							<h3 class="m-0 font-headline-md text-headline-md text-on-surface">
+								<a
+									class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+									href={nextArtwork.href}
+								>
+									{nextArtworkTranslation.title}
+								</a>
+							</h3>
+							{nextArtworkTranslation.workshopNote?.trim() && (
+								<p class="m-0 border-l-2 border-primary pl-space-sm font-body-md text-body-md italic text-on-surface-variant">
+									{nextArtworkTranslation.workshopNote.trim()}
+								</p>
+							)}
+						</div>
+						<div class="flex flex-wrap items-center justify-between gap-space-sm border-t border-outline-variant pt-space-md">
+							<a
+								class="font-label-technical text-label-technical uppercase text-primary underline decoration-surface-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href={nextArtwork.href}
+							>
+								{messages.artworkNextInSeriesAction}
+							</a>
+							<div class="flex items-center gap-space-sm font-label-technical text-label-technical uppercase text-on-surface-variant">
+								<span>{nextArtwork.artwork.year}</span>
+								<span aria-hidden="true">·</span>
+								<AvailabilityLabel availability={nextArtwork.artwork.availability} locale={locale} />
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	</section>
 </article>
+
+<div
+	id="darkroom-modal"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="darkroom-modal-title"
+	hidden
+	class="fixed inset-0 z-50 hidden flex-col justify-between overflow-hidden bg-surface-container-lowest text-on-surface select-none"
+>
+	<header class="z-20 flex w-full flex-wrap items-center justify-between gap-space-md border-b border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-sm desktop:px-gutter">
+		<div class="flex items-center gap-space-sm">
+			<span aria-hidden="true" class="inline-block h-2.5 w-2.5 bg-primary"></span>
+			<div>
+				<div class="font-label-caption text-label-caption uppercase text-primary">
+					{messages.artworkDarkroomEyebrow}
+				</div>
+				<h2 id="darkroom-modal-title" class="m-0 font-headline-sm text-headline-sm text-on-surface">
+					<span class="font-body-md text-body-md italic text-on-surface-variant">{messages.artistName} —</span>{' '}
+					{translation.title} ({artwork.year}){' '}
+					<span class="font-label-technical text-label-technical uppercase text-on-surface-variant">[{artwork.inventoryNumber}]</span>
+				</h2>
+			</div>
+		</div>
+
+		<div class="flex flex-wrap items-center gap-space-sm">
+			<div class="flex flex-wrap items-center gap-space-xs border border-outline-variant bg-surface-container-low px-space-sm py-space-xs font-label-technical text-label-technical uppercase">
+				<span class="font-label-caption text-label-caption text-on-surface-variant">{messages.artworkViewerLightLabel}:</span>
+				<button
+					type="button"
+					data-darkroom-light="gallery"
+					aria-pressed="true"
+					class="cursor-pointer bg-primary px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					{messages.artworkViewerLightGallery}
+				</button>
+				<button
+					type="button"
+					data-darkroom-light="raking"
+					aria-pressed="false"
+					class="cursor-pointer bg-surface-container px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					{messages.artworkViewerLightRaking}
+				</button>
+			</div>
+
+			<div class="flex items-center border border-outline-variant bg-surface-container-low">
+				<button
+					type="button"
+					data-darkroom-zoom-out
+					aria-label={messages.artworkViewerZoomOut}
+					class="flex h-8 w-8 cursor-pointer items-center justify-center text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					−
+				</button>
+				<span
+					data-darkroom-zoom-label
+					aria-live="polite"
+					class="px-space-sm text-center font-label-caption text-label-caption text-primary"
+				>
+					100%
+				</span>
+				<button
+					type="button"
+					data-darkroom-zoom-in
+					aria-label={messages.artworkViewerZoomIn}
+					class="flex h-8 w-8 cursor-pointer items-center justify-center text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					+
+				</button>
+				<button
+					type="button"
+					data-darkroom-zoom-reset
+					class="h-8 cursor-pointer border-l border-outline-variant px-space-sm font-label-caption text-label-caption uppercase text-on-surface-variant hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				>
+					{messages.artworkViewerScaleOneToOne}
+				</button>
+			</div>
+
+			<button
+				type="button"
+				data-darkroom-toggle-grid
+				aria-pressed="false"
+				class="cursor-pointer border border-outline-variant bg-surface-container-low px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			>
+				{messages.artworkViewerGrid}
+			</button>
+
+			<button
+				type="button"
+				data-close-darkroom
+				class="cursor-pointer bg-carmine-surface px-space-sm py-space-xs font-label-technical text-label-technical uppercase text-secondary hover:bg-surface-bright hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			>
+				{messages.artworkCloseDarkroom}
+			</button>
+		</div>
+	</header>
+
+	<div
+		data-darkroom-stage
+		class="relative flex flex-1 w-full items-center justify-center overflow-hidden bg-surface-container-lowest p-space-md"
+	>
+		<div
+			data-darkroom-lighting
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-0 z-10"
+			style="background: radial-gradient(ellipse at center, rgba(196, 139, 60, 0.08) 0%, rgba(14, 14, 16, 0.45) 60%, rgba(14, 14, 16, 0.92) 100%);"
+		></div>
+		<div
+			data-darkroom-grid
+			aria-hidden="true"
+			hidden
+			class="pointer-events-none absolute inset-0 z-10 hidden"
+			style="background-image: linear-gradient(to right, rgba(196, 139, 60, 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(196, 139, 60, 0.14) 1px, transparent 1px); background-size: 2.5rem 2.5rem;"
+		></div>
+		<div
+			data-darkroom-canvas
+			class="relative flex max-h-full max-w-full items-center justify-center transition-transform duration-150 ease-out"
+		>
+			<EditorialImage
+				image={image}
+				altText={translation.altText}
+				className="max-h-full max-w-full object-contain select-none"
+				loading="lazy"
+				sizes="100vw"
+			/>
+		</div>
+
+		<div class=" absolute bottom-space-md left-space-md z-30 hidden flex-col border border-outline-variant bg-surface-container-low p-space-xs tablet:flex">
+			<div class="flex items-center justify-between gap-space-sm pb-space-xs">
+				<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+					{messages.artworkDarkroomMinimapLabel}
+				</span>
+				<span class="font-label-caption text-label-caption uppercase text-primary">1:1</span>
+			</div>
+			<div class="relative flex h-32 w-24 items-center justify-center overflow-hidden border border-outline-variant bg-surface-dim">
+				<EditorialImage
+					image={image}
+					altText={translation.altText}
+					className="h-full w-full object-cover"
+					loading="lazy"
+					sizes="96px"
+				/>
+				<div
+					data-darkroom-minimap-rect
+					class="pointer-events-none absolute inset-1 border-2 border-primary"
+				></div>
+			</div>
+		</div>
+	</div>
+
+	<footer class="z-20 flex w-full flex-col justify-between gap-space-sm border-t border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-sm tablet:flex-row tablet:items-center desktop:px-gutter">
+		<div class="min-w-0">
+			<div class="font-label-caption text-label-caption uppercase text-primary">
+				{messages.artworkDarkroomSummaryLabel}
+			</div>
+			<p class="m-0 font-body-md text-body-md italic text-on-surface">
+				{translation.technique} · {translation.support} · {dimensions}
+				{workshopNote ? ` — «${workshopNote}»` : ''}
+			</p>
+		</div>
+		<div class="flex flex-wrap items-center gap-space-sm font-label-caption text-label-caption uppercase text-on-surface-variant">
+			<span>{artwork.inventoryNumber}</span>
+			<span aria-hidden="true">·</span>
+			<span>{visibleSeries.name}</span>
+			<span aria-hidden="true">·</span>
+			<span>{artwork.year}</span>
+			<span aria-hidden="true">·</span>
+			<AvailabilityLabel availability={artwork.availability} locale={locale} />
+		</div>
+	</footer>
+</div>
+
+<script>
+	const MIN_SCALE = 1;
+	const MAX_SCALE = 2.4;
+	const SCALE_STEP = 0.2;
+	const GALLERY_BG =
+		'radial-gradient(ellipse at 48% 42%, rgba(196, 139, 60, 0.08) 0%, rgba(14, 14, 16, 0.55) 75%, rgba(14, 14, 16, 0.85) 100%)';
+	const RAKING_BG =
+		'radial-gradient(ellipse at 82% 18%, rgba(229, 225, 228, 0.16) 0%, rgba(14, 14, 16, 0.72) 55%, rgba(14, 14, 16, 0.96) 100%)';
+
+	const state = {
+		scale: 1,
+		panX: 0,
+		panY: 0,
+		light: 'gallery' as 'gallery' | 'raking',
+		grid: false,
+	};
+
+	const clamp = (value: number, min: number, max: number): number =>
+		Math.min(Math.max(value, min), max);
+
+	const inlineStage = document.querySelector<HTMLElement>('[data-viewer-stage]');
+	const inlineCanvas = document.querySelector<HTMLElement>('[data-viewer-canvas]');
+	const inlineLighting = document.querySelector<HTMLElement>('[data-viewer-lighting]');
+	const inlineGrid = document.querySelector<HTMLElement>('[data-viewer-grid]');
+	const inlineZoomLabel = document.querySelector<HTMLElement>('[data-viewer-zoom-label]');
+
+	const darkroomModal = document.getElementById('darkroom-modal');
+	const darkroomStage = document.querySelector<HTMLElement>('[data-darkroom-stage]');
+	const darkroomCanvas = document.querySelector<HTMLElement>('[data-darkroom-canvas]');
+	const darkroomLighting = document.querySelector<HTMLElement>('[data-darkroom-lighting]');
+	const darkroomGrid = document.querySelector<HTMLElement>('[data-darkroom-grid]');
+	const darkroomZoomLabel = document.querySelector<HTMLElement>('[data-darkroom-zoom-label]');
+	const minimapRect = document.querySelector<HTMLElement>('[data-darkroom-minimap-rect]');
+
+	const setPressedButtonStyle = (button: HTMLElement | null, active: boolean): void => {
+		if (!button) return;
+		button.setAttribute('aria-pressed', active ? 'true' : 'false');
+		if (active) {
+			button.classList.remove('bg-surface-container', 'bg-surface-container-low', 'text-on-surface');
+			button.classList.add('bg-primary', 'text-on-primary');
+		} else {
+			button.classList.remove('bg-primary', 'text-on-primary');
+			button.classList.add('bg-surface-container', 'text-on-surface');
+		}
+	};
+
+	const renderViewerState = (): void => {
+		const maxPan = (state.scale - 1) * 180;
+		state.panX = clamp(state.panX, -maxPan, maxPan);
+		state.panY = clamp(state.panY, -maxPan, maxPan);
+
+		const transformValue = `translate(${state.panX}px, ${state.panY}px) scale(${state.scale.toFixed(2)})`;
+		const percentText = `${Math.round(state.scale * 100)}%`;
+		const filterValue = state.light === 'raking' ? 'contrast(1.22) brightness(0.96)' : 'none';
+
+		for (const canvas of [inlineCanvas, darkroomCanvas]) {
+			if (!canvas) continue;
+			canvas.style.transform = transformValue;
+			canvas.style.filter = filterValue;
+		}
+
+		for (const label of [inlineZoomLabel, darkroomZoomLabel]) {
+			if (label) label.textContent = percentText;
+		}
+
+		for (const lighting of [inlineLighting, darkroomLighting]) {
+			if (lighting) {
+				lighting.style.background = state.light === 'raking' ? RAKING_BG : GALLERY_BG;
+			}
+		}
+
+		for (const grid of [inlineGrid, darkroomGrid]) {
+			if (grid) {
+				grid.hidden = !state.grid;
+				grid.classList.toggle('hidden', !state.grid);
+			}
+		}
+
+		document
+			.querySelectorAll<HTMLElement>('[data-viewer-light], [data-darkroom-light]')
+			.forEach((btn) => {
+				const mode = btn.getAttribute('data-viewer-light') ?? btn.getAttribute('data-darkroom-light');
+				setPressedButtonStyle(btn, mode === state.light);
+			});
+
+		document
+			.querySelectorAll<HTMLElement>('[data-viewer-toggle-grid], [data-darkroom-toggle-grid]')
+			.forEach((btn) => setPressedButtonStyle(btn, state.grid));
+
+		if (minimapRect) {
+			const ratio = clamp(1 / state.scale, 0.35, 1);
+			const offsetX = maxPan > 0 ? (-state.panX / maxPan) * 20 : 0;
+			const offsetY = maxPan > 0 ? (-state.panY / maxPan) * 20 : 0;
+			minimapRect.style.transform = `translate(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px) scale(${ratio.toFixed(2)})`;
+		}
+	};
+
+	const adjustZoom = (delta: number): void => {
+		state.scale = clamp(Number((state.scale + delta).toFixed(2)), MIN_SCALE, MAX_SCALE);
+		if (state.scale === MIN_SCALE) {
+			state.panX = 0;
+			state.panY = 0;
+		}
+		renderViewerState();
+	};
+
+	const resetZoom = (): void => {
+		state.scale = 1;
+		state.panX = 0;
+		state.panY = 0;
+		renderViewerState();
+	};
+
+	document
+		.querySelectorAll<HTMLElement>('[data-viewer-zoom-in], [data-darkroom-zoom-in]')
+		.forEach((btn) => btn.addEventListener('click', () => adjustZoom(SCALE_STEP)));
+
+	document
+		.querySelectorAll<HTMLElement>('[data-viewer-zoom-out], [data-darkroom-zoom-out]')
+		.forEach((btn) => btn.addEventListener('click', () => adjustZoom(-SCALE_STEP)));
+
+	document
+		.querySelectorAll<HTMLElement>('[data-viewer-zoom-reset], [data-darkroom-zoom-reset]')
+		.forEach((btn) => btn.addEventListener('click', () => resetZoom()));
+
+	document
+		.querySelectorAll<HTMLElement>('[data-viewer-light], [data-darkroom-light]')
+		.forEach((btn) =>
+			btn.addEventListener('click', () => {
+				const mode = btn.getAttribute('data-viewer-light') ?? btn.getAttribute('data-darkroom-light');
+				if (mode === 'gallery' || mode === 'raking') {
+					state.light = mode;
+					renderViewerState();
+				}
+			}),
+		);
+
+	document
+		.querySelectorAll<HTMLElement>('[data-viewer-toggle-grid], [data-darkroom-toggle-grid]')
+		.forEach((btn) =>
+			btn.addEventListener('click', () => {
+				state.grid = !state.grid;
+				renderViewerState();
+			}),
+		);
+
+	const bindStageDrag = (stage: HTMLElement | null): void => {
+		if (!stage) return;
+		let dragging = false;
+		let startX = 0;
+		let startY = 0;
+		let initialPanX = 0;
+		let initialPanY = 0;
+
+		stage.addEventListener('pointerdown', (event) => {
+			if ((event.target as HTMLElement | null)?.closest('button')) return;
+			if (state.scale <= 1) return;
+			dragging = true;
+			startX = event.clientX;
+			startY = event.clientY;
+			initialPanX = state.panX;
+			initialPanY = state.panY;
+			stage.setPointerCapture(event.pointerId);
+		});
+
+		stage.addEventListener('pointermove', (event) => {
+			if (!dragging) return;
+			state.panX = initialPanX + (event.clientX - startX);
+			state.panY = initialPanY + (event.clientY - startY);
+			renderViewerState();
+		});
+
+		const stopDrag = (): void => {
+			dragging = false;
+		};
+		stage.addEventListener('pointerup', stopDrag);
+		stage.addEventListener('pointercancel', stopDrag);
+	};
+
+	bindStageDrag(inlineStage);
+	bindStageDrag(darkroomStage);
+
+	let lastTrigger: HTMLElement | null = null;
+	const openDarkroom = (trigger: HTMLElement | null): void => {
+		if (!darkroomModal) return;
+		lastTrigger = trigger;
+		darkroomModal.hidden = false;
+		darkroomModal.classList.remove('hidden');
+		darkroomModal.classList.add('flex');
+		document.body.style.overflow = 'hidden';
+		const closeButton = darkroomModal.querySelector<HTMLElement>('[data-close-darkroom]');
+		closeButton?.focus();
+	};
+
+	const closeDarkroom = (): void => {
+		if (!darkroomModal || darkroomModal.hidden) return;
+		darkroomModal.hidden = true;
+		darkroomModal.classList.remove('flex');
+		darkroomModal.classList.add('hidden');
+		document.body.style.overflow = '';
+		lastTrigger?.focus();
+	};
+
+	document.querySelectorAll<HTMLElement>('[data-open-darkroom]').forEach((btn) => {
+		btn.addEventListener('click', () => openDarkroom(btn));
+	});
+
+	document.querySelectorAll<HTMLElement>('[data-close-darkroom]').forEach((btn) => {
+		btn.addEventListener('click', () => closeDarkroom());
+	});
+
+	window.addEventListener('keydown', (event) => {
+		if (!darkroomModal || darkroomModal.hidden) return;
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			closeDarkroom();
+		} else if (event.key === '+' || event.key === '=') {
+			event.preventDefault();
+			adjustZoom(SCALE_STEP);
+		} else if (event.key === '-') {
+			event.preventDefault();
+			adjustZoom(-SCALE_STEP);
+		} else if (event.key === '0') {
+			event.preventDefault();
+			resetZoom();
+		} else if (state.scale > 1 && event.key === 'ArrowLeft') {
+			event.preventDefault();
+			state.panX += 24;
+			renderViewerState();
+		} else if (state.scale > 1 && event.key === 'ArrowRight') {
+			event.preventDefault();
+			state.panX -= 24;
+			renderViewerState();
+		} else if (state.scale > 1 && event.key === 'ArrowUp') {
+			event.preventDefault();
+			state.panY += 24;
+			renderViewerState();
+		} else if (state.scale > 1 && event.key === 'ArrowDown') {
+			event.preventDefault();
+			state.panY -= 24;
+			renderViewerState();
+		}
+	});
+
+	const citeButton = document.querySelector<HTMLElement>('[data-cite-artwork]');
+	const citeFeedback = document.querySelector<HTMLElement>('[data-cite-feedback]');
+	if (citeButton && citeFeedback) {
+		citeButton.addEventListener('click', async () => {
+			const text = citeButton.getAttribute('data-citation-text') ?? '';
+			const copiedLabel = citeButton.getAttribute('data-copied-label') ?? '';
+			if (!text) return;
+			try {
+				await navigator.clipboard.writeText(text);
+				citeFeedback.textContent = copiedLabel;
+			} catch {
+				citeFeedback.textContent = text;
+			}
+		});
+	}
+</script>

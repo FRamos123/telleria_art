@@ -155,6 +155,7 @@ Todos los archivos están bajo `web/src/` o `studio/schemaTypes/`, estructuras e
 | RF-12 | Solo `getStaticPaths` elegibles + 404 Cloudflare Pages verificada en preview.
 | RF-13 | Revisión de `ArtworkContent`, JSON-LD, sitemap y salida para asegurar que no hay compra/checkout/precio/promesa de prints.
 | RF-14 | Validadores/mappers existentes, filtros por idioma y omisión de datos; sin contenido inventado ni inferido.
+| RF-15–RF-19 | `ArtworkContent.astro`, `obra/[artworkId].astro`, `en/work/[artworkId].astro` y diccionarios `es.ts`/`en.ts`: barra curatorial con migas de pan y acciones «Examinar en Sala Oscura» y «Citar obra»; visor en ficha y modal `role="dialog"` de Sala Oscura a pantalla completa (zoom 100%–240%, pan con puntero/teclado, minimapa sincronizado, modos de luz Galería/Taller Rasante, retícula milimétrica y pie con datos reales de Sanity); historial de exposiciones publicadas donde participa la obra; y sección «Siguiente pieza en la secuencia» dentro de la misma serie.
 | RNF-1–RNF-7 | Diccionarios, etiquetas/tokens AA, salida Astro estática, metadatos/hreflang, imágenes y verificación Chrome DevTools/Lighthouse.
 
 La fase siguiente es redactar/revisar `tasks.md` solo tras aprobación explícita de este plan; las tareas de schema/tipo y la interpretación del campo legado requieren además la autorización indicada arriba.

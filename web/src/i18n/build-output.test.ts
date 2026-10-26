@@ -576,12 +576,13 @@ describe('static build output', () => {
 			expect(html.match(/<script\b/giu) ?? []).toHaveLength(scripts.length);
 			const structuredDataScripts = scripts.filter(([, attributes]) => attributes.includes('type="application/ld+json"'));
 			const clientScripts = scripts.filter(([, attributes]) => attributes.includes('type="module"'));
-			const isContactPage = /\/(?:en\/contact|contacto)\/$/u.test(new URL(location).pathname);
-			expect(clientScripts).toHaveLength(isContactPage ? 1 : 0);
+			const pathname = new URL(location).pathname;
+			const isContactPage = /\/(?:en\/contact|contacto)\/$/u.test(pathname);
+			const isArtworkPage = /\/(?:en\/work|obra)\/[^/]+\/$/u.test(pathname);
+			expect(clientScripts).toHaveLength(isContactPage || isArtworkPage ? 1 : 0);
 			expect(scripts).toHaveLength(structuredDataScripts.length + clientScripts.length);
 
 			const structuredData = structuredDataScripts.map(([, , json]) => JSON.parse(json ?? ''));
-			const pathname = new URL(location).pathname;
 			if (/\/(?:en\/)?series\//u.test(pathname)) {
 				expect(structuredData).toHaveLength(1);
 				expect(structuredData[0]).toMatchObject({ '@context': 'https://schema.org', '@type': 'CollectionPage' });
@@ -922,14 +923,32 @@ function decodeXmlAttribute(value: string): string {
 		}
 	});
 
-	it('keeps ficha HTML free of client JavaScript and commercial actions', () => {
+	it('renders the interactive examination viewer and darkroom modal on every ficha while keeping it free of commercial actions', () => {
 		for (const page of artworkFichaPages()) {
+			const expectation = messages[page.locale];
 			const scripts = [...page.html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/giu)];
 			expect(page.html.match(/<script\b/giu) ?? []).toHaveLength(scripts.length);
-			expect(scripts.length).toBeGreaterThanOrEqual(1);
-			expect(scripts.every(([, attributes]) => attributes.includes('type="application/ld+json"'))).toBe(true);
+			const structuredDataScripts = scripts.filter(([, attributes]) => attributes.includes('type="application/ld+json"'));
+			const clientScripts = scripts.filter(([, attributes]) => attributes.includes('type="module"'));
+			expect(structuredDataScripts).toHaveLength(1);
+			expect(clientScripts).toHaveLength(1);
 
-			expect(page.html).not.toMatch(/<(?:button|form|input|select|textarea)\b/iu);
+			expect(page.html).toContain('id="darkroom-modal"');
+			expect(page.html).toContain('role="dialog"');
+			expect(page.html).toContain('aria-modal="true"');
+			expect(page.html).toContain('data-open-darkroom');
+			expect(page.html).toContain('data-cite-artwork');
+			expect(page.html).toContain('data-darkroom-minimap-rect');
+			expect(page.html).toContain(expectation.artworkOpenDarkroom);
+			expect(page.html).toContain(expectation.artworkCloseDarkroom);
+			expect(page.html).toContain(expectation.artworkCiteAction);
+			expect(page.html).toContain(expectation.artworkViewerLightGallery);
+			expect(page.html).toContain(expectation.artworkViewerLightRaking);
+			expect(page.html).toContain(expectation.artworkViewerGrid);
+			expect(page.html).not.toContain('data-viewer-toggle-frame');
+			expect(page.html).not.toContain('data-darkroom-toggle-frame');
+
+			expect(page.html).not.toMatch(/<(?:form|input|select|textarea)\b/iu);
 			expect(page.html).not.toContain('mailto:');
 			for (const [, attributes] of page.html.matchAll(/<a\b([^>]*)/gu)) {
 				expect(attributes).not.toMatch(/(?:checkout|cart|order|buy)/iu);

@@ -207,6 +207,43 @@ describe('foundation translations', () => {
 		expect(en.centimeterUnit).toBe('cm');
 	});
 
+	it('provides localized labels for the artwork examination viewer, darkroom modal, citation, exhibitions history, and next series piece', () => {
+		const viewerKeys = [
+			'artworkBreadcrumbLabel',
+			'artworkOpenDarkroom',
+			'artworkCloseDarkroom',
+			'artworkCiteAction',
+			'artworkCiteCopied',
+			'artworkCatalogedPiece',
+			'artworkViewerZoomLabel',
+			'artworkViewerZoomIn',
+			'artworkViewerZoomOut',
+			'artworkViewerResetZoom',
+			'artworkViewerScaleOneToOne',
+			'artworkViewerLightLabel',
+			'artworkViewerLightGallery',
+			'artworkViewerLightRaking',
+			'artworkViewerGrid',
+			'artworkDarkroomEyebrow',
+			'artworkDarkroomMinimapLabel',
+			'artworkDarkroomSummaryLabel',
+			'artworkExhibitionsHistoryTitle',
+			'artworkAnalysisEyebrow',
+			'artworkNextInSeriesEyebrow',
+			'artworkNextInSeriesTitle',
+			'artworkNextInSeriesBadge',
+			'artworkNextInSeriesAction',
+			'artworkViewFullSeries',
+		] as const;
+		const spanish = es as unknown as Record<string, string>;
+		const english = en as unknown as Record<string, string>;
+
+		for (const key of viewerKeys) {
+			expect(spanish[key]?.trim().length, `Spanish ${key}`).toBeGreaterThan(0);
+			expect(english[key]?.trim().length, `English ${key}`).toBeGreaterThan(0);
+		}
+	});
+
 	it('provides the same message keys in Spanish and English', () => {
 		expect(Object.keys(es).sort()).toEqual(Object.keys(en).sort());
 		expect(Object.values(es).every((message) => message.trim().length > 0)).toBe(true);

@@ -1,6 +1,7 @@
 ---
 import ArtworkContent from '../../../components/ArtworkContent.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { sortArtworksForCatalog } from '../../../domain/catalog-presentation';
 import { getMessages } from '../../../i18n';
 import { createResponsiveImage } from '../../../infrastructure/sanity/image-url';
 import { loadCatalogContent } from '../../../infrastructure/sanity/catalog-content';
@@ -21,12 +22,32 @@ export async function getStaticPaths() {
 		const seriesTranslation = series?.translations[locale];
 		if (!translation || !series || !seriesTranslation) return [];
 
+		const seriesArtworks = sortArtworksForCatalog(
+			catalog.artworks.filter(
+				(candidate) => candidate.seriesId === series.id && candidate.translations[locale] !== undefined,
+			),
+		);
+		const currentIndex = seriesArtworks.findIndex((candidate) => candidate.id === artwork.id);
+		const nextCandidate = seriesArtworks.length > 1 && currentIndex >= 0
+			? seriesArtworks[(currentIndex + 1) % seriesArtworks.length]
+			: undefined;
+		const nextArtwork = nextCandidate && nextCandidate.id !== artwork.id
+			? {
+				artwork: nextCandidate,
+				href: `/en/work/${encodeURIComponent(nextCandidate.id)}/`,
+				image: createResponsiveImage(nextCandidate.mainImage.projection, imageOptions),
+			}
+			: undefined;
+
 		return [{
 			params: { artworkId: artwork.id },
 			props: {
 				artwork,
 				criticalTexts: catalog.criticalTexts,
+				exhibitions: catalog.exhibitions,
 				image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+				nextArtwork,
+				seriesArtworkCount: seriesArtworks.length,
 				visibleSeries: {
 					id: series.id,
 					name: seriesTranslation.name,
@@ -37,7 +58,7 @@ export async function getStaticPaths() {
 	});
 }
 
-const { artwork, criticalTexts, image, visibleSeries } = Astro.props;
+const { artwork, criticalTexts, exhibitions, image, nextArtwork, seriesArtworkCount, visibleSeries } = Astro.props;
 const translation = artwork.translations[locale];
 if (!translation) throw new Error(`Artwork ${artwork.id} has no complete published ${locale} translation.`);
 
@@ -49,5 +70,15 @@ const canonicalUrl = new URL(canonicalPath, Astro.site ?? new URL('https://telle
 ---
 
 <BaseLayout locale={locale} title={title} description={translation.seoDescription} canonicalPath={canonicalPath} alternatePaths={alternatePaths}>
-	<ArtworkContent artwork={artwork} canonicalUrl={canonicalUrl} criticalTexts={criticalTexts} image={image} locale={locale} visibleSeries={visibleSeries} />
+	<ArtworkContent
+		artwork={artwork}
+		canonicalUrl={canonicalUrl}
+		criticalTexts={criticalTexts}
+		exhibitions={exhibitions}
+		image={image}
+		locale={locale}
+		nextArtwork={nextArtwork}
+		seriesArtworkCount={seriesArtworkCount}
+		visibleSeries={visibleSeries}
+	/>
 </BaseLayout>

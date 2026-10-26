@@ -313,7 +313,13 @@ describe('catalog presentation components', () => {
 		expect(artworkContent).toContain('year={artwork.year}');
 		expect(artworkTechnicalSheet).toContain('format(heightCm)} × ${numberFormat.format(widthCm)} ${messages.centimeterUnit}');
 		expect(artworkContent).not.toContain('catalogLine');
-		expect(artworkContent).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+		expect(artworkContent).toContain('data-open-darkroom');
+		expect(artworkContent).toContain('data-cite-artwork');
+		expect(artworkContent).toContain('id="darkroom-modal"');
+		expect(artworkContent).toContain('role="dialog"');
+		expect(artworkContent).toContain('aria-modal="true"');
+		expect(artworkContent).toContain('data-darkroom-minimap-rect');
+		expect(artworkContent).not.toMatch(/<form\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
 	});
 
 	it('renders only a non-empty workshop note from the selected translation', () => {
@@ -626,7 +632,22 @@ describe('catalog presentation components', () => {
 		expect(artworkContent).toContain('encodeURIComponent(artwork.id)');
 		expect(artworkContent).toContain('`/contacto/?artwork=');
 		expect(artworkContent).toContain('`/en/contact/?artwork=');
-		expect(artworkContent).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+		expect(artworkContent).not.toMatch(/<form\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+	});
+
+	it('passes published exhibitions, series artwork count, and optional next artwork in series into the artwork page', () => {
+		for (const source of [spanishArtworkPage, englishArtworkPage]) {
+			expect(source).toContain('exhibitions: catalog.exhibitions');
+			expect(source).toContain('exhibitions={exhibitions}');
+			expect(source).toContain('seriesArtworkCount');
+			expect(source).toContain('nextArtwork');
+		}
+		expect(artworkContent).toContain('relatedExhibitions');
+		expect(artworkContent).toContain('nextArtwork');
+		expect(artworkContent).toContain('messages.artworkExhibitionsHistoryTitle');
+		expect(artworkContent).toContain('messages.artworkNextInSeriesTitle');
+		expect(artworkContent).toContain('messages.artworkOpenDarkroom');
+		expect(artworkContent).toContain('messages.artworkCloseDarkroom');
 	});
 
 	it('adds a localized contact link to the existing footer and preselects only localized artwork options', () => {
