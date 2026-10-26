@@ -24,5 +24,23 @@ export const siteSettingsType = defineType({
         isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
       ),
     }),
+    defineField({
+      name: 'homeIntroductionEs',
+      title: 'Presentación breve del artista (ES)',
+      type: 'text',
+      description: 'Texto opcional aprobado por el artista para el hero de la home en español. No es una descripción SEO.',
+      validation: (Rule) => Rule.custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.optionalText,
+      ),
+    }),
+    defineField({
+      name: 'homeIntroductionEn',
+      title: 'Artist introduction (EN)',
+      type: 'text',
+      description: 'Optional artist-approved text for the homepage hero in English. This is not an SEO description.',
+      validation: (Rule) => Rule.custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.optionalText,
+      ),
+    }),
   ],
 })

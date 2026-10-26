@@ -6,6 +6,8 @@ import {
 	deriveCriticalTextMetaDescription,
 	deriveExhibitionMetaDescription,
 	deriveSeriesMetaDescription,
+	selectHomeWorkshopNotes,
+	selectRecentHomeExhibitions,
 	selectRecentHomeArtworks,
 	sortArtworksForCatalog,
 	sortCriticalTextsForIndex,
@@ -140,6 +142,63 @@ describe('selectRecentHomeArtworks', () => {
 
 		expect(result).not.toBe(artworks)
 		expect(artworks).toEqual(originalOrder)
+	})
+})
+
+describe('selectRecentHomeExhibitions', () => {
+	it('filters by locale, orders by start date then ordinal ID, and caps at three', () => {
+		const exhibitions = [
+			exhibition('older', '2022-05-01', 'Zeta', 'Zulu'),
+			exhibition('a', '2025-05-01', 'A', 'A'),
+			exhibition('A', '2025-05-01', 'B', 'B'),
+			exhibition('middle', '2024-05-01', 'M', 'M'),
+			{
+				...exhibition('spanish-only', '2026-05-01', 'Solo ES', 'Solo EN'),
+				translations: { es: { title: 'Solo ES' } },
+			},
+		]
+		const originalOrder = [...exhibitions]
+
+		const selected = selectRecentHomeExhibitions(exhibitions, 'en')
+
+		expect(selected.map(({ id }) => id)).toEqual(['A', 'a', 'middle'])
+		expect(selected).not.toBe(exhibitions)
+		expect(exhibitions).toEqual(originalOrder)
+	})
+
+	it('returns an empty list when no exhibition has a translation in the requested locale', () => {
+		const exhibitions = [{
+			...exhibition('spanish-only', '2025-05-01', 'Solo ES', 'Solo EN'),
+			translations: { es: { title: 'Solo ES' } },
+		}]
+
+		expect(selectRecentHomeExhibitions(exhibitions, 'en')).toEqual([])
+	})
+})
+
+describe('selectHomeWorkshopNotes', () => {
+	function work(id: string, workshopNote?: string) {
+		return { id, translation: { ...(workshopNote !== undefined ? { workshopNote } : {}) } }
+	}
+
+	it('keeps the order of supporting works, omits blank notes, and selects at most two', () => {
+		const supportingWorks = [
+			work('first-note', '  [TEST] Nota primera  '),
+			work('blank-note', '   '),
+			work('second-note', '[TEST] Second note'),
+			work('third-note', '[TEST] Third note'),
+		]
+		const originalOrder = [...supportingWorks]
+
+		const selected = selectHomeWorkshopNotes(supportingWorks)
+
+		expect(selected.map(({ id }) => id)).toEqual(['first-note', 'second-note'])
+		expect(selected).not.toBe(supportingWorks)
+		expect(supportingWorks).toEqual(originalOrder)
+	})
+
+	it('returns no note cards when all supporting-work notes are missing or blank', () => {
+		expect(selectHomeWorkshopNotes([work('missing'), work('blank', '   ')])).toEqual([])
 	})
 })
 

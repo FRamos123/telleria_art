@@ -6,6 +6,7 @@ interface Props {
 	hasWorksRoute: boolean;
 	hasSeriesDirectory: boolean;
 	hasExhibitionsRoute: boolean;
+	hasCriticalTextsRoute: boolean;
 	hasContactRoute: boolean;
 }
 
@@ -14,12 +15,13 @@ const {
 	hasWorksRoute,
 	hasSeriesDirectory,
 	hasExhibitionsRoute,
+	hasCriticalTextsRoute,
 	hasContactRoute,
 } = Astro.props;
 const messages = getMessages(locale);
 const localizedPaths = locale === 'es'
-	? { works: '/obras/', exhibitions: '/exposiciones/', contact: '/contacto/' }
-	: { works: '/en/works/', exhibitions: '/en/exhibitions/', contact: '/en/contact/' };
+	? { works: '/obras/', exhibitions: '/exposiciones/', criticalTexts: '/textos-criticos/', contact: '/contacto/' }
+	: { works: '/en/works/', exhibitions: '/en/exhibitions/', criticalTexts: '/en/critical-texts/', contact: '/en/contact/' };
 const links: { href: string; label: string }[] = [];
 
 if (hasWorksRoute) {
@@ -31,18 +33,21 @@ if (hasWorksRoute && hasSeriesDirectory) {
 if (hasExhibitionsRoute) {
 	links.push({ href: localizedPaths.exhibitions, label: messages.homeExhibitionsLink });
 }
+if (hasCriticalTextsRoute) {
+	links.push({ href: localizedPaths.criticalTexts, label: messages.homeCriticalTextsLink });
+}
 if (hasContactRoute) {
 	links.push({ href: localizedPaths.contact, label: messages.homeContactLink });
 }
 ---
 
 {links.length > 0 && (
-	<nav aria-label={messages.homeNavigationLabel} class="mx-auto mb-space-lg w-full max-w-7xl px-margin-mobile tablet:px-gutter-mobile desktop:px-gutter">
-		<ul class="m-0 flex list-none flex-wrap gap-x-space-md gap-y-space-sm p-0">
+	<nav aria-label={messages.homeNavigationLabel}>
+		<ul class="m-0 flex list-none flex-wrap items-center gap-x-space-md gap-y-space-xs p-0">
 			{links.map((link) => (
 				<li>
 					<a
-						class="inline-flex items-center px-space-sm py-space-sm font-label-technical text-label-technical text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						class="inline-flex items-center px-space-xs py-space-xs font-label-technical text-label-technical uppercase text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 						href={link.href}
 					>
 						{link.label}

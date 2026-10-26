@@ -3,12 +3,14 @@ import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
 import type { MappedArtwork } from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
-import ArtworkCard from './ArtworkCard.astro';
+import HomeArtworkFeature from './HomeArtworkFeature.astro';
 
 interface HomeArtworkCard {
 	artwork: MappedArtwork;
 	image: ResponsiveImage;
 	href: string;
+	series: { name: string; href: string };
+	contactHref?: string;
 }
 
 interface Props {
@@ -22,26 +24,27 @@ const messages = getMessages(locale);
 
 {cards.length > 0 && (
 	<section
+		id="catalogo"
 		aria-labelledby="home-artwork-selection-heading"
 		class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter"
 	>
 		<h2
 			id="home-artwork-selection-heading"
-			class="mb-space-lg mt-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+			class="sr-only"
 		>
 			{messages.homeArtworkSelectionTitle}
 		</h2>
-		<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
-			{cards.map(({ artwork, image, href }, index) => (
-				<ArtworkCard
-					artwork={artwork}
-					image={image}
-					href={href}
-					locale={locale}
-					loading={index === 0 ? 'eager' : 'lazy'}
-					reserveImageSpace={index === 0}
-				/>
+		<div class="flex flex-col gap-y-space-xl">
+			{cards.map((card, index) => (
+				<div class={index > 0 ? 'border-t border-outline-variant pt-space-xl' : undefined}>
+					<HomeArtworkFeature
+						{...card}
+						locale={locale}
+						reversed={index % 2 === 1}
+						loading={index === 0 ? 'eager' : 'lazy'}
+					/>
+				</div>
 			))}
-		</ul>
+		</div>
 	</section>
 )}

@@ -7,7 +7,7 @@ export type Messages = { [Key in keyof typeof es]: string };
 export const messages: Record<Locale, Messages> = { es, en };
 
 export function getMessages(locale: Locale): Messages {
-	return messages[locale];
+	return locale === 'en' ? en : es;
 }
 
 export function getLocaleFromPath(path: string): Locale | undefined {

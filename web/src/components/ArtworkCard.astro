@@ -1,5 +1,5 @@
 ---
-import type { Locale } from '../i18n';
+import { getMessages, type Locale } from '../i18n';
 import type { MappedArtwork } from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
 import AvailabilityLabel from './AvailabilityLabel.astro';
@@ -10,14 +10,28 @@ interface Props {
 	image: ResponsiveImage;
 	locale: Locale;
 	href: string;
+	seriesName?: string;
 	loading?: 'lazy' | 'eager';
 	reserveImageSpace?: boolean;
 }
 
-const { artwork, image, locale, href, loading = 'lazy', reserveImageSpace = false } = Astro.props;
+const {
+	artwork,
+	image,
+	locale,
+	href,
+	seriesName,
+	loading = 'lazy',
+	reserveImageSpace = false,
+} = Astro.props;
+const messages = getMessages(locale);
 const translation = artwork.translations[locale];
 const title = translation?.title.trim();
 const destination = href.trim();
+const resolvedSeriesName = seriesName?.trim();
+const workshopNote = translation?.workshopNote?.trim();
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const dimensions = `${numberFormat.format(artwork.heightCm)} × ${numberFormat.format(artwork.widthCm)} ${messages.centimeterUnit}`;
 const validCard = translation
 	&& title
 	&& destination.startsWith('/')
@@ -26,28 +40,76 @@ const validCard = translation
 
 {validCard && (
 	<li class="min-w-0 list-none tablet:col-span-4 desktop:col-span-4">
-		<a class="group block min-w-0 text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
-		<figure
-			class="m-0 bg-surface-container-low"
-			style={reserveImageSpace ? `aspect-ratio: ${image.width} / ${image.height};` : undefined}
-		>
-			<EditorialImage
-				image={image}
-				altText={translation.altText}
-				className="h-auto w-full object-contain"
-				loading={loading}
-				sizes="(min-width: 768px) 33vw, 100vw"
-				/>
-			</figure>
-			<div class="mt-space-md flex min-w-0 flex-col gap-space-sm">
-				<h2 class="m-0 break-words font-headline-sm text-headline-sm text-on-surface underline decoration-surface-variant underline-offset-4">
-					{title}
-				</h2>
-				<time class="font-label-technical text-label-technical text-on-surface-variant" datetime={String(artwork.year)}>
-					{artwork.year}
-				</time>
-				<AvailabilityLabel availability={artwork.availability} locale={locale} />
+		<article class="flex h-full min-w-0 flex-col justify-between bg-surface-container-low p-space-md">
+			<div class="flex min-w-0 flex-col">
+				<a class="group block min-w-0 text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
+					<figure
+						class="relative m-0 flex aspect-3/4 items-center justify-center overflow-hidden bg-surface-container-lowest"
+						style={reserveImageSpace ? `aspect-ratio: ${image.width} / ${image.height};` : undefined}
+					>
+						<EditorialImage
+							image={image}
+							altText={translation.altText}
+							className="h-full w-full object-cover"
+							loading={loading}
+							sizes="(min-width: 768px) 33vw, 100vw"
+						/>
+						<div class="absolute left-space-sm top-space-sm border border-outline-variant bg-surface-container-lowest px-space-sm py-space-xs">
+							<AvailabilityLabel availability={artwork.availability} locale={locale} />
+						</div>
+					</figure>
+					<div class="mt-space-md flex min-w-0 flex-col gap-space-xs">
+						<div class="flex flex-wrap items-baseline justify-between gap-space-xs">
+							<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+								{resolvedSeriesName ? `${messages.series}: ${resolvedSeriesName} · ${artwork.inventoryNumber}` : artwork.inventoryNumber}
+							</span>
+							<time class="font-label-technical text-label-technical text-primary" datetime={String(artwork.year)}>
+								{artwork.year}
+							</time>
+						</div>
+						<h2 class="m-0 break-words font-headline-sm text-headline-sm uppercase text-on-surface underline decoration-surface-variant underline-offset-4 group-hover:text-primary">
+							{title}
+						</h2>
+					</div>
+				</a>
+
+				<dl class="m-0 mt-space-sm grid grid-cols-2 gap-space-xs border-t border-outline-variant pt-space-sm">
+					<div>
+						<dt class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+							{messages.technique}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md italic text-on-surface">
+							{translation.technique}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+							{messages.dimensions}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md italic text-on-surface">
+							{dimensions} ({translation.support})
+						</dd>
+					</div>
+				</dl>
+
+				{workshopNote && (
+					<p class="m-0 mt-space-sm border-l-2 border-primary pl-space-sm font-body-md text-body-md italic text-on-surface-variant">
+						{workshopNote}
+					</p>
+				)}
 			</div>
-		</a>
+
+			<div class="mt-space-md flex flex-wrap items-center justify-between gap-space-xs border-t border-outline-variant pt-space-sm">
+				<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+					{translation.support}
+				</span>
+				<a
+					class="font-label-technical text-label-technical uppercase text-primary underline decoration-surface-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href={destination}
+				>
+					{messages.homeArtworkDetailAction}
+				</a>
+			</div>
+		</article>
 	</li>
 )}

@@ -66,6 +66,7 @@ describe('static build output', () => {
 				catalogPath: '/obras/',
 				worksPath: '/obras/',
 				exhibitionsPath: '/exposiciones/',
+				criticalTextsPath: '/textos-criticos/',
 				contactPath: '/contacto/',
 				artworkPathPrefix: '/obra/',
 				alternatePaths: { es: '/', en: '/en/' },
@@ -77,6 +78,7 @@ describe('static build output', () => {
 				catalogPath: '/en/works/',
 				worksPath: '/en/works/',
 				exhibitionsPath: '/en/exhibitions/',
+				criticalTextsPath: '/en/critical-texts/',
 				contactPath: '/en/contact/',
 				artworkPathPrefix: '/en/work/',
 				alternatePaths: { es: '/', en: '/en/' },
@@ -151,6 +153,9 @@ describe('static build output', () => {
 			if (outputExists(home.exhibitionsPath)) {
 				expectedNavigationLinks.push({ href: home.exhibitionsPath, label: expectation.homeExhibitionsLink });
 			}
+			if (outputExists(home.criticalTextsPath)) {
+				expectedNavigationLinks.push({ href: home.criticalTextsPath, label: expectation.homeCriticalTextsLink });
+			}
 			if (outputExists(home.contactPath)) {
 				expectedNavigationLinks.push({ href: home.contactPath, label: expectation.homeContactLink });
 			}
@@ -168,52 +173,84 @@ describe('static build output', () => {
 				if (fragment) expect(target).toContain(`id="${fragment}"`);
 			}
 
-			const cardFragments = [...html.matchAll(/<li class="min-w-0 list-none[^"]*">([\s\S]*?)<\/li>/gu)]
-				.map(([, fragment]) => fragment ?? '');
-			const selection = /<section\b[^>]*aria-labelledby="home-artwork-selection-heading"[^>]*>[\s\S]*?<\/section>/u.exec(html)?.[0];
-			expect(cardFragments.length).toBeLessThanOrEqual(3);
-			if (cardFragments.length === 0) {
-				expect(selection).toBeUndefined();
-			} else {
-				expect(selection).toBeDefined();
-				expect(selection).toContain(expectation.homeArtworkSelectionTitle);
-			}
-
+			const hasSelectionSection = html.includes('aria-labelledby="home-artwork-selection-heading"');
+			const artworkArticles = [...html.matchAll(/<article\b[^>]*>\s*<figure\b[\s\S]*?<\/article>/gu)]
+				.map(([article]) => article ?? '');
+			const artworkCount = artworkArticles.length;
 			const availabilityLabels = [
 				expectation.availabilityAvailable,
 				expectation.availabilityReserved,
 				expectation.availabilitySold,
 				expectation.availabilityInCollection,
 			];
-			for (const card of cardFragments) {
-				const anchor = /<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/u.exec(card);
-				const artworkPath = anchor?.[1] ?? '';
-				const cardHtml = anchor?.[2] ?? '';
-				const image = /<img\b[^>]*>/u.exec(cardHtml)?.[0] ?? '';
-				const title = /<h2\b[^>]*>([\s\S]*?)<\/h2>/u.exec(cardHtml)?.[1] ?? '';
-				const time = /<time\b[^>]*datetime="([^"]+)"[^>]*>([\s\S]*?)<\/time>/u.exec(cardHtml);
-				const status = /<span\b[^>]*>([\s\S]*?)<\/span>/u.exec(cardHtml)?.[1] ?? '';
+			expect(artworkCount).toBeLessThanOrEqual(3);
+			if (artworkCount === 0) {
+				expect(hasSelectionSection).toBe(false);
+			} else {
+				expect(hasSelectionSection).toBe(true);
+				expect(html).toContain(expectation.homeArtworkSelectionTitle);
+			}
 
-				expect(artworkPath.startsWith(home.artworkPathPrefix)).toBe(true);
-				expect(outputExists(artworkPath)).toBe(true);
-				expect(sitemapLocations).toContain(pageUrl(artworkPath));
-				expect(image).toContain('srcset="');
-				expect(image).toContain('sizes="');
-				expect(image).toContain('fm=webp');
-				expect(image).toMatch(/\bwidth="\d+"/u);
-				expect(image).toMatch(/\bheight="\d+"/u);
-				expect(image.match(/\balt="([^"]*)"/u)?.[1]?.trim()).toBeTruthy();
-				expect(tagsToText(title)).toBeTruthy();
-				expect(time?.[1]).toMatch(/^\d{4}$/u);
-				expect(tagsToText(time?.[2] ?? '')).toBe(time?.[1]);
-				expect(availabilityLabels.filter((label) => tagsToText(status) === label)).toHaveLength(1);
-
-				const detail = readBuildPage(outputPath(artworkPath));
+			for (const [index, feature] of artworkArticles.entries()) {
+				const featureImage = /<img\b[^>]*>/u.exec(feature)?.[0] ?? '';
+				const featureWorkPath = /<h3\b[^>]*>[\s\S]*?<a\b[^>]*href="([^"]+)"/u.exec(feature)?.[1] ?? '';
+				const featureSeriesPath = [...feature.matchAll(/href="([^"]+)"/gu)]
+					.map(([, href]) => href ?? '')
+					.find((href) => href.includes('/series/')) ?? '';
+				const featureTitle = /<h3\b[^>]*>\s*<a\b[^>]*>([\s\S]*?)<\/a>/u.exec(feature)?.[1] ?? '';
+				const statusMatches = [...feature.matchAll(/<span\b[^>]*>([\s\S]*?)<\/span>/gu)]
+					.map(([, text]) => tagsToText(text ?? ''));
+				expect(featureWorkPath.startsWith(home.artworkPathPrefix)).toBe(true);
+				expect(outputExists(featureWorkPath)).toBe(true);
+				expect(sitemapLocations).toContain(pageUrl(featureWorkPath));
+				expect(featureSeriesPath).toContain('/series/');
+				expect(outputExists(featureSeriesPath)).toBe(true);
+				expect(featureImage).toContain('srcset="');
+				expect(featureImage).toContain('sizes="');
+				expect(featureImage).toContain('fm=webp');
+				expect(featureImage).toMatch(/\bwidth="\d+"/u);
+				expect(featureImage).toMatch(/\bheight="\d+"/u);
+				expect(featureImage.match(/\balt="([^"]*)"/u)?.[1]?.trim()).toBeTruthy();
+				for (const label of [
+					expectation.technique,
+					expectation.support,
+					expectation.dimensions,
+					expectation.availability,
+					expectation.homeArtworkDetailAction,
+				]) {
+					expect(feature).toContain(label);
+				}
+				if (outputExists(home.contactPath)) {
+					expect(feature).toContain(expectation.contactArtworkAction);
+					expect(feature).toContain(`${home.contactPath}?artwork=`);
+				}
+				expect(availabilityLabels.filter((label) => statusMatches.includes(label))).toHaveLength(1);
+				if (index % 2 === 1) {
+					expect(feature).toContain('desktop:order-2 desktop:col-span-7');
+					expect(feature).toContain('desktop:order-1 desktop:col-span-5');
+				} else {
+					expect(feature).not.toContain('desktop:order-2');
+					expect(feature).not.toContain('desktop:order-1');
+				}
+				const detail = readBuildPage(outputPath(featureWorkPath));
 				const artworkData = readArtworkJsonLd(detail);
-				const detailImage = /<img\b[^>]*>/u.exec(detail)?.[0] ?? '';
-				expect(tagsToText(title)).toBe(String(artworkData.name));
-				expect(time?.[1]).toBe(String(artworkData.dateCreated));
-				expect(image.match(/\balt="([^"]*)"/u)?.[1]).toBe(detailImage.match(/\balt="([^"]*)"/u)?.[1]);
+				expect(tagsToText(featureTitle)).toBe(String(artworkData.name));
+				expect(statusMatches).toContain(String(artworkData.identifier));
+			}
+
+			const exhibitionsBlock = /<section\b[^>]*aria-labelledby="home-exhibitions-title"[^>]*>[\s\S]*?<\/section>/u.exec(html)?.[0];
+			const homeExhibitionLinks = [...(exhibitionsBlock ?? '').matchAll(/<a\b[^>]*href="([^"]+)"/gu)]
+				.map(([, href]) => href ?? '');
+			expect(homeExhibitionLinks.length).toBeLessThanOrEqual(3);
+			for (const href of homeExhibitionLinks) expect(outputExists(href)).toBe(true);
+
+			const contactBlock = /<section\b[^>]*aria-labelledby="home-contact-title"[^>]*>[\s\S]*?<\/section>/u.exec(html)?.[0];
+			if (outputExists(home.contactPath)) {
+				expect(contactBlock).toBeDefined();
+				expect(contactBlock).toContain(expectation.homeContactTitle);
+				expect(contactBlock).toContain(`href="${home.contactPath}"`);
+			} else {
+				expect(contactBlock).toBeUndefined();
 			}
 
 			for (const otherLocation of publicLocations) {
@@ -239,29 +276,28 @@ describe('static build output', () => {
 				.sort();
 			expect(fontPreloads).toEqual(expectedFonts);
 
-			const cards = [...html.matchAll(/<li class="min-w-0 list-none[^"]*">([\s\S]*?)<\/li>/gu)]
-				.map(([, fragment]) => fragment ?? '');
-			for (const [index, card] of cards.entries()) {
-				const image = /<img\b[^>]*>/u.exec(card)?.[0] ?? '';
-				const figure = /<figure\b[^>]*>/u.exec(card)?.[0] ?? '';
-				expect(image).toContain(`loading="${index === 0 ? 'eager' : 'lazy'}"`);
+			const artworkArticles = [...html.matchAll(/<article\b[^>]*>\s*<figure\b[\s\S]*?<\/article>/gu)]
+				.map(([article]) => article ?? '');
+			for (const [index, article] of artworkArticles.entries()) {
+				const image = /<img\b[^>]*>/u.exec(article)?.[0] ?? '';
+				const figure = /<figure\b[^>]*>/u.exec(article)?.[0] ?? '';
+				expect(image).toContain(index === 0 ? 'loading="eager"' : 'loading="lazy"');
 				const width = image.match(/\bwidth="(\d+)"/u)?.[1];
 				const height = image.match(/\bheight="(\d+)"/u)?.[1];
 				expect(width).toBeDefined();
 				expect(height).toBeDefined();
-				if (index === 0) {
-					expect(figure).toMatch(new RegExp(`style="[^"]*aspect-ratio:\\s*${width}\\s*\\/\\s*${height}`, 'u'));
-				} else {
-					expect(figure).not.toContain('aspect-ratio');
-				}
+				expect(figure).toMatch(new RegExp(`style="[^"]*aspect-ratio:\\s*${width}\\s*\\/\\s*${height}`, 'u'));
 			}
 		}
 
 		for (const path of ['obras/index.html', 'en/works/index.html']) {
 			const catalog = readBuildPage(path);
 			for (const font of expectedFonts) expect(catalog).not.toContain(`rel="preload" href="${font}"`);
-			const catalogImages = [...catalog.matchAll(/<img\b[^>]*>/gu)].map(([image]) => image ?? '');
-			expect(catalogImages.every((image) => image.includes('loading="lazy"'))).toBe(true);
+			const cardList = /<ul class="m-0 grid list-none[\s\S]*?<\/ul>/u.exec(catalog)?.[0] ?? '';
+			const cardImages = [...cardList.matchAll(/<img\b[^>]*>/gu)].map(([image]) => image ?? '');
+			for (const [index, image] of cardImages.entries()) {
+				expect(image).toContain(index < 3 ? 'loading="eager"' : 'loading="lazy"');
+			}
 		}
 	});
 
@@ -272,8 +308,8 @@ describe('static build output', () => {
 		expect(spanishCatalog).toContain('<html lang="es">');
 		expect(englishCatalog).toContain('<html lang="en">');
 		expect(spanishCatalog).toContain('<h1');
-		expect(spanishCatalog).toContain('Obras — Alejandro Fernández Tellería');
-		expect(englishCatalog).toContain('Works — Alejandro Fernández Tellería');
+		expect(spanishCatalog).toContain('Obras — Alex Tellería');
+		expect(englishCatalog).toContain('Works — Alex Tellería');
 		expect(spanishCatalog).toContain('rel="canonical" href="https://telleria-art.pages.dev/obras/"');
 		expect(englishCatalog).toContain('rel="canonical" href="https://telleria-art.pages.dev/en/works/"');
 		expect(spanishCatalog).toContain('hreflang="es" href="https://telleria-art.pages.dev/obras/"');

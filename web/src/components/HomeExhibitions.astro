@@ -1,0 +1,69 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+
+interface HomeExhibition {
+	id: string;
+	title: string;
+	venue: string;
+	startDate: string;
+	endDate?: string;
+	href: string;
+}
+
+interface Props {
+	exhibitions: readonly HomeExhibition[];
+	locale: Locale;
+}
+
+const { exhibitions, locale } = Astro.props;
+const messages = getMessages(locale);
+const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' });
+const formatDate = (date: string) => dateFormat.format(new Date(`${date}T00:00:00Z`));
+const items = exhibitions.flatMap((exhibition) => {
+	const id = exhibition.id.trim();
+	const title = exhibition.title.trim();
+	const venue = exhibition.venue.trim();
+	const href = exhibition.href.trim();
+	return id && title && venue && exhibition.startDate && href.startsWith('/') && !href.startsWith('//')
+		? [{ ...exhibition, id, title, venue, href }]
+		: [];
+});
+---
+
+{items.length > 0 && (
+	<section aria-labelledby="home-exhibitions-title" class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter">
+		<div class="mb-space-lg flex flex-col justify-between gap-space-md border-b border-outline-variant pb-space-sm tablet:flex-row tablet:items-end">
+			<div class="flex flex-col gap-space-xs">
+				<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+					{messages.homeExhibitionsEyebrow}
+				</p>
+				<h2 id="home-exhibitions-title" class="m-0 font-headline-md text-headline-md text-on-surface">
+					{messages.homeExhibitionsTitle}
+				</h2>
+			</div>
+		</div>
+		<ul class="m-0 list-none p-0">
+			{items.map((exhibition) => (
+				<li class="grid grid-cols-1 items-center gap-x-gutter-mobile gap-y-space-sm border-b border-outline-variant py-space-md tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
+					<div class="font-label-technical text-label-technical uppercase text-primary tablet:col-span-2 desktop:col-span-3">
+						<time datetime={exhibition.startDate}>{formatDate(exhibition.startDate)}</time>
+						{exhibition.endDate && <> – <time datetime={exhibition.endDate}>{formatDate(exhibition.endDate)}</time></>}
+					</div>
+					<div class="min-w-0 tablet:col-span-4 desktop:col-span-5">
+						<h3 class="m-0 font-headline-sm text-headline-sm text-on-surface">
+							<a class="underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={exhibition.href}>
+								{exhibition.title}
+							</a>
+						</h3>
+					</div>
+					<div class="min-w-0 tablet:col-span-2 desktop:col-span-4 desktop:text-right">
+						<p class="m-0 font-label-technical text-label-technical uppercase text-on-surface-variant">
+							{exhibition.venue}
+						</p>
+					</div>
+				</li>
+			))}
+		</ul>
+	</section>
+)}

@@ -1,6 +1,16 @@
 ---
+import { isValidAlternativeText } from '../domain/completeness';
 import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import EditorialImage from './EditorialImage.astro';
+import HomeContactSection from './HomeContactSection.astro';
+
+interface RelatedItem {
+	id: string;
+	title: string;
+	href: string;
+}
 
 interface ExhibitionEntry {
 	id: string;
@@ -9,14 +19,22 @@ interface ExhibitionEntry {
 	startDate: string;
 	endDate?: string;
 	href: string;
+	image?: {
+		assetId: string;
+		altText: string;
+		responsive: ResponsiveImage;
+	};
+	relatedArtworks?: readonly RelatedItem[];
+	relatedSeries?: readonly RelatedItem[];
 }
 
 interface Props {
 	locale: Locale;
 	exhibitions: readonly ExhibitionEntry[];
+	hasContactRoute?: boolean;
 }
 
-const { locale, exhibitions } = Astro.props;
+const { locale, exhibitions, hasContactRoute = true } = Astro.props;
 const messages = getMessages(locale);
 const dateFormatter = new Intl.DateTimeFormat(locale, {
 	dateStyle: 'long',
@@ -32,61 +50,179 @@ const entries = exhibitions.flatMap((exhibition) => {
 		? [{ ...exhibition, id, title, venue, href }]
 		: [];
 });
+const years = entries
+	.map((entry) => Number.parseInt(entry.startDate.slice(0, 4), 10))
+	.filter((year) => Number.isFinite(year));
+const minYear = years.length > 0 ? Math.min(...years) : undefined;
+const maxYear = years.length > 0 ? Math.max(...years) : undefined;
+const yearRange = minYear !== undefined && maxYear !== undefined
+	? (minYear === maxYear ? `${minYear}` : `${minYear} — ${maxYear}`)
+	: undefined;
 ---
 
 <section
 	aria-labelledby="exhibitions-index-title"
-	class="mx-auto w-full max-w-7xl px-margin-mobile py-space-lg tablet:px-gutter-mobile desktop:px-gutter"
+	class="w-full bg-surface-container-lowest"
 >
-	<h1
-		id="exhibitions-index-title"
-		class="mb-space-lg mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
-	>
-		{messages.exhibitionsTitle}
-	</h1>
+	<div class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter">
+		<div class="mb-space-xl grid grid-cols-1 items-end gap-y-space-lg border-b border-outline-variant pb-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+			<div class="flex flex-col gap-space-sm tablet:col-span-8 desktop:col-span-8">
+				<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+					{messages.exhibitionsEyebrow}
+				</p>
+				<h1
+					id="exhibitions-index-title"
+					class="m-0 break-words font-display-hero-mobile text-display-hero-mobile uppercase text-on-surface desktop:font-display-hero desktop:text-display-hero"
+				>
+					<span class="block">{messages.exhibitionsHeroTitlePrefix}{' '}</span>
+					<span class="font-normal italic text-on-surface-variant">{messages.exhibitionsHeroTitleSuffix}</span>
+				</h1>
+			</div>
 
-	{entries.length > 0 ? (
-		<ul class="m-0 list-none p-0">
-			{entries.map((exhibition) => (
-				<li class="border-b border-surface-variant py-space-md">
-					<article>
-						<h2 class="m-0 break-words font-headline-sm text-headline-sm text-on-surface">
-							<a
-								class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-								href={exhibition.href}
-							>
-								{exhibition.title}
-							</a>
-						</h2>
+			<div class="flex flex-col gap-space-sm tablet:col-span-8 desktop:col-span-4">
+				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.exhibitionsMetaDescription}
+				</p>
+				<div class="flex flex-wrap items-center gap-space-sm pt-space-xs font-label-technical text-label-technical uppercase text-primary">
+					<span>[ {entries.length} {messages.exhibitionsCountLabel} ]</span>
+					{yearRange && (
+						<>
+							<span>·</span>
+							<span>[ {yearRange} ]</span>
+						</>
+					)}
+				</div>
+			</div>
+		</div>
 
-						<dl class="mb-0 mt-space-sm grid grid-cols-1 gap-y-space-sm">
-							<div>
-								<dt class="font-label-caption text-label-caption text-on-surface-variant">
-									{messages.exhibitionVenue}
-								</dt>
-								<dd class="m-0 font-body-md text-body-md text-on-surface">
-									{exhibition.venue}
-								</dd>
-							</div>
-							<div>
-								<dt class="font-label-caption text-label-caption text-on-surface-variant">
-									{messages.exhibitionDates}
-								</dt>
-								<dd class="m-0 font-body-md text-body-md text-on-surface">
-									<time datetime={exhibition.startDate}>{formatDate(exhibition.startDate)}</time>
-									{exhibition.endDate && (
-										<> – <time datetime={exhibition.endDate}>{formatDate(exhibition.endDate)}</time></>
+		<div class="mb-space-lg flex flex-col gap-space-xs">
+			<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+				{messages.exhibitionsArchiveEyebrow}
+			</p>
+			<h2 class="m-0 font-headline-md text-headline-md uppercase text-on-surface">
+				{messages.exhibitionsArchiveTitle}
+			</h2>
+		</div>
+
+		{entries.length > 0 ? (
+			<ul class="m-0 flex list-none flex-col gap-space-lg p-0">
+				{entries.map((exhibition, index) => {
+					const startYear = exhibition.startDate.slice(0, 4);
+					const hasValidImage = Boolean(
+						exhibition.image
+						&& exhibition.image.assetId.trim()
+						&& isValidAlternativeText(exhibition.image.altText, exhibition.title),
+					);
+					const relatedArtworks = exhibition.relatedArtworks ?? [];
+					const relatedSeries = exhibition.relatedSeries ?? [];
+					return (
+						<li class="border-b border-surface-variant pb-space-lg">
+							<article class="grid grid-cols-1 gap-y-space-lg bg-surface-container-low p-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+								<div class="flex flex-col justify-between gap-space-md tablet:col-span-2 desktop:col-span-3">
+									<div>
+										<span class="block font-headline-lg text-headline-lg text-primary">
+											{startYear}
+										</span>
+										<div class="mt-space-xs">
+											<span class="block font-label-caption text-label-caption uppercase text-on-surface-variant">
+												{messages.exhibitionDates}
+											</span>
+											<span class="block font-label-technical text-label-technical uppercase text-on-surface">
+												<time datetime={exhibition.startDate}>{formatDate(exhibition.startDate)}</time>
+												{exhibition.endDate && (
+													<> – <time datetime={exhibition.endDate}>{formatDate(exhibition.endDate)}</time></>
+												)}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								<div class="flex min-w-0 flex-col justify-between gap-space-md tablet:col-span-4 desktop:col-span-6">
+									<div class="flex flex-col gap-space-xs">
+										<h3 class="m-0 break-words font-headline-sm text-headline-sm uppercase text-on-surface">
+											<a
+												class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+												href={exhibition.href}
+											>
+												{exhibition.title}
+											</a>
+										</h3>
+										<div>
+											<span class="block font-label-caption text-label-caption uppercase text-on-surface-variant">
+												{messages.exhibitionVenue}
+											</span>
+											<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+												{exhibition.venue}
+											</p>
+										</div>
+									</div>
+
+									{(relatedArtworks.length > 0 || relatedSeries.length > 0) && (
+										<div class="flex flex-wrap gap-space-md border-t border-outline-variant pt-space-sm">
+											{relatedArtworks.length > 0 && (
+												<div class="flex flex-wrap items-center gap-space-xs">
+													<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+														{messages.exhibitionArtworks}:
+													</span>
+													{relatedArtworks.map((artwork) => (
+														<a
+															class="font-label-technical text-label-technical text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+															href={artwork.href}
+														>
+															{artwork.title}
+														</a>
+													))}
+												</div>
+											)}
+											{relatedSeries.length > 0 && (
+												<div class="flex flex-wrap items-center gap-space-xs">
+													<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+														{messages.exhibitionSeries}:
+													</span>
+													{relatedSeries.map((series) => (
+														<a
+															class="font-label-technical text-label-technical text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+															href={series.href}
+														>
+															{series.title}
+														</a>
+													))}
+												</div>
+											)}
+										</div>
 									)}
-								</dd>
-							</div>
-						</dl>
-					</article>
-				</li>
-			))}
-		</ul>
-	) : (
-		<p class="m-0 font-body-md text-body-md text-on-surface-variant">
-			{messages.exhibitionsEmpty}
-		</p>
-	)}
+								</div>
+
+								<div class="flex flex-col justify-between gap-space-sm bg-surface-container-lowest p-space-md tablet:col-span-2 desktop:col-span-3">
+									{hasValidImage && exhibition.image && (
+										<figure class="m-0 flex items-center justify-center bg-surface-container-low">
+											<EditorialImage
+												image={exhibition.image.responsive}
+												altText={exhibition.image.altText}
+												className="h-auto w-full object-contain"
+												loading={index === 0 ? 'eager' : 'lazy'}
+												sizes="(min-width: 1280px) 22vw, 100vw"
+											/>
+										</figure>
+									)}
+									<a
+										class="inline-flex items-center font-label-technical text-label-technical uppercase text-primary underline decoration-surface-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+										href={exhibition.href}
+									>
+										{messages.exhibitionsDetailAction}
+									</a>
+								</div>
+							</article>
+						</li>
+					);
+				})}
+			</ul>
+		) : (
+			<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+				{messages.exhibitionsEmpty}
+			</p>
+		)}
+	</div>
+
+	<HomeContactSection locale={locale} hasContactRoute={hasContactRoute} />
 </section>

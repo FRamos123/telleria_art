@@ -1,0 +1,141 @@
+---
+import { isValidAlternativeText } from '../domain/completeness';
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+import type { MappedArtwork } from '../infrastructure/sanity/mappers';
+import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
+import ArtworkTechnicalSheet from './ArtworkTechnicalSheet.astro';
+import EditorialImage from './EditorialImage.astro';
+import InventoryBadge from './InventoryBadge.astro';
+
+interface Props {
+	artwork: MappedArtwork;
+	image: ResponsiveImage;
+	locale: Locale;
+	href: string;
+	series: { name: string; href: string };
+	contactHref?: string;
+	reversed?: boolean;
+	loading?: 'lazy' | 'eager';
+}
+
+const {
+	artwork,
+	image,
+	locale,
+	href,
+	series,
+	contactHref,
+	reversed = false,
+	loading = 'eager',
+} = Astro.props;
+const translation = artwork.translations[locale];
+
+if (!translation || !translation.title.trim() || !isValidAlternativeText(translation.altText, translation.title)) {
+	throw new Error('Home artwork feature requires a complete localized artwork.');
+}
+
+const destination = href.trim();
+if (!destination.startsWith('/') || destination.startsWith('//')) {
+	throw new Error('Home artwork feature requires a local artwork route.');
+}
+if (!series.name.trim() || !series.href.startsWith('/') || series.href.startsWith('//')) {
+	throw new Error('Home artwork feature requires a visible localized series route.');
+}
+
+const resolvedContactHref = contactHref?.trim();
+if (resolvedContactHref && (!resolvedContactHref.startsWith('/') || resolvedContactHref.startsWith('//'))) {
+	throw new Error('Home artwork feature contact link must be a local route when provided.');
+}
+
+const messages = getMessages(locale);
+const workshopNote = translation.workshopNote?.trim();
+const safeId = artwork.id.replaceAll(/[^a-zA-Z0-9_-]/gu, '-');
+const technicalSheetHeadingId = `home-artwork-technical-sheet-${safeId}`;
+const workshopNoteHeadingId = `home-artwork-workshop-note-${safeId}`;
+const figureColumnClasses = reversed
+	? 'relative m-0 flex items-center justify-center bg-surface-container-lowest tablet:col-span-8 desktop:order-2 desktop:col-span-7'
+	: 'relative m-0 flex items-center justify-center bg-surface-container-lowest tablet:col-span-8 desktop:col-span-7';
+const detailsColumnClasses = reversed
+	? 'flex min-w-0 flex-col justify-between gap-space-lg tablet:col-span-8 desktop:order-1 desktop:col-span-5 desktop:pr-space-md'
+	: 'flex min-w-0 flex-col justify-between gap-space-lg tablet:col-span-8 desktop:col-span-5 desktop:pl-space-md';
+---
+
+<article class="grid grid-cols-1 items-start gap-y-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+	<figure
+		class={figureColumnClasses}
+		style={`aspect-ratio: ${image.width} / ${image.height};`}
+	>
+		<a aria-label={translation.title.trim()} class="block w-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
+			<EditorialImage
+				image={image}
+				altText={translation.altText}
+				className="h-auto w-full object-contain"
+				loading={loading}
+				sizes="(min-width: 1280px) 58vw, 100vw"
+			/>
+		</a>
+		<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
+	</figure>
+
+	<div class={detailsColumnClasses}>
+		<div class="flex flex-col gap-space-lg">
+			<header class="flex flex-col gap-space-xs">
+				<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+					{messages.series}:{' '}
+					<a class="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={series.href}>
+						{series.name}
+					</a>
+				</p>
+				<h3 class="m-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg">
+					<a class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={destination}>
+						{translation.title.trim()}
+					</a>
+				</h3>
+				<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">
+					{messages.artistName}, <time datetime={String(artwork.year)}>{artwork.year}</time>
+				</p>
+			</header>
+
+			<ArtworkTechnicalSheet
+				availability={artwork.availability}
+				headingId={technicalSheetHeadingId}
+				headingLevel={3}
+				heightCm={artwork.heightCm}
+				locale={locale}
+				support={translation.support}
+				technique={translation.technique}
+				widthCm={artwork.widthCm}
+				year={artwork.year}
+			/>
+
+			{workshopNote && (
+				<section aria-labelledby={workshopNoteHeadingId} class="flex flex-col gap-space-xs">
+					<h4 id={workshopNoteHeadingId} class="m-0 font-label-caption text-label-caption uppercase text-on-surface-variant">
+						{messages.workshopNote}
+					</h4>
+					<blockquote class="m-0 border-l-2 border-primary pl-space-sm font-body-lg text-body-lg italic text-on-surface-variant">
+						{workshopNote}
+					</blockquote>
+				</section>
+			)}
+		</div>
+
+		<div class="flex flex-wrap items-center gap-space-sm pt-space-sm">
+			<a
+				class="inline-flex h-11 items-center bg-primary px-space-md font-label-technical text-label-technical uppercase text-on-primary hover:bg-carmine-surface hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				href={destination}
+			>
+				{messages.homeArtworkDetailAction}
+			</a>
+			{resolvedContactHref && (
+				<a
+					class="inline-flex h-11 items-center border border-outline-variant bg-surface-container px-space-md font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href={resolvedContactHref}
+				>
+					{messages.contactArtworkAction}
+				</a>
+			)}
+		</div>
+	</div>
+</article>

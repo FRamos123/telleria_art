@@ -11,6 +11,7 @@ const artworkCardPath = new URL('./ArtworkCard.astro', import.meta.url);
 const seriesDirectoryPath = new URL('./SeriesDirectory.astro', import.meta.url);
 const homeNavigationPath = new URL('./HomeNavigation.astro', import.meta.url);
 const homeArtworkSelectionPath = new URL('./HomeArtworkSelection.astro', import.meta.url);
+const homeArtworkFeaturePath = new URL('./HomeArtworkFeature.astro', import.meta.url);
 const artworkCatalogPath = new URL('./ArtworkCatalog.astro', import.meta.url);
 const seriesContentPath = new URL('./SeriesContent.astro', import.meta.url);
 const spanishCatalogPage = readFileSync(new URL('../pages/obras/index.astro', import.meta.url), 'utf8');
@@ -45,6 +46,7 @@ const artworkCriticalTexts = readOptionalComponent(artworkCriticalTextsPath);
 const seriesDirectory = readOptionalComponent(seriesDirectoryPath);
 const homeNavigation = readOptionalComponent(homeNavigationPath);
 const homeArtworkSelection = readOptionalComponent(homeArtworkSelectionPath);
+const homeArtworkFeature = readOptionalComponent(homeArtworkFeaturePath);
 const artworkCatalog = readOptionalComponent(artworkCatalogPath);
 const seriesContent = readOptionalComponent(seriesContentPath);
 const spanishSeriesPage = readOptionalComponent(spanishSeriesPagePath);
@@ -113,9 +115,9 @@ describe('catalog presentation components', () => {
 		expect(source).toContain('selectRecentHomeArtworks(eligibleArtworks)');
 		expect(source).toContain('createResponsiveImage(artwork.mainImage.projection, imageOptions)');
 		expect(source).toContain(artworkPath);
-		expect(source).toContain('<HomeNavigation');
-		expect(source).toContain('hasSeriesDirectory={hasSeriesDirectory}');
+		expect(source).not.toContain('<HomeNavigation');
 		expect(source).toContain('<HomeArtworkSelection locale={locale} cards={cards} />');
+		expect(source).toContain('<HomeContactSection locale={locale} hasContactRoute={hasContactRoute} />');
 		expect(source).toContain("'@type': 'WebPage'");
 		expect(source).toContain('url: canonicalUrl');
 		expect(source).toContain('name: messages.homeTitle');
@@ -126,16 +128,19 @@ describe('catalog presentation components', () => {
 		expect(source).toContain('messages.artistIdentification');
 	});
 
-	it('renders exhibition entries as text-only, one-column links with localized fields and an empty message', () => {
+	it('renders exhibition entries in the 12-column retrospective archive layout with localized fields, optional image/relations, and an empty message', () => {
 		expect(exhibitionIndex).toContain('entries.length > 0');
 		expect(exhibitionIndex).toContain('{messages.exhibitionsEmpty}');
 		expect(exhibitionIndex).toContain('{messages.exhibitionVenue}');
 		expect(exhibitionIndex).toContain('{messages.exhibitionDates}');
+		expect(exhibitionIndex).toContain('{messages.exhibitionsArchiveTitle}');
+		expect(exhibitionIndex).toContain('{messages.exhibitionsDetailAction}');
 		expect(exhibitionIndex).toContain('href={exhibition.href}');
 		expect(exhibitionIndex).toContain('border-b border-surface-variant');
 		expect(exhibitionIndex).toContain('focus-visible:outline-primary');
-		expect(exhibitionIndex).not.toContain('EditorialImage');
-		expect(exhibitionIndex).not.toMatch(/<(?:button|form)\b/i);
+		expect(exhibitionIndex).toContain('EditorialImage');
+		expect(exhibitionIndex).toContain('<HomeContactSection');
+		expect(exhibitionIndex).not.toMatch(/<(?:button|form)\b|\b(?:price|precio|isbn)\b/i);
 	});
 
 	it('places a localized keyboard skip link before the header and targets main content', () => {
@@ -463,15 +468,19 @@ describe('catalog presentation components', () => {
 		expect(artworkCriticalTexts).toContain('href={text.href}');
 	});
 
-	it('renders a linked artwork card with only its image, title, year, and textual availability', () => {
+	it('renders an enriched linked artwork card with image, textual availability, inventory/series metadata, technical details, and no commercial actions', () => {
 		expect(artworkCard).toContain('EditorialImage');
 		expect(artworkCard).toContain('translation?.title.trim()');
 		expect(artworkCard).toContain('artwork.year');
+		expect(artworkCard).toContain('artwork.inventoryNumber');
+		expect(artworkCard).toContain('translation.technique');
+		expect(artworkCard).toContain('translation.support');
+		expect(artworkCard).toContain('dimensions');
 		expect(artworkCard).toContain('href={destination}');
 		expect(artworkCard).toContain('tablet:col-span-4 desktop:col-span-4');
 		expect(artworkCard).toContain('focus-visible:outline-primary');
 		expect(artworkCard).not.toContain('loading="eager"');
-		expect(artworkCard).not.toMatch(/\b(?:inventoryNumber|technique|support|dimensions|price|precio)\b/);
+		expect(artworkCard).not.toMatch(/<(?:button|form|dialog)\b|\b(?:price|precio|buy|comprar|adquirir|checkout)\b/i);
 	});
 
 	it('links only the supplied visible series and does not render a catalog filter', () => {
@@ -488,15 +497,17 @@ describe('catalog presentation components', () => {
 
 	it('renders localized home navigation only for available routes and anchors', () => {
 		expect(homeNavigation).toContain('aria-label={messages.homeNavigationLabel}');
-		expect(homeNavigation).toContain("{ works: '/obras/', exhibitions: '/exposiciones/', contact: '/contacto/' }");
-		expect(homeNavigation).toContain("{ works: '/en/works/', exhibitions: '/en/exhibitions/', contact: '/en/contact/' }");
+		expect(homeNavigation).toContain("{ works: '/obras/', exhibitions: '/exposiciones/', criticalTexts: '/textos-criticos/', contact: '/contacto/' }");
+		expect(homeNavigation).toContain("{ works: '/en/works/', exhibitions: '/en/exhibitions/', criticalTexts: '/en/critical-texts/', contact: '/en/contact/' }");
 		expect(homeNavigation).toMatch(/if \(hasWorksRoute\) \{\s*links\.push\(\{ href: localizedPaths\.works, label: messages\.homeWorksLink \}\);/);
 		expect(homeNavigation).toMatch(/if \(hasWorksRoute && hasSeriesDirectory\) \{\s*links\.push\(\{ href: `\$\{localizedPaths\.works\}#series-directory`, label: messages\.homeSeriesLink \}\);/);
 		expect(homeNavigation).toMatch(/if \(hasExhibitionsRoute\) \{\s*links\.push\(\{ href: localizedPaths\.exhibitions, label: messages\.homeExhibitionsLink \}\);/);
+		expect(homeNavigation).toMatch(/if \(hasCriticalTextsRoute\) \{\s*links\.push\(\{ href: localizedPaths\.criticalTexts, label: messages\.homeCriticalTextsLink \}\);/);
 		expect(homeNavigation).toMatch(/if \(hasContactRoute\) \{\s*links\.push\(\{ href: localizedPaths\.contact, label: messages\.homeContactLink \}\);/);
 		expect(homeNavigation).toContain('messages.homeWorksLink');
 		expect(homeNavigation).toContain('messages.homeSeriesLink');
 		expect(homeNavigation).toContain('messages.homeExhibitionsLink');
+		expect(homeNavigation).toContain('messages.homeCriticalTextsLink');
 		expect(homeNavigation).toContain('messages.homeContactLink');
 		expect(homeNavigation).toContain('links.length > 0 && (');
 		expect(homeNavigation).toContain('flex list-none flex-wrap');
@@ -504,24 +515,81 @@ describe('catalog presentation components', () => {
 		expect(homeNavigation).not.toMatch(/<(?:button|form)\b|client:[\w-]+/i);
 	});
 
-	it('omits an empty home selection and maps complete cards through ArtworkCard', () => {
+	it('omits an empty home selection and maps all selected artworks through HomeArtworkFeature with alternating columns', () => {
 		expect(homeArtworkSelection).toMatch(/\{cards\.length > 0 && \([\s\S]*?<section/);
 		expect(homeArtworkSelection).toContain('messages.homeArtworkSelectionTitle');
-		expect(homeArtworkSelection).toContain('cards.map(({ artwork, image, href }, index) =>');
+		expect(homeArtworkSelection).toContain('cards.map((card, index) =>');
+		expect(homeArtworkSelection).toContain('<HomeArtworkFeature');
+		expect(homeArtworkSelection).toContain('reversed={index % 2 === 1}');
 		expect(homeArtworkSelection).toContain("loading={index === 0 ? 'eager' : 'lazy'}");
-		expect(homeArtworkSelection).toContain('reserveImageSpace={index === 0}');
-		expect(homeArtworkSelection).toContain('grid-cols-1');
-		expect(homeArtworkSelection).toContain('tablet:grid-cols-8');
-		expect(homeArtworkSelection).toContain('desktop:grid-cols-12');
+		expect(homeArtworkSelection).not.toContain('<ArtworkCard');
+		expect(homeArtworkFeature).toContain("loading = 'eager'");
+		expect(homeArtworkFeature).toContain('aspect-ratio: ${image.width} / ${image.height}');
+		expect(homeArtworkFeature).toContain('<InventoryBadge inventoryNumber={artwork.inventoryNumber} />');
 		expect(artworkCard).toContain('focus-visible:outline-primary');
 		expect(artworkCard).toContain("loading = 'lazy'");
-		expect(artworkCard).toContain('reserveImageSpace?: boolean');
-		expect(artworkCard).toContain('reserveImageSpace = false');
-		expect(artworkCard).toContain('style={reserveImageSpace ? `aspect-ratio: ${image.width} / ${image.height};` : undefined}');
 		expect(artworkCard).toContain('<EditorialImage');
 		expect(artworkCard).toContain('loading={loading}');
 		expect(homeArtworkSelection).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
 		expect(artworkCard).toContain('<AvailabilityLabel availability={artwork.availability} locale={locale} />');
+	});
+
+	it('presents each home artwork with localized series, inventory badge, technical data, alternating columns, optional note, and actions', () => {
+		const feature = readOptionalComponent(homeArtworkFeaturePath);
+		expect(feature).toContain('<EditorialImage');
+		expect(feature).toContain('<InventoryBadge inventoryNumber={artwork.inventoryNumber} />');
+		expect(feature).toContain('altText={translation.altText}');
+		expect(feature).toContain('href={series.href}');
+		expect(feature).toContain('{series.name}');
+		expect(feature).toContain('<ArtworkTechnicalSheet');
+		expect(feature).toContain('headingId={technicalSheetHeadingId}');
+		expect(feature).toContain('headingLevel={3}');
+		expect(feature).toContain('technique={translation.technique}');
+		expect(feature).toContain('support={translation.support}');
+		expect(feature).toContain('heightCm={artwork.heightCm}');
+		expect(feature).toContain('widthCm={artwork.widthCm}');
+		expect(feature).toContain('href={destination}');
+		expect(feature).toContain('translation.workshopNote?.trim()');
+		expect(feature).toMatch(/\{workshopNote && \(/);
+		expect(feature).toContain('<blockquote');
+		expect(feature).toContain('messages.homeArtworkDetailAction');
+		expect(feature).toContain('messages.contactArtworkAction');
+		expect(feature).toContain('loading={loading}');
+		expect(feature).toContain('tablet:col-span-8 desktop:col-span-7');
+		expect(feature).toContain('desktop:order-2 desktop:col-span-7');
+		expect(feature).toContain('desktop:order-1 desktop:col-span-5');
+		expect(feature).toContain('desktop:col-span-5');
+		expect(artworkTechnicalSheet).toContain('headingId?: string');
+		expect(artworkTechnicalSheet).toContain('headingLevel?: 2 | 3');
+		expect(artworkTechnicalSheet).toContain('headingLevel = 2');
+		expect(artworkTechnicalSheet).toContain('headingLevel === 3');
+		expect(feature).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
+	});
+
+	it('renders localized home exhibitions in 12-column rows only when valid entries exist', () => {
+		const exhibitions = readOptionalComponent(new URL('./HomeExhibitions.astro', import.meta.url));
+		expect(exhibitions).toMatch(/\{items\.length > 0 && \(/);
+		expect(exhibitions).toContain('messages.homeExhibitionsEyebrow');
+		expect(exhibitions).toContain('messages.homeExhibitionsTitle');
+		expect(exhibitions).toContain('exhibition.title');
+		expect(exhibitions).toContain('exhibition.venue');
+		expect(exhibitions).toContain('formatDate(exhibition.startDate)');
+		expect(exhibitions).toContain('href={exhibition.href}');
+		expect(exhibitions).toContain('desktop:col-span-3');
+		expect(exhibitions).toContain('desktop:col-span-5');
+		expect(exhibitions).toContain('desktop:col-span-4');
+		expect(exhibitions).toContain('timeZone: \'UTC\'');
+	});
+
+	it('renders the localized home contact closing section only when the contact route exists', () => {
+		const contactSection = readOptionalComponent(new URL('./HomeContactSection.astro', import.meta.url));
+		expect(contactSection).toMatch(/\{hasContactRoute && \(/);
+		expect(contactSection).toContain('messages.homeContactEyebrow');
+		expect(contactSection).toContain('messages.homeContactTitle');
+		expect(contactSection).toContain('messages.homeContactBody');
+		expect(contactSection).toContain('messages.homeContactAction');
+		expect(contactSection).toContain("locale === 'es' ? '/contacto/' : '/en/contact/'");
+		expect(contactSection).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
 	});
 
 	it('preloads only local home fonts when requested', () => {

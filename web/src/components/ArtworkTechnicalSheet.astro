@@ -6,6 +6,8 @@ import AvailabilityLabel from './AvailabilityLabel.astro';
 
 interface Props {
 	availability: Availability;
+	headingId?: string;
+	headingLevel?: 2 | 3;
 	heightCm: number;
 	locale: Locale;
 	support: string;
@@ -14,16 +16,32 @@ interface Props {
 	year: number;
 }
 
-const { availability, heightCm, locale, support, technique, widthCm, year } = Astro.props;
+const {
+	availability,
+	headingId = 'artwork-technical-sheet-title',
+	headingLevel = 2,
+	heightCm,
+	locale,
+	support,
+	technique,
+	widthCm,
+	year,
+} = Astro.props;
 const messages = getMessages(locale);
 const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
 const dimensions = `${numberFormat.format(heightCm)} × ${numberFormat.format(widthCm)} ${messages.centimeterUnit}`;
 ---
 
-<section aria-labelledby="artwork-technical-sheet-title" class="bg-surface-container-low p-space-md">
-	<h2 id="artwork-technical-sheet-title" class="mb-space-sm mt-0 font-label-technical text-label-technical text-on-surface">
-		{messages.technicalSheet}
-	</h2>
+<section aria-labelledby={headingId} class="bg-surface-container-low p-space-md">
+	{headingLevel === 3 ? (
+		<h3 id={headingId} class="mb-space-sm mt-0 font-label-technical text-label-technical uppercase text-on-surface">
+			{messages.technicalSheet}
+		</h3>
+	) : (
+		<h2 id={headingId} class="mb-space-sm mt-0 font-label-technical text-label-technical uppercase text-on-surface">
+			{messages.technicalSheet}
+		</h2>
+	)}
 	<dl class="m-0">
 		<div class="flex flex-col gap-space-xs border-b border-surface-variant py-space-sm tablet:flex-row tablet:items-start tablet:justify-between">
 			<dt class="font-label-caption text-label-caption text-on-surface-variant">{messages.technique}</dt>

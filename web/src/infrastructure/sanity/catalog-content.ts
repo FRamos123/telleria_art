@@ -17,6 +17,7 @@ export interface CatalogContent extends MappedSanityContent {
 }
 
 export type CatalogSeoDescriptions = Partial<Record<PublicationLanguage, string>>
+export type HomeIntroductions = Partial<Record<PublicationLanguage, string>>
 
 /** Loads published portfolio content, then delegates visibility to the existing mapper. */
 export async function loadCatalogContent(
@@ -84,6 +85,19 @@ export async function loadCatalogSeoDescriptions(
 	if (spanish) descriptions.es = spanish
 	if (english) descriptions.en = english
 	return descriptions
+}
+
+/** Loads the optional artist-authored home introduction independently for each language. */
+export async function loadHomeIntroductions(
+	client: SanityClient = getBuildSanityClient(),
+): Promise<HomeIntroductions> {
+	const settings = asRecord(await client.fetch(siteSettingsQuery))
+	const introductions: HomeIntroductions = {}
+	const spanish = normalizedText(settings?.homeIntroductionEs)
+	const english = normalizedText(settings?.homeIntroductionEn)
+	if (spanish) introductions.es = spanish
+	if (english) introductions.en = english
+	return introductions
 }
 
 function toImageProjection(value: unknown): SanityImageProjection | undefined {

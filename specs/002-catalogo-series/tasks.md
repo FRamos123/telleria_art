@@ -101,6 +101,6 @@
   - Pesos orientativos no bloqueantes, dentro de objetivo: imagen de tarjeta 98 KB (≤150 KB), imagen principal de ficha 98 KB (≤500 KB), imagen de serie 55 KB.
   - Nota de herramienta: la medición se hizo con la CLI Lighthouse instalada localmente (los shims `.ps1` de PowerShell están bloqueados por política de ejecución; se invoca `node_modules\.bin\lighthouse.cmd`). Informes JSON en el almacenamiento temporal de la sesión.
 
-## Propuesta de división
-
-El desglose propuesto tiene 19 tareas, por encima del máximo recomendado de 10. Se propone separar **exploración y páginas de catálogo/serie** (T1–T9) de **fichas, SEO/indexación e integración final** (T10–T19). T10 ya depende de la Spec 003; esta modificación de alcance sigue pendiente de aprobación antes de implementar T17–T19.
+- [x] **T20. Alinear `/obras/`, `/en/works/` y `/series/[id]/` con el diseño `alejandro_fern_ndez_teller_a_obra_series_cat_logo_razonado/` (~30 min).** RF-1–RF-5, RF-10–RF-13, RF-18, RNF-1–RNF-3, RNF-8
+  - Hecho cuando: `ArtworkCatalog.astro`, `SeriesDirectory.astro`, `ArtworkCard.astro` y `SeriesContent.astro` presentan la cabecera editorial con resumen real de inventario, la barra estática de series con estado activo, las tarjetas enriquecidas con datos técnicos reales (`InventoryNumber`, serie, año, título, soporte, técnica, dimensiones, disponibilidad y nota opcional), el bloque de series de estudio con acceso a `/series/[id]/` y el cierre hacia contacto (`HomeContactSection`), sin filtros JS, modales, PDFs ni formularios embebidos; `pnpm --dir web verify` y la revisión en Chrome DevTools (375/768/1280 px ES/EN) pasan.
+  - Verificación (2026-10-26): `pnpm --dir web verify` pasó (20 páginas, 433 tests). Chrome DevTools revisó `/obras/`, `/en/works/` y `/series/[id]/` a 375/768/1280 px sin overflow (`scrollWidth === clientWidth`); Lighthouse móvil `/obras/` A100/SEO100.

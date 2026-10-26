@@ -38,6 +38,8 @@ export interface ExhibitionMetaDescriptionInput {
 
 const MAX_META_DESCRIPTION_LENGTH = 155
 const MAX_HOME_ARTWORKS = 3
+const MAX_HOME_EXHIBITIONS = 3
+const MAX_HOME_WORKSHOP_NOTES = 2
 
 interface HomeArtworkSortable {
 	id: string
@@ -54,6 +56,41 @@ export function selectRecentHomeArtworks<T extends HomeArtworkSortable>(
 			return yearOrder || compareStableIds(first.id, second.id)
 		})
 		.slice(0, MAX_HOME_ARTWORKS)
+}
+
+interface HomeExhibitionCandidate {
+	id: string
+	startDate: CalendarDate
+	translations: Partial<Record<PublicationLanguage, unknown>>
+}
+
+/** Selects the three latest exhibitions visible in a locale, with an ordinal ID tie-breaker. */
+export function selectRecentHomeExhibitions<T extends HomeExhibitionCandidate>(
+	exhibitions: readonly T[],
+	language: PublicationLanguage,
+): T[] {
+	return [...exhibitions]
+		.filter((exhibition) => exhibition.translations[language] !== undefined)
+		.sort((first, second) => {
+			if (first.startDate !== second.startDate) {
+				return first.startDate > second.startDate ? -1 : 1
+			}
+			return compareStableIds(first.id, second.id)
+		})
+		.slice(0, MAX_HOME_EXHIBITIONS)
+}
+
+interface HomeWorkshopNoteCandidate {
+	translation: { workshopNote?: string }
+}
+
+/** Selects up to two nonblank notes from supporting works, preserving their input order. */
+export function selectHomeWorkshopNotes<T extends HomeWorkshopNoteCandidate>(
+	supportingWorks: readonly T[],
+): T[] {
+	return [...supportingWorks]
+		.filter((work) => Boolean(work.translation.workshopNote?.trim()))
+		.slice(0, MAX_HOME_WORKSHOP_NOTES)
 }
 
 /** Sorts mapped artworks by publication year descending and inventory ascending. */

@@ -159,10 +159,14 @@
   - Verificación visual: ruta QA temporal marcada `[QA]`, eliminada tras revisar Chrome DevTools a 375×812 y 1280×900 frente a la captura general y patrones de `design/`. Sin overflow; solo se renderizó el original ES al faltar EN y cero asociaciones no ocultaron el texto. El HTML de desarrollo incorpora scripts de HMR; no se añadió JS al componente.
   - Verificación: `pnpm --dir web verify` pasó (lint, tipos, build estático de 3 rutas y 218 tests).
 
-- [ ] **T28. Ejecutar verificación de integración y revisión visual.** RF-1–RF-22, RNF-1–RNF-4
+- [x] **T28. Ejecutar verificación de integración y revisión visual.** RF-1–RF-22, RNF-1–RNF-4
   - Hecho cuando: `pnpm --dir web verify` pasa; Chrome DevTools confirma HTML sin JS, accesibilidad/links correctos y revisión a 375 px y ≥1280 px frente a `design/`.
-  - Verificación parcial (2026-10-25): `pnpm --dir web verify` pasó (15 páginas, 423 tests). El bloqueo de rutas anotado en 2026-10-08 está resuelto por las specs de páginas posteriores. Chrome revisó el catálogo ES a 375/1280 px, la ficha ES a 375/1280 px y la serie ES a 375 px; los enlaces visibles cargan.
-  - Bloqueo actual, no marcar como hecha: la imagen de serie presenta alt ES «aupa madrid» y EN «shadow man», que no describen suficientemente la imagen abstracta. No se modificó contenido de Sanity. Falta alt descriptivo aprobado por el artista en ambos idiomas; después se debe completar la revisión Chrome de las rutas restantes.
+  - Verificación (2026-10-26): `pnpm --dir web verify` pasó: lint, tipos, build de 15 páginas y 423 tests en 26 archivos. El build usó los alts publicados por la persona usuaria en `va9sgl77/development`: ES «Figura blanca de perfil, con rasgos alargados, sobre un fondo negro» y EN “A white figure in profile with elongated features against a black background”.
+  - Chrome DevTools: catálogo, ficha de obra, serie, directorios de exposiciones y textos críticos ES/EN revisados en preview a 375×812 y 1280×900. Las diez rutas generadas cargan con `lang`, un `main` y un `h1` localizados; no hay overflow, scripts de cliente ni anclas internas rotas. Los directorios sin contenido muestran su mensaje vacío localizado. Las imágenes cargan con alt y dimensiones declaradas. En la serie ES/EN los alts nuevos corresponden a la imagen; skip link enfocable y visible.
+  - Lighthouse CLI 13.5.0, preview local, móvil 375×812/DPR 1, throttling simulado: serie ES P98/A100/SEO100; serie EN P98/A100/SEO100. CLS ES 0.017/EN 0.001; TBT 0 ms. Chrome DevTools Lighthouse confirmó A100 y SEO100 en ambas; Best Practices 77 por cookie de tercero e issue reportado abajo, fuera de los umbrales de esta tarea.
+  - Nota de QA: DevTools reportó «Lazy-loaded images should have explicit dimensions» para una imagen de tarjeta; se inspeccionó el elemento y contiene `width="1528"`, `height="2048"` y ratio intrínseco calculado. No se observó dimensión ausente en el HTML.
+  - Los textos aprobados ya estaban publicados por la persona usuaria durante esta tarea; el agente solo consultó Sanity en lectura y no modificó contenido.
+  - Seguimiento de publicación (2026-10-26): el preview local ya contiene los nuevos alts, pero el HTML servido por `telleria-art.pages.dev` sigue devolviendo «aupa madrid» / «shadow man» en ES/EN (HTTP 200). Hace falta que Cloudflare Pages reconstruya después de la publicación en Sanity; el agente no inició un despliegue.
 
 - [x] **T29. Añadir nombre interno y preview legible a las series en Studio.** RF-23
   - Hecho cuando: el documento compartido exige un nombre interno no vacío; Sanity lo muestra como título en listados y selectores de referencias, conservando la imagen como media; los nombres ES/EN de las traducciones siguen independientes y el nombre interno no aparece en la salida pública.
@@ -170,6 +174,6 @@
   - Verificación (2026-10-25): `pnpm --dir studio build` y `pnpm --dir web verify` pasaron (423 tests). Chrome a 1280×900 confirmó el campo y descripción en el formulario de serie y la referencia `Serie` en el formulario de traducción; no se guardó ni publicó contenido. El selector de una serie nueva con nombre no se pudo comprobar sin crear un documento de prueba. Las series preexistentes del dataset de desarrollo, que aún carecen del campo, aparecen como «Untitled» hasta que el artista les asigne manualmente un nombre interno.
   - Independiente de T28: no añade rutas ni modifica contenido Sanity.
 
-## Bloqueo de verificación visual
+## Resolución del bloqueo de verificación visual
 
-El plan no crea rutas ni páginas, pero T28 pide revisar los componentes en un preview navegable. Para completar esa verificación hace falta que una spec de páginas provea rutas de preview; no añadir rutas ni cambiar el alcance dentro de estas tareas sin aprobar primero una actualización del plan.
+El bloqueo original por falta de rutas quedó resuelto al implementarse las páginas de las specs 002–004 y 006. T28 se completó el 2026-10-26 con la revisión de las rutas generadas en preview; no se añadieron rutas dentro de esta spec.

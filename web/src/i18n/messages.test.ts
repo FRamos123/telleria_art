@@ -10,8 +10,19 @@ describe('foundation translations', () => {
 			'homeWorksLink',
 			'homeSeriesLink',
 			'homeExhibitionsLink',
+			'homeCriticalTextsLink',
 			'homeContactLink',
+			'homeHeroWorksAction',
+			'homeHeroContactAction',
 			'homeArtworkSelectionTitle',
+			'homeArtworkDetailAction',
+			'homeExhibitionsEyebrow',
+			'homeExhibitionsTitle',
+			'homeExhibitionsIndexAction',
+			'homeContactEyebrow',
+			'homeContactTitle',
+			'homeContactBody',
+			'homeContactAction',
 		] as const
 
 		for (const key of homeMessageKeys) {
@@ -154,8 +165,8 @@ describe('foundation translations', () => {
 	});
 
 	it('provides localized catalog-empty messages and a series SEO template', () => {
-		expect(es.catalogTitle).toBe('Obras — Alejandro Fernández Tellería');
-		expect(en.catalogTitle).toBe('Works — Alejandro Fernández Tellería');
+		expect(es.catalogTitle).toBe('Obras — Alex Tellería');
+		expect(en.catalogTitle).toBe('Works — Alex Tellería');
 		expect(es.catalogEmpty).toBe('No hay obras que mostrar en este idioma.');
 		expect(en.catalogEmpty).toBe('There are no artworks to show in this language.');
 		expect(es.seriesMetaDescriptionTemplate).toBe('Obras de la serie {seriesName} de {artistName}.');
@@ -163,17 +174,17 @@ describe('foundation translations', () => {
 	});
 
 	it('provides localized exhibition index titles, descriptions, and empty messages', () => {
-		expect(es.exhibitionsTitle).toBe('Exposiciones — Alejandro Fernández Tellería');
-		expect(en.exhibitionsTitle).toBe('Exhibitions — Alejandro Fernández Tellería');
-		expect(es.exhibitionsMetaDescription).toContain('Exposiciones de Alejandro Fernández Tellería');
-		expect(en.exhibitionsMetaDescription).toContain('Exhibitions by Alejandro Fernández Tellería');
+		expect(es.exhibitionsTitle).toBe('Exposiciones — Alex Tellería');
+		expect(en.exhibitionsTitle).toBe('Exhibitions — Alex Tellería');
+		expect(es.exhibitionsMetaDescription).toContain('Exposiciones de Alex Tellería');
+		expect(en.exhibitionsMetaDescription).toContain('Exhibitions by Alex Tellería');
 		expect(es.exhibitionsEmpty).toBe('No hay exposiciones que mostrar en este idioma.');
 		expect(en.exhibitionsEmpty).toBe('There are no exhibitions to show in this language.');
 	});
 
 	it('provides localized critical-text index titles, descriptions, author labels, and empty messages', () => {
-		expect(es.criticalTextsTitle).toBe('Textos críticos — Alejandro Fernández Tellería');
-		expect(en.criticalTextsTitle).toBe('Critical texts — Alejandro Fernández Tellería');
+		expect(es.criticalTextsTitle).toBe('Textos críticos — Alex Tellería');
+		expect(en.criticalTextsTitle).toBe('Critical texts — Alex Tellería');
 		expect(es.criticalTextsMetaDescription).toBeTruthy();
 		expect(en.criticalTextsMetaDescription).toBeTruthy();
 		expect(es.criticalTextAuthor).toBe('Autoría');
@@ -199,9 +210,9 @@ describe('foundation translations', () => {
 	});
 
 	it('includes the approved identity and foundation messages', () => {
-		expect(es.artistName).toBe('Alejandro Fernández Tellería');
+		expect(es.artistName).toBe('Alex Tellería');
 		expect(es.artistIdentification).toBe('Pintor · Vigo, Galicia');
-		expect(en.artistName).toBe('Alejandro Fernández Tellería');
+		expect(en.artistName).toBe('Alex Tellería');
 		expect(en.artistIdentification).toBe('Painter · Vigo, Galicia');
 		expect(es.notFoundTitle).toBeTruthy();
 		expect(es.notFoundMessage).toBeTruthy();

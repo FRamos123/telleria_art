@@ -1,25 +1,35 @@
 ---
 import HomeArtworkSelection from '../../components/HomeArtworkSelection.astro';
-import HomeNavigation from '../../components/HomeNavigation.astro';
+import HomeContactSection from '../../components/HomeContactSection.astro';
+import HomeExhibitions from '../../components/HomeExhibitions.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { isAvailability } from '../../domain/availability';
 import { isValidAlternativeText } from '../../domain/completeness';
-import { selectRecentHomeArtworks } from '../../domain/catalog-presentation';
+import {
+	selectRecentHomeArtworks,
+	selectRecentHomeExhibitions,
+} from '../../domain/catalog-presentation';
 import { getMessages } from '../../i18n';
 import { createResponsiveImage } from '../../infrastructure/sanity/image-url';
-import { loadCatalogContent } from '../../infrastructure/sanity/catalog-content';
+import { loadCatalogContent, loadHomeIntroductions } from '../../infrastructure/sanity/catalog-content';
 
 const locale = 'en' as const;
 const messages = getMessages(locale);
 const catalog = await loadCatalogContent();
+const homeIntroduction = (await loadHomeIntroductions())[locale];
+const heroLeadText = homeIntroduction ?? messages.homeDescription;
 const localizedRouteModules = import.meta.glob([
 	'./works/index.astro',
 	'./exhibitions/index.astro',
+	'./critical-texts/index.astro',
 	'./contact.astro',
 ]);
 const hasWorksRoute = Object.hasOwn(localizedRouteModules, './works/index.astro');
 const hasExhibitionsRoute = Object.hasOwn(localizedRouteModules, './exhibitions/index.astro');
+const hasCriticalTextsRoute = Object.hasOwn(localizedRouteModules, './critical-texts/index.astro');
 const hasContactRoute = Object.hasOwn(localizedRouteModules, './contact.astro');
+const exhibitionDetailModules = import.meta.glob('./exhibitions/*.astro');
+const hasExhibitionDetailRoute = Object.hasOwn(exhibitionDetailModules, './exhibitions/[exhibitionId].astro');
 const hasSeriesDirectory = hasWorksRoute
 	&& catalog.series.some((series) => series.translations[locale] !== undefined);
 const imageOptions = {
@@ -51,11 +61,41 @@ const eligibleArtworks = catalog.artworks.filter((artwork) => {
 		&& isAvailability(artwork.availability),
 	);
 });
-const cards = selectRecentHomeArtworks(eligibleArtworks).map((artwork) => ({
-	artwork,
-	image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
-	href: `/en/work/${encodeURIComponent(artwork.id)}/`,
-}));
+const artistNameParts = messages.artistName.trim().split(/\s+/u);
+const artistSurname = artistNameParts.pop() ?? messages.artistName;
+const cards = selectRecentHomeArtworks(eligibleArtworks).flatMap((artwork) => {
+	const translation = artwork.translations[locale];
+	const seriesTranslation = catalog.series.find((series) => series.id === artwork.seriesId)?.translations[locale];
+	if (!translation || !seriesTranslation) return [];
+
+	return [{
+		artwork,
+		translation,
+		image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+		href: `/en/work/${encodeURIComponent(artwork.id)}/`,
+		...(hasContactRoute ? { contactHref: `/en/contact/?artwork=${encodeURIComponent(artwork.id)}` } : {}),
+		series: {
+			name: seriesTranslation.name,
+			href: `/en/series/${encodeURIComponent(artwork.seriesId)}/`,
+		},
+	}];
+});
+const heroBackdropCard = cards.find(({ translation }) => /karoshi/iu.test(translation.title)) ?? cards[0];
+const heroBackdropUrl = heroBackdropCard?.image.src;
+const homeExhibitions = hasExhibitionDetailRoute
+	? selectRecentHomeExhibitions(catalog.exhibitions, locale).flatMap((exhibition) => {
+		const translation = exhibition.translations[locale];
+		if (!translation) return [];
+		return [{
+			id: exhibition.id,
+			title: translation.title,
+			venue: translation.venue,
+			startDate: exhibition.startDate,
+			...(exhibition.endDate ? { endDate: exhibition.endDate } : {}),
+			href: `/en/exhibitions/${encodeURIComponent(exhibition.id)}/`,
+		}];
+	})
+	: [];
 const canonicalPath = '/en/';
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? new URL('https://telleria-art.pages.dev')).href;
 const webPageJsonLd = JSON.stringify({
@@ -77,28 +117,82 @@ const webPageJsonLd = JSON.stringify({
 	preloadHomeFonts={true}
 >
 	<section
-		class="mx-auto grid w-full max-w-7xl grid-cols-1 px-margin-mobile py-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter desktop:px-gutter"
+		class="relative w-full overflow-hidden border-b border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-xl desktop:px-gutter"
 		aria-labelledby="home-title"
 	>
-		<div class="tablet:col-span-7 desktop:col-span-8">
-			<h1
-				id="home-title"
-				class="m-0 font-display-hero-mobile text-display-hero-mobile text-on-surface desktop:font-display-hero desktop:text-display-hero"
-			>
-				{messages.artistName}
-			</h1>
+		<div
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-0"
+			style="background: radial-gradient(ellipse 80% 60% at 35% 0%, rgba(196, 139, 60, 0.08), transparent 70%);"
+		/>
+		{heroBackdropUrl && (
+			<div
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-y-0 right-0 w-full tablet:w-2/3 desktop:w-7/12"
+				style={`background-image: linear-gradient(to right, #0e0e10 0%, rgba(14, 14, 16, 0.72) 28%, rgba(14, 14, 16, 0.52) 65%, rgba(14, 14, 16, 0.78) 100%), linear-gradient(to bottom, #0e0e10 0%, rgba(14, 14, 16, 0.35) 18%, rgba(14, 14, 16, 0.45) 72%, #0e0e10 100%), url('${heroBackdropUrl}'); background-position: center 18%; background-repeat: no-repeat; background-size: cover; mix-blend-mode: lighten;`}
+			/>
+		)}
+		<div class="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-space-lg py-space-lg">
+			<div class="flex items-center gap-space-sm">
+				<span class="inline-block h-px w-space-lg bg-primary"></span>
+				<span class="font-label-technical text-label-technical uppercase text-primary">
+					{messages.catalogEyebrow}
+				</span>
+			</div>
+
+			<div class="grid grid-cols-1 items-end gap-y-space-md tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+				<div class="tablet:col-span-5 desktop:col-span-9">
+					<h1
+						id="home-title"
+						class="m-0 font-display-hero-mobile text-display-hero-mobile text-on-surface desktop:font-display-hero desktop:text-display-hero"
+					>
+						{artistNameParts.map((part) => (
+							<span class="block uppercase">{part}{' '}</span>
+						))}
+						<span class="block font-light italic lowercase text-on-surface-variant">{artistSurname}</span>
+					</h1>
+				</div>
+				<div class="flex flex-col gap-space-xs tablet:col-span-3 tablet:items-end tablet:justify-self-end tablet:text-right desktop:col-span-3">
+					<p class="m-0 font-label-caption text-label-caption uppercase text-on-surface-variant">
+						{messages.homeLocationLabel}
+					</p>
+					<p class="m-0 font-label-technical text-label-technical text-on-surface">
+						{messages.artistIdentification}
+					</p>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 items-center gap-y-space-md pt-space-md tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+				<div class="tablet:col-span-8 desktop:col-span-7">
+					<p class="m-0 max-w-2xl font-body-lg text-body-lg text-on-surface-variant">
+						{heroLeadText}
+					</p>
+				</div>
+				{(hasWorksRoute || hasContactRoute) && (
+					<div class="flex flex-wrap items-center gap-space-md tablet:col-span-8 desktop:col-span-5 desktop:justify-end">
+						{hasWorksRoute && (
+							<a
+								class="inline-flex h-11 items-center bg-on-surface px-space-md font-label-technical text-label-technical uppercase text-surface-container-lowest hover:bg-primary hover:text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href="/en/works/"
+							>
+								{messages.homeHeroWorksAction}
+							</a>
+						)}
+						{hasContactRoute && (
+							<a
+								class="inline-flex h-11 items-center bg-surface-container-low px-space-md font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+								href="/en/contact/"
+							>
+								{messages.homeHeroContactAction}
+							</a>
+						)}
+					</div>
+				)}
+			</div>
 		</div>
-		<p class="mb-0 mt-space-lg font-body-lg text-body-lg text-on-surface-variant tablet:col-start-1 tablet:col-span-8 desktop:col-start-9 desktop:col-span-4 desktop:mt-0 desktop:self-end">
-			{messages.artistIdentification}
-		</p>
 	</section>
-	<HomeNavigation
-		locale={locale}
-		hasWorksRoute={hasWorksRoute}
-		hasSeriesDirectory={hasSeriesDirectory}
-		hasExhibitionsRoute={hasExhibitionsRoute}
-		hasContactRoute={hasContactRoute}
-	/>
 	<HomeArtworkSelection locale={locale} cards={cards} />
+	<HomeExhibitions locale={locale} exhibitions={homeExhibitions} />
+	<HomeContactSection locale={locale} hasContactRoute={hasContactRoute} />
 	<script type="application/ld+json" set:html={webPageJsonLd} />
 </BaseLayout>

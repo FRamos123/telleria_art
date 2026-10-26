@@ -15,6 +15,20 @@ export async function getStaticPaths() {
 		projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
 		dataset: import.meta.env.SANITY_DATASET ?? '',
 	};
+	const allVisibleSeries = catalog.series
+		.flatMap((candidate) => {
+			const candidateTranslation = candidate.translations[locale];
+			return candidateTranslation
+				? [{
+					id: candidate.id,
+					name: candidateTranslation.name,
+					href: `/series/${encodeURIComponent(candidate.id)}/`,
+				}]
+				: [];
+		})
+		.sort((first, second) =>
+			first.name.localeCompare(second.name, locale) || first.id.localeCompare(second.id),
+		);
 
 	return catalog.series.flatMap((series) => {
 		const translation = series.translations[locale];
@@ -39,12 +53,12 @@ export async function getStaticPaths() {
 
 		return [{
 			params: { seriesId: series.id },
-			props: { series, visibleArtworks, image },
+			props: { series, visibleArtworks, allVisibleSeries, image },
 		}];
 	});
 }
 
-const { series, visibleArtworks, image } = Astro.props;
+const { series, visibleArtworks, allVisibleSeries, image } = Astro.props;
 const messages = getMessages(locale);
 const translation = series.translations[locale];
 const seriesPath = `/series/${encodeURIComponent(series.id)}/`;
@@ -75,6 +89,7 @@ const description = deriveSeriesMetaDescription({
 		series={series}
 		locale={locale}
 		visibleArtworks={visibleArtworks}
+		allVisibleSeries={allVisibleSeries}
 		image={image}
 		catalogHref={catalogHref}
 		canonicalUrl={canonicalUrl}

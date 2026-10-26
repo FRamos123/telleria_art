@@ -1,5 +1,7 @@
 ---
 import type { Locale, Messages } from '../i18n';
+import { loadCatalogContent } from '../infrastructure/sanity/catalog-content';
+import HomeNavigation from './HomeNavigation.astro';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 
 interface Props {
@@ -9,13 +11,59 @@ interface Props {
 }
 
 const { locale, messages, languagePaths } = Astro.props;
+const catalog = await loadCatalogContent();
+const localizedRouteModules = import.meta.glob([
+	'../pages/obras/index.astro',
+	'../pages/exposiciones/index.astro',
+	'../pages/textos-criticos/index.astro',
+	'../pages/contacto.astro',
+	'../pages/en/works/index.astro',
+	'../pages/en/exhibitions/index.astro',
+	'../pages/en/critical-texts/index.astro',
+	'../pages/en/contact.astro',
+]);
+const hasWorksRoute = Object.hasOwn(
+	localizedRouteModules,
+	locale === 'es' ? '../pages/obras/index.astro' : '../pages/en/works/index.astro',
+);
+const hasExhibitionsRoute = Object.hasOwn(
+	localizedRouteModules,
+	locale === 'es' ? '../pages/exposiciones/index.astro' : '../pages/en/exhibitions/index.astro',
+);
+const hasCriticalTextsRoute = Object.hasOwn(
+	localizedRouteModules,
+	locale === 'es' ? '../pages/textos-criticos/index.astro' : '../pages/en/critical-texts/index.astro',
+);
+const hasContactRoute = Object.hasOwn(
+	localizedRouteModules,
+	locale === 'es' ? '../pages/contacto.astro' : '../pages/en/contact.astro',
+);
+const hasSeriesDirectory = hasWorksRoute
+	&& catalog.series.some((series) => series.translations[locale] !== undefined);
+const homeHref = locale === 'es' ? '/' : '/en/';
 ---
 
-<header class="border-b border-surface-variant bg-surface-container-lowest">
-	<div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-space-sm px-margin-mobile py-space-md desktop:px-gutter">
-		<p class="m-0 font-label-technical text-label-caption uppercase text-on-surface">
-			{messages.brandName}
-		</p>
+<header class="border-b border-outline-variant bg-surface-container-lowest">
+	<div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-space-lg gap-y-space-sm px-margin-mobile py-space-md desktop:px-gutter">
+		<a
+			class="flex flex-col no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			href={homeHref}
+		>
+			<span class="font-headline-sm text-headline-sm uppercase text-on-surface">
+				{messages.brandName}
+			</span>
+			<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+				{messages.artistIdentification}
+			</span>
+		</a>
+		<HomeNavigation
+			locale={locale}
+			hasWorksRoute={hasWorksRoute}
+			hasSeriesDirectory={hasSeriesDirectory}
+			hasExhibitionsRoute={hasExhibitionsRoute}
+			hasCriticalTextsRoute={hasCriticalTextsRoute}
+			hasContactRoute={hasContactRoute}
+		/>
 		<LanguageSwitcher locale={locale} messages={messages} languagePaths={languagePaths} />
 	</div>
 </header>

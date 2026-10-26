@@ -17,21 +17,49 @@ const imageOptions = {
 	projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
 	dataset: import.meta.env.SANITY_DATASET ?? '',
 };
-const cards = artworks.map((artwork) => ({
-	artwork,
-	image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
-	href: `/obra/${encodeURIComponent(artwork.id)}/`,
-}));
+const seriesNameById = new Map(
+	catalog.series.flatMap((series) => {
+		const name = series.translations[locale]?.name;
+		return name ? [[series.id, name] as const] : [];
+	}),
+);
+const cards = artworks.map((artwork) => {
+	const seriesName = seriesNameById.get(artwork.seriesId);
+	return {
+		artwork,
+		image: createResponsiveImage(artwork.mainImage.projection, imageOptions),
+		href: `/obra/${encodeURIComponent(artwork.id)}/`,
+		...(seriesName ? { seriesName } : {}),
+	};
+});
 const visibleSeries = catalog.series
 	.flatMap((series) => {
 		const translation = series.translations[locale];
-		return translation
-			? [{
-				id: series.id,
-				name: translation.name,
-				href: `/series/${encodeURIComponent(series.id)}/`,
-			}]
-			: [];
+		if (!translation) return [];
+
+		const artworkCount = artworks.filter((artwork) => artwork.seriesId === series.id).length;
+		const imageProjection = catalog.seriesImageProjections.get(series.id);
+		let image: { assetId: string; altText: string; responsive: ReturnType<typeof createResponsiveImage> } | undefined;
+		if (translation.image && imageProjection?.asset._id === translation.image.assetId) {
+			try {
+				image = {
+					assetId: translation.image.assetId,
+					altText: translation.image.altText,
+					responsive: createResponsiveImage(imageProjection, imageOptions),
+				};
+			} catch {
+				// Optional series image errors must not block the catalog page.
+			}
+		}
+
+		return [{
+			id: series.id,
+			name: translation.name,
+			href: `/series/${encodeURIComponent(series.id)}/`,
+			...(translation.description ? { description: translation.description } : {}),
+			artworkCount,
+			...(image ? { image } : {}),
+		}];
 	})
 	.sort((first, second) =>
 		first.name.localeCompare(second.name, locale) || first.id.localeCompare(second.id),
@@ -45,5 +73,10 @@ const visibleSeries = catalog.series
 	canonicalPath="/obras/"
 	alternatePaths={{ en: '/en/works/' }}
 >
-	<ArtworkCatalog locale={locale} artworks={cards} visibleSeries={visibleSeries} />
+	<ArtworkCatalog
+		locale={locale}
+		artworks={cards}
+		visibleSeries={visibleSeries}
+		introText={catalogSeoDescriptions[locale]}
+	/>
 </BaseLayout>

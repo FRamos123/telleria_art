@@ -6,7 +6,9 @@ const IMAGE_PROJECTION = `{
 
 export const siteSettingsQuery = `*[_id == "siteSettings"][0] {
 	catalogSeoDescriptionEs,
-	catalogSeoDescriptionEn
+	catalogSeoDescriptionEn,
+	homeIntroductionEs,
+	homeIntroductionEn
 }`
 
 export const artworkQuery = `*[_type == "artwork"] {

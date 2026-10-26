@@ -3,26 +3,68 @@ import ExhibitionIndex from '../../../components/ExhibitionIndex.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { sortExhibitionsForIndex } from '../../../domain/catalog-presentation';
 import { getMessages } from '../../../i18n';
+import { createResponsiveImage } from '../../../infrastructure/sanity/image-url';
 import { loadCatalogContent } from '../../../infrastructure/sanity/catalog-content';
 
 const locale = 'en' as const;
 const messages = getMessages(locale);
 const catalog = await loadCatalogContent();
+const imageOptions = {
+	projectId: import.meta.env.SANITY_PROJECT_ID ?? '',
+	dataset: import.meta.env.SANITY_DATASET ?? '',
+};
 const exhibitions = sortExhibitionsForIndex(
 	catalog.exhibitions.filter((exhibition) => exhibition.translations[locale] !== undefined),
 	locale,
 ).flatMap((exhibition) => {
 	const translation = exhibition.translations[locale];
-	return translation
-		? [{
-			id: exhibition.id,
-			title: translation.title,
-			venue: translation.venue,
-			startDate: exhibition.startDate,
-			...(exhibition.endDate ? { endDate: exhibition.endDate } : {}),
-			href: `/en/exhibitions/${encodeURIComponent(exhibition.id)}/`,
-		}]
-		: [];
+	if (!translation) return [];
+
+	const relatedArtworks = catalog.artworks.flatMap((artwork) => {
+		const artworkTranslation = artwork.translations[locale];
+		return translation.artworkIds.includes(artwork.id) && artworkTranslation
+			? [{
+				id: artwork.id,
+				title: artworkTranslation.title,
+				href: `/en/work/${encodeURIComponent(artwork.id)}/`,
+			}]
+			: [];
+	});
+	const relatedSeries = catalog.series.flatMap((series) => {
+		const seriesTranslation = series.translations[locale];
+		return translation.seriesIds.includes(series.id) && seriesTranslation
+			? [{
+				id: series.id,
+				title: seriesTranslation.name,
+				href: `/en/series/${encodeURIComponent(series.id)}/`,
+			}]
+			: [];
+	});
+	const imageProjection = catalog.exhibitionImageProjections.get(exhibition.id);
+	let image: { assetId: string; altText: string; responsive: ReturnType<typeof createResponsiveImage> } | undefined;
+	if (translation.image && imageProjection?.asset._id === translation.image.assetId) {
+		try {
+			image = {
+				assetId: translation.image.assetId,
+				altText: translation.image.altText,
+				responsive: createResponsiveImage(imageProjection, imageOptions),
+			};
+		} catch {
+			// Optional exhibition image errors must not block the index.
+		}
+	}
+
+	return [{
+		id: exhibition.id,
+		title: translation.title,
+		venue: translation.venue,
+		startDate: exhibition.startDate,
+		...(exhibition.endDate ? { endDate: exhibition.endDate } : {}),
+		href: `/en/exhibitions/${encodeURIComponent(exhibition.id)}/`,
+		...(image ? { image } : {}),
+		relatedArtworks,
+		relatedSeries,
+	}];
 });
 ---
 

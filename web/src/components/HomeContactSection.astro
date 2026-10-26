@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../i18n';
+import { getMessages } from '../i18n';
+
+interface Props {
+	locale: Locale;
+	hasContactRoute: boolean;
+}
+
+const { locale, hasContactRoute } = Astro.props;
+const messages = getMessages(locale);
+const contactHref = locale === 'es' ? '/contacto/' : '/en/contact/';
+---
+
+{hasContactRoute && (
+	<section
+		aria-labelledby="home-contact-title"
+		class="w-full border-t border-outline-variant bg-surface-container px-margin-mobile py-space-xl desktop:px-gutter"
+	>
+		<div class="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-y-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+			<div class="flex flex-col gap-space-md tablet:col-span-8 desktop:col-span-7">
+				<div class="flex flex-col gap-space-xs">
+					<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+						{messages.homeContactEyebrow}
+					</p>
+					<h2 id="home-contact-title" class="m-0 font-headline-md text-headline-md text-on-surface">
+						{messages.homeContactTitle}
+					</h2>
+				</div>
+				<p class="m-0 max-w-2xl font-body-md text-body-md text-on-surface-variant">
+					{messages.homeContactBody}
+				</p>
+			</div>
+			<div class="flex flex-col items-start gap-space-md bg-surface-container-lowest p-space-lg tablet:col-span-8 desktop:col-span-5">
+				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactIntro}
+				</p>
+				<a
+					class="inline-flex h-11 items-center bg-primary px-space-md font-label-technical text-label-technical uppercase text-on-primary hover:bg-carmine-surface hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href={contactHref}
+				>
+					{messages.homeContactAction}
+				</a>
+			</div>
+		</div>
+	</section>
+)}

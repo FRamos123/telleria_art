@@ -1,0 +1,4 @@
+- En sanity ,traducciones de serie debe tener de imagen la imagen de la serie a la que pertenece, no un archivo vacio
+- Se debe controlar que no haya dos traducciones al español de la misma obra, ni dos en inglés, en caso de que exista una, no se puede crear otra.
+- texto critico y exposicion deben poder asociarseles un nombre, como hicimos con la Serie, para que aparezcan con ese nombre.
+- Navegacion erronea, no hay manera

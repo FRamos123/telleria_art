@@ -7,7 +7,7 @@ import {
 	seriesQuery,
 	siteSettingsQuery,
 } from './queries'
-import { loadCatalogContent, loadCatalogSeoDescriptions } from './catalog-content'
+import { loadCatalogContent, loadCatalogSeoDescriptions, loadHomeIntroductions } from './catalog-content'
 
 const currentYear = 2026
 
@@ -277,5 +277,53 @@ describe('loadCatalogSeoDescriptions', () => {
 		const descriptions = await loadCatalogSeoDescriptions(client)
 
 		expect(descriptions).toEqual({})
+	})
+})
+
+describe('loadHomeIntroductions', () => {
+	it('loads and trims each approved language independently', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) {
+				return {
+					homeIntroductionEs: '  [TEST] Presentación breve ES  ',
+					homeIntroductionEn: '  [TEST] Short introduction EN  ',
+				}
+			}
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const introductions = await loadHomeIntroductions(client)
+
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(fetch).toHaveBeenCalledWith(siteSettingsQuery)
+		expect(introductions).toEqual({
+			es: '[TEST] Presentación breve ES',
+			en: '[TEST] Short introduction EN',
+		})
+	})
+
+	it('omits blank languages without falling back to the other language', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) {
+				return { homeIntroductionEs: '   ', homeIntroductionEn: '[TEST] English only' }
+			}
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		const introductions = await loadHomeIntroductions(client)
+
+		expect(introductions).toEqual({ en: '[TEST] English only' })
+	})
+
+	it('treats missing settings or absent texts as no introductions', async () => {
+		const fetch = vi.fn(async (query: string): Promise<unknown> => {
+			if (query === siteSettingsQuery) return null
+			throw new Error(`Unexpected query: ${query}`)
+		})
+		const client = { fetch } as unknown as SanityClient
+
+		expect(await loadHomeIntroductions(client)).toEqual({})
 	})
 })

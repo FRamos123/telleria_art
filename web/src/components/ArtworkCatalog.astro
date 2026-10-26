@@ -1,45 +1,220 @@
 ---
+import { isValidAlternativeText } from '../domain/completeness';
 import type { Locale } from '../i18n';
 import { getMessages } from '../i18n';
 import type { MappedArtwork } from '../infrastructure/sanity/mappers';
 import type { ResponsiveImage } from '../infrastructure/sanity/image-url';
 import ArtworkCard from './ArtworkCard.astro';
+import EditorialImage from './EditorialImage.astro';
+import HomeContactSection from './HomeContactSection.astro';
 import SeriesDirectory from './SeriesDirectory.astro';
 
 interface CatalogCard {
 	artwork: MappedArtwork;
 	image: ResponsiveImage;
 	href: string;
+	seriesName?: string;
+}
+
+interface CatalogSeriesItem {
+	id: string;
+	name: string;
+	href: string;
+	description?: string;
+	artworkCount?: number;
+	image?: {
+		assetId: string;
+		altText: string;
+		responsive: ResponsiveImage;
+	};
 }
 
 interface Props {
 	locale: Locale;
 	artworks: readonly CatalogCard[];
-	visibleSeries: readonly { id: string; name: string; href: string }[];
+	visibleSeries: readonly CatalogSeriesItem[];
+	introText?: string;
+	hasContactRoute?: boolean;
 }
 
-const { locale, artworks, visibleSeries } = Astro.props;
+const {
+	locale,
+	artworks,
+	visibleSeries,
+	introText,
+	hasContactRoute = true,
+} = Astro.props;
 const messages = getMessages(locale);
+const catalogHref = locale === 'es' ? '/obras/' : '/en/works/';
+const availableCount = artworks.filter(({ artwork }) => artwork.availability === 'disponible').length;
+const inCollectionCount = artworks.filter(({ artwork }) => artwork.availability === 'en colección').length;
+const reservedCount = artworks.filter(({ artwork }) => artwork.availability === 'reservada').length;
+const soldCount = artworks.filter(({ artwork }) => artwork.availability === 'vendida').length;
 ---
 
 <section
 	aria-labelledby="artwork-catalog-title"
-	class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter"
+	class="w-full bg-surface-container-lowest"
 >
-	<h1
-		id="artwork-catalog-title"
-		class="mb-space-lg mt-0 font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
-	>
-		{messages.catalogTitle}
-	</h1>
-	<SeriesDirectory locale={locale} visibleSeries={visibleSeries} />
-	{artworks.length === 0 ? (
-		<p class="m-0 font-body-md text-body-md text-on-surface-variant">{messages.catalogEmpty}</p>
-	) : (
-		<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
-			{artworks.map(({ artwork, image, href }) => (
-				<ArtworkCard artwork={artwork} image={image} href={href} locale={locale} />
-			))}
-		</ul>
+	<div class="mx-auto w-full max-w-7xl px-margin-mobile py-space-xl desktop:px-gutter">
+		<div class="mb-space-xl grid grid-cols-1 items-end gap-y-space-lg border-b border-outline-variant pb-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+			<div class="flex flex-col gap-space-sm tablet:col-span-8 desktop:col-span-8">
+				<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+					{messages.catalogEyebrow}
+				</p>
+				<h1
+					id="artwork-catalog-title"
+					class="m-0 font-headline-lg-mobile text-headline-lg-mobile uppercase text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+				>
+					<span class="block">{messages.catalogHeroTitlePrefix}{' '}</span>
+					<span class="font-normal italic lowercase text-on-surface-variant">{messages.catalogHeroTitleConnector}</span>{' '}
+					<span>{messages.catalogHeroTitleSuffix}</span>
+				</h1>
+				{introText?.trim() && (
+					<p class="m-0 max-w-3xl pt-space-xs font-body-lg text-body-lg text-on-surface-variant">
+						{introText.trim()}
+					</p>
+				)}
+			</div>
+
+			<div class="tablet:col-span-8 desktop:col-span-4">
+				<div class="w-full bg-surface-container-low p-space-md">
+					<div class="flex flex-wrap items-center justify-between gap-space-sm border-b border-outline-variant pb-space-xs">
+						<span class="font-label-technical text-label-technical uppercase text-on-surface-variant">
+							{messages.catalogSummaryTitle}
+						</span>
+						<span class="font-label-caption text-label-caption uppercase text-primary">
+							{visibleSeries.length} {messages.catalogSummarySeriesLabel}
+						</span>
+					</div>
+					<div class="mt-space-sm flex items-baseline gap-space-xs">
+						<span class="font-headline-md text-headline-md text-on-surface">
+							{artworks.length}
+						</span>
+						<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+							{messages.catalogSummaryWorksLabel}
+						</span>
+					</div>
+					<dl class="m-0 mt-space-sm grid grid-cols-2 gap-space-xs font-label-caption text-label-caption">
+						<div class="flex justify-between gap-space-xs">
+							<dt class="text-on-surface-variant">{messages.availabilityAvailable}:</dt>
+							<dd class="m-0 text-primary">{availableCount}</dd>
+						</div>
+						<div class="flex justify-between gap-space-xs">
+							<dt class="text-on-surface-variant">{messages.availabilityInCollection}:</dt>
+							<dd class="m-0 text-on-surface">{inCollectionCount}</dd>
+						</div>
+						<div class="flex justify-between gap-space-xs">
+							<dt class="text-on-surface-variant">{messages.availabilityReserved}:</dt>
+							<dd class="m-0 text-status-reserved">{reservedCount}</dd>
+						</div>
+						<div class="flex justify-between gap-space-xs">
+							<dt class="text-on-surface-variant">{messages.availabilitySold}:</dt>
+							<dd class="m-0 text-status-sold">{soldCount}</dd>
+						</div>
+					</dl>
+				</div>
+			</div>
+		</div>
+
+		<SeriesDirectory
+			locale={locale}
+			visibleSeries={visibleSeries}
+			catalogHref={catalogHref}
+		/>
+
+		{artworks.length === 0 ? (
+			<p class="m-0 font-body-md text-body-md text-on-surface-variant">{messages.catalogEmpty}</p>
+		) : (
+			<ul class="m-0 grid list-none grid-cols-1 gap-x-gutter-mobile gap-y-space-xl p-0 tablet:grid-cols-8 desktop:grid-cols-12 desktop:gap-x-gutter">
+				{artworks.map(({ artwork, image, href, seriesName }, index) => (
+					<ArtworkCard
+						artwork={artwork}
+						image={image}
+						href={href}
+						locale={locale}
+						seriesName={seriesName}
+						loading={index < 3 ? 'eager' : 'lazy'}
+					/>
+				))}
+			</ul>
+		)}
+	</div>
+
+	{visibleSeries.length > 0 && (
+		<section
+			aria-labelledby="catalog-series-showcase-title"
+			class="w-full border-t border-outline-variant bg-surface-container px-margin-mobile py-space-xl desktop:px-gutter"
+		>
+			<div class="mx-auto flex w-full max-w-7xl flex-col gap-space-xl">
+				<div class="border-b border-outline-variant pb-space-sm">
+					<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+						{messages.catalogSeriesSectionEyebrow}
+					</p>
+					<h2 id="catalog-series-showcase-title" class="m-0 mt-space-xs font-headline-md text-headline-md uppercase text-on-surface">
+						{messages.catalogSeriesSectionTitle}
+					</h2>
+				</div>
+
+				<div class="flex flex-col gap-space-xl">
+					{visibleSeries.map((series) => {
+						const hasValidSeriesImage = Boolean(
+							series.image
+							&& series.image.assetId.trim()
+							&& isValidAlternativeText(series.image.altText, series.name),
+						);
+						return (
+							<article class="grid grid-cols-1 items-center gap-y-space-lg bg-surface-container-lowest p-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+								<div class:list={[
+									'flex flex-col justify-between gap-space-md tablet:col-span-8',
+									hasValidSeriesImage ? 'desktop:col-span-6' : 'desktop:col-span-12',
+								]}>
+									<div class="flex flex-col gap-space-sm">
+										<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+											{messages.series}
+											{typeof series.artworkCount === 'number' && ` · ${series.artworkCount}`}
+										</p>
+										<h3 class="m-0 font-headline-md text-headline-md uppercase text-on-surface">
+											<a class="underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={series.href}>
+												{series.name}
+											</a>
+										</h3>
+										{series.description?.trim() && (
+											<p class="m-0 whitespace-pre-line font-body-lg text-body-lg text-on-surface-variant">
+												{series.description.trim()}
+											</p>
+										)}
+									</div>
+									<div class="pt-space-sm">
+										<a
+											class="inline-flex h-11 items-center bg-on-surface px-space-md font-label-technical text-label-technical uppercase text-surface-container-lowest hover:bg-primary hover:text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+											href={series.href}
+										>
+											{messages.catalogSeriesExploreAction}
+										</a>
+									</div>
+								</div>
+
+								{hasValidSeriesImage && series.image && (
+									<figure class="m-0 flex aspect-3/4 items-center justify-center overflow-hidden bg-surface-container-low p-space-sm tablet:col-span-8 desktop:col-span-6">
+										<a aria-label={series.name} class="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href={series.href}>
+											<EditorialImage
+												image={series.image.responsive}
+												altText={series.image.altText}
+												className="h-full w-full object-cover"
+												loading="lazy"
+												sizes="(min-width: 1280px) 45vw, 100vw"
+											/>
+										</a>
+									</figure>
+								)}
+							</article>
+						);
+					})}
+				</div>
+			</div>
+		</section>
 	)}
+
+	<HomeContactSection locale={locale} hasContactRoute={hasContactRoute} />
 </section>

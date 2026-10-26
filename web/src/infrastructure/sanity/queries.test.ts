@@ -45,10 +45,12 @@ describe('published Sanity GROQ queries', () => {
 		expect(translationProjection).toContain('\n\t\tseoDescription')
 	})
 
-	it('selects the published global settings singleton by its stable ID with only the catalog SEO fields', () => {
+	it('selects the published global settings singleton by its stable ID with SEO and home fields', () => {
 		expect(siteSettingsQuery).toContain('*[_id == "siteSettings"][0]')
 		expect(siteSettingsQuery).toContain('catalogSeoDescriptionEs')
 		expect(siteSettingsQuery).toContain('catalogSeoDescriptionEn')
+		expect(siteSettingsQuery).toContain('homeIntroductionEs')
+		expect(siteSettingsQuery).toContain('homeIntroductionEn')
 		expect(siteSettingsQuery).not.toContain('artwork')
 		expect(siteSettingsQuery).not.toContain('series')
 	})
