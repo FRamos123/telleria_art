@@ -1,5 +1,5 @@
 # Tareas 005 — Consultas de contacto
-Estado: aprobado (actualización de base jurídica art. 6.1.f)
+Estado: implementado (actualización de base jurídica art. 6.1.f y revisión visual 2026-10-26)
 
 ## Tareas
 
@@ -104,6 +104,20 @@ Estado: aprobado (actualización de base jurídica art. 6.1.f)
 - [x] **T20. Auditar la política efectiva de retención.** RF-11
   - Hecho cuando: se documenta la retención de Resend y del buzón receptor, incluida la regla para respuestas y última interacción sustantiva; cualquier límite no cubierto vuelve a la spec antes de cerrar RF-11.
   - Cerrada con confirmación de la responsable y documentación en `spec.md`, el aviso ES/EN y `docs/legitimate-interest-assessment.md`: revisión diaria del buzón; borrado manual del hilo completo, enviados, adjuntos y papelera a los 90 días de la última interacción sustantiva; excepción para obligación/reclamación y respaldos Google cifrados hasta 6 meses. Resend: 30 días activo, respaldos 7 días, eliminación hasta 90 días tras cierre. Email Routing: metadatos 31 días, sin contenido. Turnstile: sin plazo fijo publicado; Pages HTTP logs sin retención adicional habilitada. No quedan periodos desconocidos dentro del alcance acordado; revisar de nuevo si cambian servicio, cuenta, política o configuración.
+
+- [x] **T21. Cerrar el alcance visual de la página de consultas antes de implementar.** RF-13; RNF-1, RNF-2, RNF-6
+  - Hecho cuando: la persona usuaria aprueba o ajusta explícitamente la propuesta documentada: cabecera editorial, columna izquierda con canal verificado y aviso legal íntegro, formulario existente en la columna derecha; sin FAQ ni los datos/copy no aprobados de la referencia. Confirmar también si se omite el bloque inferior de enlaces a Obras/Series y Textos críticos (recomendación: omitirlo porque la navegación global ya ofrece esos destinos).
+  - Aprobación explícita recibida (2026-10-26): propuesta limpia; se omite el bloque inferior de enlaces repetidos.
+
+- [x] **T22. Adaptar la presentación ES/EN a la composición aprobada de la nueva referencia.** RF-1–RF-4, RF-9, RF-12–RF-13; RNF-1–RNF-3, RNF-6
+  - Hecho cuando: `contacto.astro`, `en/contact.astro` y `ContactForm.astro` presentan la cabecera y distribución aprobadas usando solo tokens existentes; se conservan aviso legal íntegro, campos, validación, Turnstile, estados y comportamiento actual, sin contenido comercial/inventado ni cambios en Functions.
+  - Verificación (2026-10-26): cabecera localizada `Consultas sobre obras` / `Artwork inquiries`; layout editorial 5/7 con canal verificado y aviso íntegro a la izquierda y formulario actual a la derecha; campos con borde inferior y CTA en tokens existentes. Sin FAQ ni enlaces duplicados al final. No se modificaron Functions, contenido Sanity ni política legal.
+
+- [x] **T23. Verificar el rediseño de contacto.** RF-1–RF-13; RNF-1–RNF-6
+  - Hecho cuando: pruebas de componentes/salida cubren el nuevo orden y contenido; `pnpm --dir web verify` pasa; Chrome DevTools revisa ES/EN a 375, 768 y 1280 px, foco/teclado, errores y Turnstile sin enviar una nueva consulta real; Lighthouse móvil de contacto alcanza los umbrales existentes. Actualizar spec, tareas y MEMORY.
+  - Verificación (2026-10-26): `pnpm --dir web verify` pasa (lint, tipos, build de 20 páginas, 434 tests); Chrome preview `127.0.0.1:4322` ES/EN a 375×812, 768×900 y 1280×900 sin overflow. Aviso legal precede al formulario en DOM; escritorio 482 px información / 687 px formulario; móvil/tablet apilan. Se conservan los seis campos de negocio, Turnstile y los estados; sin consentimiento ni FAQ. Lighthouse móvil de contacto: Accesibilidad 100, Best Practices 100 y SEO 100, cero auditorías fallidas. No se hizo envío real.
+
+  - Auditoría Lighthouse CLI 13.5.0 adicional: la primera ejecución detectó EN Performance 88 y CLS 0.223 por carga tardía de fuentes locales. Se habilitó preload local de Bodoni Moda, Newsreader y Geist en las dos páginas de contacto; nueva medición mobile ES/EN: Performance/Accessibility/SEO 100/100/100 en ambas, cero auditorías fallidas.
 
 ## Alcance de entrega
 

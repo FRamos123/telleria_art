@@ -30,10 +30,8 @@ const hasExhibitionsRoute = Object.hasOwn(
 	localizedRouteModules,
 	locale === 'es' ? '../pages/exposiciones/index.astro' : '../pages/en/exhibitions/index.astro',
 );
-const hasCriticalTextsRoute = Object.hasOwn(
-	localizedRouteModules,
-	locale === 'es' ? '../pages/textos-criticos/index.astro' : '../pages/en/critical-texts/index.astro',
-);
+// Textos críticos permanece oculto en la navegación pública hasta que se reactive la sección.
+const hasCriticalTextsRoute = false;
 const hasContactRoute = Object.hasOwn(
 	localizedRouteModules,
 	locale === 'es' ? '../pages/contacto.astro' : '../pages/en/contact.astro',

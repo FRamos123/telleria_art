@@ -1,5 +1,5 @@
 # Spec 005 — Consultas de contacto
-Estado: aprobada
+Estado: aprobada (revisión visual 2026-10-26)
 
 ## Contexto y objetivo
 
@@ -42,6 +42,7 @@ La spec define los datos mínimos para responder, cómo corregir y reintentar un
 - **RF-11. Conservación provisional.** **MIENTRAS** una consulta permanezca activa, **EL SISTEMA** enviará sus datos únicamente al buzón dedicado y no conservará una copia propia; la persona responsable conservará en el buzón los datos necesarios para responderla y revisará las consultas a diario. **CUANDO** hayan transcurrido 90 días desde la última interacción sustantiva recibida o enviada sobre la consulta, la persona responsable eliminará manualmente y de forma definitiva el hilo completo bajo su control, incluidos los mensajes enviados, adjuntos y elementos de la papelera. Cada nueva interacción sustantiva reiniciará el plazo del hilo. Se exceptúa una obligación o reclamación concreta que justifique conservación restringida.
 
 - **RF-12. Alcance no comercial vigente.** **MIENTRAS** no exista una spec comercial futura aprobada e implementada, **EL SISTEMA** presentará el portfolio y el formulario como informativos y para consultas generales/artísticas/institucionales. **EL SISTEMA** no ofrecerá precios, compra, reserva, pedidos ni prints, ni presentará el formulario como vía para negociar o cerrar una venta. Enviar una consulta no crea ni confirma una transacción. El sistema no analizará ni rechazará automáticamente el texto libre por su contenido.
+- **RF-13. Presentación de la página de consultas (revisión propuesta).** **CUANDO** una persona abra la página de contacto en ES o EN, **EL SISTEMA** presentará una cabecera editorial localizada y dispondrá la información de contacto/privacidad y el formulario existente en una composición asimétrica de dos columnas en escritorio; en móvil y tablet apilará ambos bloques, manteniendo el aviso de privacidad completo antes de los controles del formulario. EL SISTEMA conservará exactamente los campos, validaciones, protección antispam, estados y resultado de envío de RF-1–RF-12; no incorporará copy, datos, compromisos ni controles de la referencia que no estén aprobados en esta spec.
 
   La política general publicada por Google indica que el borrado de sus sistemas suele tardar alrededor de 2 meses y que los datos pueden permanecer en respaldos cifrados hasta 6 meses; no es un plazo contractual específico de Gmail. Esta retención limitada del proveedor para continuidad/recuperación queda expresamente aceptada, aunque exceda los 90 días de borrado operativo del buzón. Cloudflare Email Routing no almacena el contenido del correo según su documentación; sus eventos de encaminamiento, que pueden incluir remitente, destinatario, asunto e identificador del mensaje, se conservan hasta 31 días. Resend conserva contenido y registros de entrega durante 30 días mientras la cuenta está activa, respaldos hasta 7 días y elimina datos restantes dentro de los 90 días posteriores al cierre. El aviso aprobado describe estos plazos y la diferencia entre el borrado del buzón y las copias limitadas de proveedor. Cloudflare no publica un periodo fijo para señales de Turnstile; sus registros HTTP no se conservan por defecto salvo activación de una función de retención, que no está habilitada para este proyecto según confirmó la responsable.
 
@@ -81,6 +82,7 @@ La spec define los datos mínimos para responder, cómo corregir y reintentar un
 | El buzón configurado sigue siendo `consultas@example.invalid` | No se acepta ni intenta un envío real; el placeholder se usa solo en maquetas y debe reemplazarse antes de habilitar envíos. |
 | El servicio de correo acepta el mensaje para entrega | Se confirma en la página y se limpian los campos. No se afirma entrega final, lectura ni respuesta inmediata. |
 | Una persona escribe en el campo libre que desea comprar o pide un precio | El envío se trata únicamente como un mensaje de contacto; el sistema no crea ni confirma oferta, precio, reserva, pedido o compra. La interfaz no invita a usar el formulario para cerrar ventas. |
+| La referencia visual contiene dirección, horarios, garantías, citas, protocolos, motivos comerciales o FAQ no aprobadas | Se omiten; solo se muestra el email verificado y el contenido ES/EN aprobado, incluido el aviso legal completo. |
 
 ## Fuera de alcance
 
@@ -91,19 +93,25 @@ La spec define los datos mínimos para responder, cómo corregir y reintentar un
 - Venta mediante consultas, negociación de precios, presupuestos, reservas comerciales, aceptación de pedidos, cobros, checkout y venta de prints; estas funciones requieren una spec comercial futura aprobada.
 - Promesa de un plazo de respuesta o de un email automático de confirmación.
 - Redacción automática o publicación de textos legales no proporcionados y revisados por la persona responsable.
+- Añadir motivos de consulta comerciales, precios, adquisición, campos de negociación, casilla de confidencialidad/consentimiento, FAQ no aprobadas, afirmaciones de cifrado/SSL, dirección física, horarios, aforo, garantías o protocolos de transporte/conservación tomados de la referencia visual.
 
 ## Criterios de finalización
 
-- [ ] El formulario en español e inglés presenta los campos obligatorios y opcionales, con los máximos y validaciones especificados.
-- [ ] Los errores de validación, rechazo antispam y fallo de envío conservan los valores introducidos y permiten corregir o reintentar; Turnstile solo acepta `success === true`, acción `contact` y hostname permitido, con token de hasta 2.048 caracteres y timeout de 10 segundos; solo un envío aceptado produce confirmación y limpieza de campos.
-- [ ] La obra asociada es opcional, se elige entre obras incluidas en la última versión desplegada y traducidas al idioma correspondiente, y puede tener cualquiera de los cuatro estados de disponibilidad sin implicar una compra.
-- [ ] El aviso publicado ES/EN identifica finalidad, interés legítimo específico, responsable, proveedores/transferencias, conservación y derecho de oposición; la evaluación de interés legítimo está documentada. No se exige una casilla de consentimiento para enviar.
-- [ ] El buzón oficial reemplaza `consultas@example.invalid` antes de habilitar envíos reales; el mismo buzón recibe consultas de privacidad y ejercicio de derechos.
-- [ ] El aviso de privacidad ES/EN ha sido aprobado por la persona responsable antes de habilitar envíos reales; describe la base y el interés legítimo, los derechos, el borrado operativo a 90 días, la excepción de respaldos Gmail hasta 6 meses, las retenciones de Cloudflare Routing (31 días) y Resend, y los destinatarios/proveedores y transferencias confirmados.
-- [ ] La persona responsable aplica y documenta la revisión diaria y el borrado manual definitivo del hilo completo al cumplirse 90 días desde la última interacción sustantiva, reiniciando el plazo tras cada nueva respuesta; las copias de respaldo cifradas de Gmail hasta 6 meses son la excepción limitada aprobada.
-- [ ] La página cumple los requisitos de accesibilidad, SEO y rendimiento establecidos en esta spec.
-- [ ] El flujo no inicia compras, pagos ni gestión de pedidos.
-- [ ] La interfaz presenta el contacto solo para consultas generales/artísticas/institucionales; no hay precios ni acciones o mensajes que ofrezcan negociar o cerrar ventas. El texto libre no se interpreta como pedido.
+- [x] El formulario en español e inglés presenta los campos obligatorios y opcionales, con los máximos y validaciones especificados.
+- [x] Los errores de validación, rechazo antispam y fallo de envío conservan los valores introducidos y permiten corregir o reintentar; Turnstile solo acepta `success === true`, acción `contact` y hostname permitido, con token de hasta 2.048 caracteres y timeout de 10 segundos; solo un envío aceptado produce confirmación y limpieza de campos.
+- [x] La obra asociada es opcional, se elige entre obras incluidas en la última versión desplegada y traducidas al idioma correspondiente, y puede tener cualquiera de los cuatro estados de disponibilidad sin implicar una compra.
+- [x] El aviso publicado ES/EN identifica finalidad, interés legítimo específico, responsable, proveedores/transferencias, conservación y derecho de oposición; la evaluación de interés legítimo está documentada. No se exige una casilla de consentimiento para enviar.
+- [x] El buzón oficial reemplaza `consultas@example.invalid` antes de habilitar envíos reales; el mismo buzón recibe consultas de privacidad y ejercicio de derechos.
+- [x] El aviso de privacidad ES/EN ha sido aprobado por la persona responsable antes de habilitar envíos reales; describe la base y el interés legítimo, los derechos, el borrado operativo a 90 días, la excepción de respaldos Gmail hasta 6 meses, las retenciones de Cloudflare Routing (31 días) y Resend, y los destinatarios/proveedores y transferencias confirmados.
+- [x] La persona responsable aplica y documenta la revisión diaria y el borrado manual definitivo del hilo completo al cumplirse 90 días desde la última interacción sustantiva, reiniciando el plazo tras cada nueva respuesta; las copias de respaldo cifradas de Gmail hasta 6 meses son la excepción limitada aprobada.
+- [x] La página cumple los requisitos de accesibilidad, SEO y rendimiento establecidos en esta spec.
+- [x] El flujo no inicia compras, pagos ni gestión de pedidos.
+- [x] La interfaz presenta el contacto solo para consultas generales/artísticas/institucionales; no hay precios ni acciones o mensajes que ofrezcan negociar o cerrar ventas. El texto libre no se interpreta como pedido.
+- [x] La página ES/EN adapta la jerarquía visual de la nueva referencia mediante cabecera editorial y disposición asimétrica de información/formulario, conservando el aviso de privacidad completo antes de los campos; en móvil, tablet y escritorio no hay pérdida de contenido ni overflow.
+
+## Dudas abiertas
+
+- Ninguna. Aprobada la propuesta limpia: cabecera editorial; columna izquierda con email verificado y aviso legal íntegro; formulario actual a la derecha; sin FAQ ni módulo de enlaces inferior.
 
 ## Dependencias previas a envíos reales
 

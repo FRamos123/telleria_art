@@ -34,6 +34,8 @@ const englishCriticalTextPagePath = new URL('../pages/en/critical-texts/[critica
 const baseLayoutPath = new URL('../layouts/BaseLayout.astro', import.meta.url);
 const siteFooterPath = new URL('./SiteFooter.astro', import.meta.url);
 const contactFormPath = new URL('./ContactForm.astro', import.meta.url);
+const spanishContactPage = readFileSync(new URL('../pages/contacto.astro', import.meta.url), 'utf8');
+const englishContactPage = readFileSync(new URL('../pages/en/contact.astro', import.meta.url), 'utf8');
 const readOptionalComponent = (path: URL): string => {
 	try {
 		return readFileSync(path, 'utf8');
@@ -592,10 +594,10 @@ describe('catalog presentation components', () => {
 		expect(contactSection).not.toMatch(/<(?:button|form)\b|\b(?:buy|purchase|checkout|comprar|adquirir|precio|price)\b/i);
 	});
 
-	it('preloads only local home fonts when requested', () => {
-		expect(baseLayout).toContain('preloadHomeFonts?: boolean');
-		expect(baseLayout).toContain('preloadHomeFonts = false');
-		expect(baseLayout).toContain('preloadHomeFonts &&');
+	it('preloads local editorial fonts only on home and contact pages when requested', () => {
+		expect(baseLayout).toContain('preloadEditorialFonts?: boolean');
+		expect(baseLayout).toContain('preloadEditorialFonts = false');
+		expect(baseLayout).toContain('preloadEditorialFonts &&');
 		for (const font of [
 			'/fonts/bodoni-moda-400-latin.woff2',
 			'/fonts/newsreader-400-latin.woff2',
@@ -603,8 +605,10 @@ describe('catalog presentation components', () => {
 		]) {
 			expect(baseLayout).toContain(font);
 		}
-		expect(spanishHomePage).toContain('preloadHomeFonts={true}');
-		expect(englishHomePage).toContain('preloadHomeFonts={true}');
+		expect(spanishHomePage).toContain('preloadEditorialFonts={true}');
+		expect(englishHomePage).toContain('preloadEditorialFonts={true}');
+		expect(spanishContactPage).toContain('preloadEditorialFonts={true}');
+		expect(englishContactPage).toContain('preloadEditorialFonts={true}');
 	});
 
 	it('composes the series directory, responsive artwork grid, and localized empty state', () => {
@@ -634,6 +638,32 @@ describe('catalog presentation components', () => {
 		expect(contactForm).toContain('new URLSearchParams(window.location.search)');
 		expect(contactForm).toContain('option.value === artworkId');
 		expect(contactForm).toContain('contactArtworkSelect.value = artworkId');
+	});
+
+	it('presents contact in an asymmetric editorial layout while preserving the complete privacy notice and existing form', () => {
+		for (const source of [spanishContactPage, englishContactPage]) {
+			expect(source).toContain('messages.contactPageHeading');
+			expect(source).toContain('messages.contactIntro');
+			expect(source).toContain('<ContactForm');
+			expect(source).toContain('desktop:grid-cols-12');
+		}
+
+		expect(contactForm).toContain('messages.contactChannelTitle');
+		expect(contactForm).toContain('messages.contactEmailAddress');
+		expect(contactForm).toContain('mailto:${messages.contactEmailAddress}');
+		expect(contactForm).toContain('id="contact-privacy-notice"');
+		expect(contactForm).toContain('{messages.contactPrivacyRetention}');
+		expect(contactForm.indexOf('id="contact-privacy-notice"')).toBeLessThan(contactForm.indexOf('id="contact-form"'));
+		expect(contactForm).toContain('id="contact-form"');
+		expect(contactForm).toContain('name="name"');
+		expect(contactForm).toContain('name="email"');
+		expect(contactForm).toContain('name="institution"');
+		expect(contactForm).toContain('name="phone"');
+		expect(contactForm).toContain('name="artworkId"');
+		expect(contactForm).toContain('name="message"');
+		expect(contactForm).toContain('data-turnstile-container');
+		expect(contactForm).toContain('border-b border-outline-variant bg-transparent');
+		expect(contactForm).not.toMatch(/<(?:dialog)\b|name="consent"|(?:adquisici[oó]n|confidencialidad|72 horas|SSL 256)/iu);
 	});
 
 	it('marks the Turnstile token with the stable contact action', () => {

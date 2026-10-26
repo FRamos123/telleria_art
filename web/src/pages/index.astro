@@ -114,10 +114,11 @@ const webPageJsonLd = JSON.stringify({
 	description={messages.homeDescription}
 	canonicalPath="/"
 	alternatePaths={{ en: '/en/' }}
-	preloadHomeFonts={true}
+	preloadEditorialFonts={true}
 >
 	<section
-		class="relative w-full overflow-hidden border-b border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-xl desktop:px-gutter"
+		class="relative flex w-full items-center overflow-hidden border-b border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-xl desktop:px-gutter"
+		style="min-height: max(31rem, 39vw);"
 		aria-labelledby="home-title"
 	>
 		<div
@@ -129,7 +130,7 @@ const webPageJsonLd = JSON.stringify({
 			<div
 				aria-hidden="true"
 				class="pointer-events-none absolute inset-y-0 right-0 w-full tablet:w-2/3 desktop:w-7/12"
-				style={`background-image: linear-gradient(to right, #0e0e10 0%, rgba(14, 14, 16, 0.72) 28%, rgba(14, 14, 16, 0.52) 65%, rgba(14, 14, 16, 0.78) 100%), linear-gradient(to bottom, #0e0e10 0%, rgba(14, 14, 16, 0.35) 18%, rgba(14, 14, 16, 0.45) 72%, #0e0e10 100%), url('${heroBackdropUrl}'); background-position: center 18%; background-repeat: no-repeat; background-size: cover; mix-blend-mode: lighten;`}
+				style={`background-image: linear-gradient(to right, #0e0e10 0%, rgba(14, 14, 16, 0.72) 28%, rgba(14, 14, 16, 0.52) 65%, rgba(14, 14, 16, 0.78) 100%), linear-gradient(to bottom, #0e0e10 0%, rgba(14, 14, 16, 0.35) 18%, rgba(14, 14, 16, 0.45) 72%, #0e0e10 100%), url('${heroBackdropUrl}'); background-position: center 22%; background-repeat: no-repeat; background-size: cover; mix-blend-mode: lighten;`}
 			/>
 		)}
 		<div class="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-space-lg py-space-lg">

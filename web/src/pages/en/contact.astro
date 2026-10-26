@@ -19,20 +19,72 @@ const artworks = catalog.artworks.flatMap((artwork) => {
 	description={messages.contactMetaDescription}
 	canonicalPath="/en/contact/"
 	alternatePaths={{ es: '/contacto/' }}
+	preloadEditorialFonts={true}
 >
-	<section
-		class="mx-auto w-full max-w-3xl px-margin-mobile py-space-lg tablet:px-margin-mobile desktop:px-gutter"
-		aria-labelledby="contact-page-title"
-	>
-		<h1
-			id="contact-page-title"
-			class="mb-space-md mt-0 break-words font-headline-lg-mobile text-headline-lg-mobile text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+	<section class="w-full bg-surface-container-lowest" aria-labelledby="contact-page-title">
+		<header class="mx-auto flex w-full max-w-7xl flex-col gap-space-md px-margin-mobile pb-space-lg pt-space-xl desktop:px-gutter">
+			<div class="flex flex-wrap items-center gap-space-sm font-label-technical text-label-technical uppercase text-on-surface-variant">
+				<span class="inline-flex items-center gap-space-xs text-primary">
+					<span class="inline-block h-1.5 w-1.5 bg-primary"></span>
+					{messages.contactEyebrowStudio}
+				</span>
+				<span class="text-surface-variant">/</span>
+				<span>{messages.contactEyebrowLocation}</span>
+				<span class="text-surface-variant">/</span>
+				<span>{messages.contactEyebrowScope}</span>
+			</div>
+
+			<div class="grid grid-cols-1 items-end gap-y-space-md border-b border-outline-variant pb-space-lg tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+				<div class="flex flex-col gap-space-xs tablet:col-span-5 desktop:col-span-8">
+					<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+						{messages.contactHeaderCaption}
+					</span>
+					<h1
+						id="contact-page-title"
+						class="m-0 break-words font-headline-lg-mobile text-headline-lg-mobile uppercase text-on-surface desktop:font-headline-lg desktop:text-headline-lg"
+					>
+						<span class="sr-only">{messages.contactPageHeading}: </span>
+						{messages.contactPageHeadingPrefix}{' '}
+						<span class="font-normal italic text-primary">{messages.contactPageHeadingAccent}</span>
+					</h1>
+				</div>
+				<div class="tablet:col-span-3 desktop:col-span-4">
+					<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+						{messages.contactIntro}
+					</p>
+				</div>
+			</div>
+		</header>
+
+		<div class="mx-auto w-full max-w-7xl px-margin-mobile pb-space-xl pt-space-md desktop:px-gutter">
+			<ContactForm locale={locale} messages={messages} artworks={artworks} />
+		</div>
+
+		<section
+			aria-labelledby="contact-catalog-banner-title"
+			class="w-full border-t border-outline-variant bg-surface-container-lowest px-margin-mobile py-space-xl desktop:px-gutter"
 		>
-			{messages.contactTitle}
-		</h1>
-		<p class="mb-space-lg mt-0 font-body-md text-body-md text-on-surface-variant">
-			{messages.contactIntro}
-		</p>
-		<ContactForm locale={locale} messages={messages} artworks={artworks} />
+			<div class="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-space-lg tablet:flex-row tablet:items-center">
+				<div class="flex flex-col gap-space-xs">
+					<span class="font-label-technical text-label-technical uppercase text-primary">
+						{messages.contactCatalogBannerEyebrow}
+					</span>
+					<h2 id="contact-catalog-banner-title" class="m-0 font-headline-sm text-headline-sm text-on-surface">
+						{messages.contactCatalogBannerTitle}
+					</h2>
+					<p class="m-0 max-w-xl font-body-md text-body-md text-on-surface-variant">
+						{messages.contactCatalogBannerBody}
+					</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-space-sm">
+					<a
+						class="inline-flex h-11 items-center bg-surface-container-high px-space-md font-label-technical text-label-technical uppercase text-on-surface hover:bg-primary hover:text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+						href="/en/works/"
+					>
+						{messages.contactCatalogBannerWorksAction}
+					</a>
+				</div>
+			</div>
+		</section>
 	</section>
 </BaseLayout>

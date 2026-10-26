@@ -34,6 +34,10 @@ describe('foundation translations', () => {
 	it('provides non-empty Spanish and English messages for the contact form and final privacy notice', () => {
 		const contactMessageKeys = [
 			'contactTitle',
+			'contactPageHeading',
+			'contactChannelTitle',
+			'contactEmailAddress',
+			'contactFormHeading',
 			'contactMetaDescription',
 			'contactIntro',
 			'contactNameLabel',

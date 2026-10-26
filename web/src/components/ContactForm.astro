@@ -11,85 +11,159 @@ const { locale, messages, artworks } = Astro.props;
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
 ---
 
-<div class="grid grid-cols-1 gap-space-lg">
-	<section
-		id="contact-privacy-notice"
-		aria-labelledby="contact-privacy-notice-title"
-		class="border border-outline-variant bg-surface-container p-space-md"
-	>
-		<h2
-			id="contact-privacy-notice-title"
-			class="mb-space-md mt-0 font-headline-sm text-headline-sm text-on-surface"
+<div class="grid grid-cols-1 items-start gap-y-space-xl tablet:grid-cols-8 tablet:gap-x-gutter-mobile desktop:grid-cols-12 desktop:gap-x-gutter">
+	<aside class="flex min-w-0 flex-col gap-space-lg tablet:col-span-8 desktop:col-span-5">
+		<section aria-labelledby="contact-studio-title" class="flex flex-col gap-space-md bg-surface-container-low p-space-lg">
+			<span class="font-label-technical text-label-technical uppercase text-primary">
+				{messages.contactCard01Eyebrow}
+			</span>
+			<div class="flex flex-col gap-space-xs">
+				<h2 id="contact-studio-title" class="m-0 font-headline-sm text-headline-sm text-on-surface">
+					{messages.contactCard01Title}
+				</h2>
+				<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+					{messages.contactCard01Location}
+				</p>
+			</div>
+			<div class="flex flex-col gap-space-xs bg-surface-container-lowest p-space-md">
+				<span class="font-label-technical text-label-technical uppercase text-primary">
+					{messages.contactCard01NoteTitle}
+				</span>
+				<p class="m-0 font-body-md text-body-md italic text-on-surface">
+					{messages.contactCard01NoteBody}
+				</p>
+			</div>
+		</section>
+
+		<section aria-labelledby="contact-channel-title" class="flex flex-col gap-space-md bg-surface-container-low p-space-lg">
+			<span class="font-label-technical text-label-technical uppercase text-primary">
+				{messages.contactCard02Eyebrow}
+			</span>
+			<div class="flex flex-col gap-space-xs">
+				<h2 id="contact-channel-title" class="m-0 font-label-caption text-label-caption uppercase text-on-surface-variant">
+					{messages.contactChannelTitle}
+				</h2>
+				<a
+					class="w-fit break-all font-label-technical text-label-technical text-primary underline decoration-outline-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					href={`mailto:${messages.contactEmailAddress}`}
+				>
+					{messages.contactEmailAddress}
+				</a>
+				<p class="m-0 font-body-md text-body-md italic text-on-surface-variant">
+					{messages.contactCard02Subtitle}
+				</p>
+			</div>
+		</section>
+
+		<section
+			id="contact-privacy-notice"
+			aria-labelledby="contact-privacy-notice-title"
+			class="flex flex-col gap-space-md bg-surface-container-low p-space-lg"
 		>
-			{messages.contactPrivacyNoticeTitle}
-		</h2>
-		<dl class="m-0 grid gap-space-md">
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyControllerLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyController}
-				</dd>
+			<div class="flex flex-col gap-space-xs">
+				<span class="font-label-technical text-label-technical uppercase text-primary">
+					{messages.contactCard03Eyebrow}
+				</span>
+				<h2
+					id="contact-privacy-notice-title"
+					class="m-0 font-headline-sm text-headline-sm text-on-surface"
+				>
+					{messages.contactPrivacyNoticeTitle}
+				</h2>
 			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyContactLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyContact}
-				</dd>
+
+			<div class="grid grid-cols-1 gap-space-sm tablet:grid-cols-2">
+				<div class="flex flex-col gap-space-xs bg-surface-container-lowest p-space-sm">
+					<span class="font-label-caption text-label-caption uppercase text-primary">
+						{messages.contactPrivacyControllerLabel}
+					</span>
+					<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+						{messages.contactPrivacyController}
+					</p>
+				</div>
+				<div class="flex flex-col gap-space-xs bg-surface-container-lowest p-space-sm">
+					<span class="font-label-caption text-label-caption uppercase text-primary">
+						{messages.contactPrivacyContactLabel}
+					</span>
+					<p class="m-0 break-all font-body-md text-body-md text-on-surface-variant">
+						{messages.contactPrivacyContact}
+					</p>
+				</div>
 			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyPurposeLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyPurpose}
-				</dd>
-			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyDataLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyData}
-				</dd>
-			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyLegalBasisLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyLegalBasis}
-				</dd>
-			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyProvidersLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyProviders}
-				</dd>
-			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyRetentionLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyRetention}
-				</dd>
-			</div>
-			<div>
-				<dt class="font-label-technical text-label-technical text-on-surface">
-					{messages.contactPrivacyRightsLabel}
-				</dt>
-				<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
-					{messages.contactPrivacyRights}
-				</dd>
-			</div>
-		</dl>
-	</section>
+
+			<details class="bg-surface-container-lowest p-space-md">
+				<summary class="cursor-pointer font-label-technical text-label-technical uppercase text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+					{messages.contactPrivacyDetailsAction}
+				</summary>
+				<dl class="m-0 mt-space-md grid gap-space-md border-t border-outline-variant pt-space-md">
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyControllerLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyController}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyContactLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyContact}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyPurposeLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyPurpose}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyDataLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyData}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyLegalBasisLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyLegalBasis}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyProvidersLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyProviders}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyRetentionLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyRetention}
+						</dd>
+					</div>
+					<div>
+						<dt class="font-label-technical text-label-technical text-on-surface">
+							{messages.contactPrivacyRightsLabel}
+						</dt>
+						<dd class="m-0 font-body-md text-body-md text-on-surface-variant">
+							{messages.contactPrivacyRights}
+						</dd>
+					</div>
+				</dl>
+			</details>
+		</section>
+	</aside>
 
 	<form
 		id="contact-form"
@@ -104,21 +178,34 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 		data-message-spam-expired={messages.contactSpamExpired}
 		data-message-invalid-request={messages.contactInvalidRequest}
 		data-message-artwork-unavailable={messages.contactArtworkUnavailable}
+		class="min-w-0 bg-surface-container p-space-lg tablet:col-span-8 desktop:col-span-7 desktop:p-space-xl"
 	>
 		<input type="hidden" name="locale" value={locale} />
+		<header class="mb-space-lg flex flex-col gap-space-xs border-b border-outline-variant pb-space-md">
+			<p class="m-0 font-label-technical text-label-technical uppercase text-primary">
+				{messages.contactFormEyebrow}
+			</p>
+			<h2 class="m-0 font-headline-md text-headline-md text-on-surface">
+				{messages.contactFormHeading}
+			</h2>
+			<p class="m-0 font-body-md text-body-md text-on-surface-variant">
+				{messages.contactIntro}
+			</p>
+		</header>
 
 		<div class="grid grid-cols-1 gap-space-lg tablet:grid-cols-2">
 			<div>
-				<label for="contact-name" class="block font-label-technical text-label-technical text-on-surface">
+				<label for="contact-name" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
 					<span>{messages.contactNameLabel}</span>
-					<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
+					<span class="ml-space-xs text-primary">*</span>
 				</label>
 				<input
 					id="contact-name"
-					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					class="mt-space-xs min-h-11 w-full rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface placeholder:text-outline focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 					name="name"
 					type="text"
 					autocomplete="name"
+					placeholder={messages.contactNamePlaceholder}
 					maxlength="100"
 					required
 				/>
@@ -131,16 +218,38 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 			</div>
 
 			<div>
-				<label for="contact-email" class="block font-label-technical text-label-technical text-on-surface">
+				<label for="contact-institution" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
+					<span>{messages.contactInstitutionLabel}</span>
+					<span class="ml-space-xs text-on-surface-variant">({messages.contactOptional})</span>
+				</label>
+				<input
+					id="contact-institution"
+					class="mt-space-xs min-h-11 w-full rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface placeholder:text-outline focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					name="institution"
+					type="text"
+					autocomplete="organization"
+					placeholder={messages.contactInstitutionPlaceholder}
+					maxlength="150"
+				/>
+				<p id="contact-institution-too-long-error" data-field-error="institution" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
+					{messages.contactInstitutionTooLong}
+				</p>
+			</div>
+		</div>
+
+		<div class="mt-space-lg grid grid-cols-1 gap-space-lg tablet:grid-cols-2">
+			<div>
+				<label for="contact-email" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
 					<span>{messages.contactEmailLabel}</span>
-					<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
+					<span class="ml-space-xs text-primary">*</span>
 				</label>
 				<input
 					id="contact-email"
-					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					class="mt-space-xs min-h-11 w-full rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface placeholder:text-outline focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 					name="email"
 					type="email"
 					autocomplete="email"
+					placeholder={messages.contactEmailPlaceholder}
 					maxlength="254"
 					required
 				/>
@@ -154,42 +263,23 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 					{messages.contactEmailTooLong}
 				</p>
 			</div>
-		</div>
-
-		<div class="mt-space-lg grid grid-cols-1 gap-space-lg tablet:grid-cols-2">
-			<div>
-				<label for="contact-institution" class="block font-label-technical text-label-technical text-on-surface">
-					<span>{messages.contactInstitutionLabel}</span>
-					<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
-				</label>
-				<input
-					id="contact-institution"
-					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-					name="institution"
-					type="text"
-					autocomplete="organization"
-					maxlength="150"
-				/>
-				<p id="contact-institution-too-long-error" data-field-error="institution" data-error-code="tooLong" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
-					{messages.contactInstitutionTooLong}
-				</p>
-			</div>
 
 			<div>
-				<label for="contact-phone" class="block font-label-technical text-label-technical text-on-surface">
+				<label for="contact-phone" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
 					<span>{messages.contactPhoneLabel}</span>
-					<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
+					<span class="ml-space-xs text-on-surface-variant">({messages.contactOptional})</span>
 				</label>
 				<input
 					id="contact-phone"
-					class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					class="mt-space-xs min-h-11 w-full rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface placeholder:text-outline focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 					name="phone"
 					type="tel"
 					autocomplete="tel"
+					placeholder={messages.contactPhonePlaceholder}
 					maxlength="30"
 					aria-describedby="contact-phone-help"
 				/>
-				<p id="contact-phone-help" class="mb-0 mt-space-xs font-body-md text-body-md text-on-surface-variant">
+				<p id="contact-phone-help" class="mb-0 mt-space-xs font-label-caption text-label-caption text-on-surface-variant">
 					{messages.contactPhoneHelp}
 				</p>
 				<p id="contact-phone-invalid-error" data-field-error="phone" data-error-code="invalidFormat" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
@@ -202,20 +292,22 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 		</div>
 
 		<div class="mt-space-lg">
-			<label for="contact-artwork" class="block font-label-technical text-label-technical text-on-surface">
+			<label for="contact-artwork" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
 				<span>{messages.contactArtworkLabel}</span>
-				<span class="ml-space-xs text-on-surface-variant">{messages.contactOptional}</span>
+				<span class="ml-space-xs text-on-surface-variant">({messages.contactOptional})</span>
 			</label>
 			<select
 				id="contact-artwork"
-				class="mt-space-sm min-h-11 w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				class="mt-space-xs min-h-11 w-full cursor-pointer rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 				name="artworkId"
 				aria-describedby="contact-artwork-help"
 			>
-				<option value="">{messages.contactArtworkNone}</option>
-				{artworks.map((artwork) => <option value={artwork.id}>{artwork.title}</option>)}
+				<option value="" class="bg-surface-container-high text-on-surface">{messages.contactArtworkNone}</option>
+				{artworks.map((artwork) => (
+					<option value={artwork.id} class="bg-surface-container-high text-on-surface">{artwork.title}</option>
+				))}
 			</select>
-			<p id="contact-artwork-help" class="mb-0 mt-space-xs font-body-md text-body-md text-on-surface-variant">
+			<p id="contact-artwork-help" class="mb-0 mt-space-xs font-label-caption text-label-caption text-on-surface-variant">
 				{messages.contactArtworkHelp}
 			</p>
 			<p id="contact-artwork-unavailable-error" data-field-error="artworkId" data-error-code="artworkUnavailable" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
@@ -224,16 +316,22 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 		</div>
 
 		<div class="mt-space-lg">
-			<label for="contact-message" class="block font-label-technical text-label-technical text-on-surface">
-				<span>{messages.contactMessageLabel}</span>
-				<span class="ml-space-xs text-on-surface-variant">{messages.contactRequired}</span>
-			</label>
+			<div class="flex flex-wrap items-center justify-between gap-space-xs">
+				<label for="contact-message" class="block font-label-technical text-label-technical uppercase text-on-surface-variant">
+					<span>{messages.contactMessageLabel}</span>
+					<span class="ml-space-xs text-primary">*</span>
+				</label>
+				<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+					{messages.contactMessageExtentLabel}
+				</span>
+			</div>
 			<textarea
 				id="contact-message"
-				class="mt-space-sm w-full rounded-none border border-outline bg-surface-container-high px-space-md py-space-sm font-body-md text-body-md text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+				class="mt-space-xs w-full rounded-none border-0 border-b border-outline-variant bg-transparent px-0 py-space-sm font-body-md text-body-md text-on-surface placeholder:text-outline focus:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 				name="message"
-				rows="6"
+				rows="4"
 				maxlength="5000"
+				placeholder={messages.contactMessagePlaceholder}
 				required
 			></textarea>
 			<p id="contact-message-required-error" data-field-error="message" data-error-code="required" class="mb-0 mt-space-xs font-body-md text-body-md text-secondary" hidden>
@@ -245,14 +343,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 		</div>
 
 		<section
-			class="mt-space-lg border border-outline-variant bg-surface-low p-space-md"
+			class="mt-space-lg bg-surface-container-low p-space-md"
 			aria-labelledby="contact-anti-spam-title"
 		>
-			<h2 id="contact-anti-spam-title" class="m-0 font-label-technical text-label-technical text-on-surface">
+			<h2 id="contact-anti-spam-title" class="m-0 font-label-technical text-label-technical uppercase text-on-surface">
 				{messages.contactAntiSpamLabel}
 			</h2>
 			<div id="contact-turnstile" data-turnstile-container data-sitekey={turnstileSiteKey}></div>
-			<p id="contact-antispam-status" class="mb-0 mt-space-sm font-body-md text-body-md text-on-surface-variant" role="status" aria-live="polite">
+			<p id="contact-antispam-status" class="mb-0 mt-space-xs font-label-caption text-label-caption text-on-surface-variant" role="status" aria-live="polite">
 				{turnstileSiteKey ? messages.contactAntiSpamPending : messages.contactAntiSpamUnavailable}
 			</p>
 		</section>
@@ -262,18 +360,20 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 		</div>
 		<p id="contact-response-status" class="mt-space-lg font-body-md text-body-md text-on-surface" role="status" aria-live="polite"></p>
 
-		<button
-			class="mt-space-lg h-11 rounded-none border border-outline bg-surface-container-high px-space-md font-label-technical text-label-technical text-on-surface-variant focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-			type="submit"
-			disabled={!turnstileSiteKey}
-		>
-			{messages.contactSubmit}
-		</button>
+		<div class="mt-space-lg flex flex-wrap items-center justify-between gap-space-md">
+			<button
+				class="inline-flex h-11 items-center rounded-none border-0 bg-on-surface px-space-lg font-label-technical text-label-technical uppercase text-surface-container-lowest hover:bg-primary hover:text-on-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-surface-container-high disabled:text-on-surface-variant"
+				type="submit"
+				disabled={!turnstileSiteKey}
+			>
+				{messages.contactSubmit}
+			</button>
+		</div>
 	</form>
 </div>
 
 <script>
-	import { validateContactInquiry, type ContactInquiryField, type ContactInquiryInput } from '../domain/contact-inquiry'
+	import { validateContactInquiry, type ContactInquiryInput } from '../domain/contact-inquiry'
 
 	interface TurnstileRenderOptions {
 		sitekey: string

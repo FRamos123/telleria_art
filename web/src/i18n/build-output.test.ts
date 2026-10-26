@@ -153,9 +153,6 @@ describe('static build output', () => {
 			if (outputExists(home.exhibitionsPath)) {
 				expectedNavigationLinks.push({ href: home.exhibitionsPath, label: expectation.homeExhibitionsLink });
 			}
-			if (outputExists(home.criticalTextsPath)) {
-				expectedNavigationLinks.push({ href: home.criticalTextsPath, label: expectation.homeCriticalTextsLink });
-			}
 			if (outputExists(home.contactPath)) {
 				expectedNavigationLinks.push({ href: home.contactPath, label: expectation.homeContactLink });
 			}
@@ -392,11 +389,22 @@ describe('static build output', () => {
 			],
 		] as const) {
 			expect(page).toContain(`<html lang="${locale}">`);
+			for (const font of [
+				'/fonts/bodoni-moda-400-latin.woff2',
+				'/fonts/newsreader-400-latin.woff2',
+				'/fonts/geist-latin.woff2',
+			]) {
+				expect(page).toContain(`rel="preload" href="${font}" as="font"`);
+			}
 			expect(page).toContain(`<title>${title}</title>`);
+			expect(page).toContain(messages[locale].contactPageHeading);
 			expect(readMetaDescription(page)).toBe(description);
 			expect(page).toContain(`rel="canonical" href="${canonical}"`);
 			expect(page).toContain(`rel="alternate" hreflang="${locale === 'es' ? 'en' : 'es'}" href="${alternate}"`);
 			expect(page).toContain('id="contact-form"');
+			expect(page.indexOf('id="contact-privacy-notice"')).toBeLessThan(page.indexOf('id="contact-form"'));
+			expect(page).toContain(messages[locale].contactFormHeading);
+			expect(page).toContain(`mailto:${messages[locale].contactEmailAddress}`);
 			expect(page).toContain('name="name"');
 			expect(page).toContain('name="email"');
 			expect(page).toContain('name="institution"');

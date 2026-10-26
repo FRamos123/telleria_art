@@ -1,5 +1,5 @@
 # Plan 005 — Consultas de contacto
-Estado: aprobado (actualización de base jurídica aprobada por la persona usuaria)
+Estado: aprobado (revisión visual aprobada por la persona usuaria)
 
 ## Alcance y enfoque
 
@@ -11,10 +11,11 @@ La definición aprobada de RF-5 toma la última versión desplegada como fuente 
 
 | Archivo | Cambio y responsabilidad | RF |
 |---|---|---|
-| `design/tokens.md` | Actualizar el patrón compuesto para aviso informativo y derecho de oposición, sin casilla de consentimiento obligatoria; campos, errores, antispam y confirmación usan tokens existentes, sin cambiar `@theme`. | RF-1–RF-10, RF-12, RNF-2, RNF-6 |
-| `web/src/pages/contacto.astro` | Página estática ES; metadatos localizados, obras publicadas en ES y formulario general en el layout compartido. | RF-1, RF-2, RF-5, RF-9, RF-12; RNF-1, RNF-3, RNF-4 |
-| `web/src/pages/en/contact.astro` | Equivalente EN; enlaza mediante `hreflang` solo con la versión ES existente. | RF-1, RF-2, RF-5, RF-9, RF-12; RNF-1, RNF-3, RNF-4 |
-| `web/src/components/ContactForm.astro` | Campos etiquetados, aviso final y acceso a derechos, errores accesibles, Turnstile y mejora mínima de cliente. No contiene casilla de consentimiento ni bloqueo por borrador; el envío depende de que haya sitekey y token Turnstile. Solo permite consultas generales, no cotizaciones, compras ni reservas. | RF-1–RF-4, RF-6–RF-10, RF-12; RNF-1, RNF-2, RNF-5 |
+| `design/tokens.md` | Proponer el patrón de la nueva referencia `design/consultas_alejandro_fernandez_telleria/`: cabecera editorial y composición asimétrica información/formulario con tokens existentes; excluir sus contenidos comerciales/no verificados y preservar el aviso aprobado. | RF-13, RNF-2, RNF-6 |
+| `web/src/pages/contacto.astro` | Página estática ES; metadatos localizados, cabecera editorial, obras publicadas en ES y formulario general dentro de la composición aprobada. | RF-1, RF-2, RF-5, RF-9, RF-12–RF-13; RNF-1, RNF-3, RNF-4 |
+| `web/src/pages/en/contact.astro` | Equivalente EN; enlaza mediante `hreflang` solo con la versión ES existente y no usa fallback de contenido. | RF-1, RF-2, RF-5, RF-9, RF-12–RF-13; RNF-1, RNF-3, RNF-4 |
+| `web/src/components/ContactForm.astro` | Conservar el formulario existente y reubicarlo en la columna derecha; trasladar sin recortar el aviso de privacidad aprobado a la columna de información izquierda, antes del formulario en el orden del documento. Mantener campos, validaciones, errores, Turnstile, estados y mejora mínima de cliente. Sin checkbox de consentimiento ni bloqueo por aviso pendiente. | RF-1–RF-4, RF-6–RF-10, RF-12–RF-13; RNF-1, RNF-2, RNF-5 |
+| `web/src/layouts/BaseLayout.astro` | Renombrar el opt-in de precarga local de fuentes editoriales y activarlo en contacto ES/EN además de las homes para evitar cambios de layout al cargar Bodoni Moda, Newsreader y Geist; sin estilos nuevos ni solicitudes externas. | RNF-4, RNF-6 |
 | `docs/legitimate-interest-assessment.md` | Evaluación interna del interés legítimo: finalidad, necesidad, expectativas, ponderación, salvaguardas, oposición y conclusión confirmada por la responsable. No se publica con el aviso. | RF-9; RNF-5 |
 | `web/src/components/ArtworkContent.astro` | Añadir una acción localizada de consulta general que abra el contacto con el ID de esa obra; no enmarca el enlace como compra ni consulta de precio. Es un cambio en la composición de una ficha existente; cambio de layout aprobado por la persona usuaria. | RF-5, RF-12 |
 | `web/src/components/SiteFooter.astro` | Añadir un enlace localizado a contacto para que coleccionistas e instituciones puedan encontrar el formulario desde el portfolio; cambio de layout aprobado por la persona usuaria. | RF-1 |
@@ -68,12 +69,15 @@ La definición aprobada de RF-5 toma la última versión desplegada como fuente 
 
 ## Construcción de la interfaz y tokens
 
-- Usar el layout compartido, con una sección de una columna en móvil y distribución responsive en tablet/escritorio según los cortes existentes: `<768px`, `768–1279px` y `≥1280px`.
-- Superficie base `surface-container-lowest`; bloque del formulario `surface-low` o `surface-container`; controles sobre superficie oscura opaca. Texto principal `on-surface`, instrucciones `on-surface-variant`, etiquetas con `label-technical` y cuerpo con `body-md`.
-- Título con los estilos existentes `headline-lg-mobile`/`headline-lg`; botón principal con el patrón de 44 px `primary`/`on-primary`; espaciado `margin-mobile`, `gutter-mobile`, `space-md` y `space-lg`; radio `0`.
-- Foco visible con el patrón existente de outline `primary`. Los errores tendrán texto explícito y asociado al control; el color/borde no será el único indicador. No usar opacidad ni valores arbitrarios. Ningún valor de `@theme` cambia.
-- El aviso, el derecho de oposición y la confirmación deben ser legibles con teclado y lector de pantalla; el patrón no requiere casilla de consentimiento para el interés legítimo elegido. El borrador legal puede mostrarse con marca de pendiente en builds locales de revisión y el envío permanecerá deshabilitado; no se desplegará esa versión. El texto definitivo solo se incorporará tras aprobarlo y documentar la evaluación de interés legítimo.
-- No hay una captura de referencia específica del formulario. Antes de código se propone documentar este patrón compuesto en `design/tokens.md` usando exclusivamente tokens existentes.
+- **Referencia y límites:** usar `design/consultas_alejandro_fernandez_telleria/screen.png`, `code.html` y `DESIGN.md` solo como referencia de composición/estilo. La marca y navegación global existentes de `SiteHeader` permanecen sin cambios.
+- **Cabecera editorial:** franja de 12 columnas dentro de `max-w-7xl`, título localizado «Consultas sobre obras» en 8 columnas (`headline-lg-mobile`/`headline-lg`) y `contactIntro` aprobado en 4 columnas (`body-md`); divisor inferior. No copiar ubicación física, horarios ni texto curatorial inventado del mockup.
+- **Composición principal:** en escritorio, 12 columnas: izquierda 5 cols con canal/email verificado y aviso de privacidad completo en su texto aprobado; derecha 7 cols con el formulario actual sobre `surface-container`. Bajo 1280 px se apilan ambos bloques a una columna, con el aviso completo antes del primer control en el orden DOM, para no comprimir texto legal ni formulario.
+- **Formulario:** conservar exactamente nombre, email, institución opcional, teléfono opcional, obra asociada opcional, mensaje y Turnstile. No implementar selector de motivos, fecha de proyecto, expediente, casilla de legitimidad/confidencialidad ni otros controles del export. Labels, errores y estados permanecen localizados y asociados accesiblemente.
+- **Campos visuales:** inputs transparentes con borde inferior `outline-variant` que pasa a `primary` al foco, texto Newsreader `body-md` y etiquetas Geist `label-technical`; el botón conserva el patrón de 44 px `primary`/`on-primary`. Mantener foco visible, errores textuales y asociación accesible.
+- **Columna informativa:** solo email verificado `consultas@artelleria.com`, alcance de consulta aprobado y aviso legal íntegro. No incluir cita, promesas de respuesta, certificados, garantías, transporte ni “canal cifrado SSL 256-bit” del HTML de referencia.
+- **Secciones excluidas:** omitir las FAQ del mockup porque sus respuestas contienen afirmaciones no aprobadas. No añadir el bloque inferior catálogo/textos críticos: ambos destinos ya están en la navegación global y repetirlos no ayuda a completar la consulta.
+- **Tokens:** usar superficies, colores, tipografías, espaciado, radios y breakpoints ya definidos. No cambiar `@theme`, añadir dependencias ni JavaScript.
+- **Aprobación recibida (2026-10-26):** propuesta limpia 5/7 confirmada: cabecera editorial, izquierda con canal verificado + aviso legal íntegro, formulario actual a la derecha; sin FAQ ni bloque inferior de enlaces. No se amplían datos ni alcance del formulario.
 
 ## Decisiones técnicas justificadas
 
@@ -86,6 +90,7 @@ La definición aprobada de RF-5 toma la última versión desplegada como fuente 
 | No guardar solicitudes en una base de datos de la aplicación y aplicar una revisión manual del buzón dedicado. | Evita almacenamiento adicional; el responsable revisa a diario y elimina el hilo completo al cumplirse el plazo provisional desde la última interacción sustantiva. | Añadir almacenamiento y borrado programado introduciría un servicio nuevo y datos persistentes. La rutina manual no elimina copias recuperables que controle el proveedor; ese comportamiento debe confirmarse antes de envíos reales. |
 | Mantener Resend como transporte y definir la aceptación por respuesta satisfactoria de su API. | Coincide con la spec: confirma aceptación para entrega, no entrega final ni lectura. | Afirmar recepción en bandeja o prometer una respuesta sería una garantía que el endpoint de envío no puede demostrar. |
 | Reutilizar tokens y patrones existentes; documentar un patrón de formulario antes del código. | Evita nuevos colores, tipografías, espaciados o radios. | Añadir tokens o copiar Stitch sin adaptación contradice la guía del proyecto. |
+| Reinterpretar la referencia como composición asimétrica de consultas y conservar los contratos actuales del formulario. | Toma el ritmo editorial de la nueva captura sin incluir contenido comercial, datos ficticios ni afirmaciones no verificadas. | Copiar el HTML de la referencia o abreviar/eliminar el aviso legal. |
 | Usar Cloudflare Email Routing solo para reenviar el alias del dominio a Gmail. | Servicio autorizado expresamente por la persona usuaria; evita desplegar una bandeja propia. Cloudflare no almacena el contenido según su documentación y los eventos tienen retención de 31 días. | Email Routing no ofrece una bandeja ni permite responder desde el dominio; las respuestas salen desde Gmail. No se usará Cloudflare Email Sending ni un Worker para este flujo. |
 | Mantener las consultas actuales como canal no comercial. | Alinea el portfolio con la decisión vigente de aplazar la tienda; el correo permite responder consultas generales sin crear una operación comercial en el sistema. | Negociar o cerrar ventas manualmente por email seguiría siendo comercio y queda fuera de esta spec; requeriría reactivar el alcance comercial y aprobar otra spec. |
 
