@@ -505,6 +505,7 @@ describe('catalog presentation components', () => {
 
 	it('renders localized home navigation only for available routes and anchors', () => {
 		expect(homeNavigation).toContain('aria-label={messages.homeNavigationLabel}');
+		expect(homeNavigation).toContain('hidden tablet:block');
 		expect(homeNavigation).toContain("{ works: '/obras/', exhibitions: '/exposiciones/', criticalTexts: '/textos-criticos/', contact: '/contacto/' }");
 		expect(homeNavigation).toContain("{ works: '/en/works/', exhibitions: '/en/exhibitions/', criticalTexts: '/en/critical-texts/', contact: '/en/contact/' }");
 		expect(homeNavigation).toMatch(/if \(hasWorksRoute\) \{\s*links\.push\(\{ href: localizedPaths\.works, label: messages\.homeWorksLink \}\);/);

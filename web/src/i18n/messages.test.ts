@@ -234,6 +234,19 @@ describe('foundation translations', () => {
 			'artworkNextInSeriesBadge',
 			'artworkNextInSeriesAction',
 			'artworkViewFullSeries',
+			'mobileMenuTriggerLabel',
+			'mobileMenuOpenText',
+			'mobileMenuCloseText',
+			'mobileMenuEyebrow',
+			'mobileMenuWorksSubtitle',
+			'mobileMenuWorksCountSuffix',
+			'mobileMenuSeriesSubtitle',
+			'mobileMenuSeriesCountSuffix',
+			'mobileMenuExhibitionsSubtitle',
+			'mobileMenuContactSubtitle',
+			'mobileMenuContactBadge',
+			'mobileMenuCustodyEyebrow',
+			'mobileMenuCorrespondenceTitle',
 		] as const;
 		const spanish = es as unknown as Record<string, string>;
 		const english = en as unknown as Record<string, string>;

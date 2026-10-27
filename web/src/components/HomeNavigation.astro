@@ -42,7 +42,7 @@ if (hasContactRoute) {
 ---
 
 {links.length > 0 && (
-	<nav aria-label={messages.homeNavigationLabel}>
+	<nav aria-label={messages.homeNavigationLabel} class="hidden tablet:block">
 		<ul class="m-0 flex list-none flex-wrap items-center gap-x-space-md gap-y-space-xs p-0">
 			{links.map((link) => (
 				<li>

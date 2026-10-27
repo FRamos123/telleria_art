@@ -1,4 +1,5 @@
 ---
+import { selectRecentHomeArtworks } from '../domain/catalog-presentation';
 import type { Locale, Messages } from '../i18n';
 import { loadCatalogContent } from '../infrastructure/sanity/catalog-content';
 import HomeNavigation from './HomeNavigation.astro';
@@ -36,24 +37,106 @@ const hasContactRoute = Object.hasOwn(
 	localizedRouteModules,
 	locale === 'es' ? '../pages/contacto.astro' : '../pages/en/contact.astro',
 );
-const hasSeriesDirectory = hasWorksRoute
-	&& catalog.series.some((series) => series.translations[locale] !== undefined);
+
+const visibleArtworks = catalog.artworks.filter((artwork) => artwork.translations[locale] !== undefined);
+const visibleSeries = catalog.series.filter((series) => series.translations[locale] !== undefined);
+const visibleExhibitions = catalog.exhibitions.filter(
+	(exhibition) => exhibition.translations[locale] !== undefined,
+);
+const hasSeriesDirectory = hasWorksRoute && visibleSeries.length > 0;
 const homeHref = locale === 'es' ? '/' : '/en/';
+const localizedPaths = locale === 'es'
+	? {
+		works: '/obras/',
+		exhibitions: '/exposiciones/',
+		criticalTexts: '/textos-criticos/',
+		contact: '/contacto/',
+	}
+	: {
+		works: '/en/works/',
+		exhibitions: '/en/exhibitions/',
+		criticalTexts: '/en/critical-texts/',
+		contact: '/en/contact/',
+	};
+
+const exhibitionYears = visibleExhibitions
+	.map((exhibition) => Number(exhibition.startDate.slice(0, 4)))
+	.filter((year) => Number.isFinite(year));
+const minExhibitionYear = exhibitionYears.length > 0 ? Math.min(...exhibitionYears) : undefined;
+const maxExhibitionYear = exhibitionYears.length > 0 ? Math.max(...exhibitionYears) : undefined;
+const exhibitionBadge = minExhibitionYear && maxExhibitionYear
+	? minExhibitionYear === maxExhibitionYear
+		? `${minExhibitionYear}`
+		: `${minExhibitionYear} — ${maxExhibitionYear}`
+	: `${visibleExhibitions.length}`;
+
+const [featuredArtwork] = selectRecentHomeArtworks(visibleArtworks);
+const featuredTranslation = featuredArtwork?.translations[locale];
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const featuredDimensions = featuredArtwork
+	? `${numberFormat.format(featuredArtwork.heightCm)} × ${numberFormat.format(featuredArtwork.widthCm)} ${messages.centimeterUnit}`
+	: '';
+const featuredHref = featuredArtwork
+	? locale === 'es'
+		? `/obra/${encodeURIComponent(featuredArtwork.id)}/`
+		: `/en/work/${encodeURIComponent(featuredArtwork.id)}/`
+	: undefined;
+
+const mobileEntries: Array<{
+	href: string;
+	label: string;
+	subtitle: string;
+	badge: string;
+}> = [];
+
+if (hasWorksRoute) {
+	mobileEntries.push({
+		href: localizedPaths.works,
+		label: messages.homeWorksLink,
+		subtitle: messages.mobileMenuWorksSubtitle,
+		badge: `[ ${visibleArtworks.length} ${messages.mobileMenuWorksCountSuffix} ]`,
+	});
+}
+if (hasWorksRoute && hasSeriesDirectory) {
+	mobileEntries.push({
+		href: `${localizedPaths.works}#series-directory`,
+		label: messages.homeSeriesLink,
+		subtitle: messages.mobileMenuSeriesSubtitle,
+		badge: `[ ${visibleSeries.length} ${messages.mobileMenuSeriesCountSuffix} ]`,
+	});
+}
+if (hasExhibitionsRoute) {
+	mobileEntries.push({
+		href: localizedPaths.exhibitions,
+		label: messages.homeExhibitionsLink,
+		subtitle: messages.mobileMenuExhibitionsSubtitle,
+		badge: `[ ${exhibitionBadge} ]`,
+	});
+}
+if (hasContactRoute) {
+	mobileEntries.push({
+		href: localizedPaths.contact,
+		label: messages.homeContactLink,
+		subtitle: messages.mobileMenuContactSubtitle,
+		badge: `[ ${messages.mobileMenuContactBadge} ]`,
+	});
+}
 ---
 
 <header class="border-b border-outline-variant bg-surface-container-lowest">
-	<div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-space-lg gap-y-space-sm px-margin-mobile py-space-md desktop:px-gutter">
+	<div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-space-sm px-margin-mobile py-space-md desktop:px-gutter">
 		<a
-			class="flex flex-col no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+			class="flex min-w-0 flex-col no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 			href={homeHref}
 		>
-			<span class="font-headline-sm text-headline-sm uppercase text-on-surface">
+			<span class="font-label-technical text-label-technical uppercase text-on-surface tablet:font-headline-sm tablet:text-headline-sm">
 				{messages.brandName}
 			</span>
 			<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
 				{messages.artistIdentification}
 			</span>
 		</a>
+
 		<HomeNavigation
 			locale={locale}
 			hasWorksRoute={hasWorksRoute}
@@ -62,6 +145,120 @@ const homeHref = locale === 'es' ? '/' : '/en/';
 			hasCriticalTextsRoute={hasCriticalTextsRoute}
 			hasContactRoute={hasContactRoute}
 		/>
-		<LanguageSwitcher locale={locale} messages={messages} languagePaths={languagePaths} />
+
+		<div class="flex shrink-0 items-center gap-space-xs tablet:gap-space-sm">
+			<LanguageSwitcher locale={locale} messages={messages} languagePaths={languagePaths} />
+
+			{mobileEntries.length > 0 && (
+				<button
+					type="button"
+					popovertarget="mobile-curatorial-menu"
+					popovertargetaction="toggle"
+					aria-label={messages.mobileMenuTriggerLabel}
+					class="inline-flex h-10 cursor-pointer items-center gap-space-xs border border-outline-variant bg-surface-container-low px-space-xs font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary tablet:hidden"
+				>
+					<span>[ {messages.mobileMenuOpenText}</span>
+					<span aria-hidden="true" class="flex w-3 flex-col justify-center gap-1">
+						<span class="block h-px w-full bg-primary"></span>
+						<span class="block h-px w-full bg-on-surface"></span>
+					</span>
+					<span>]</span>
+				</button>
+			)}
+		</div>
 	</div>
+
+	{mobileEntries.length > 0 && (
+		<aside
+			id="mobile-curatorial-menu"
+			popover="auto"
+			aria-label={messages.homeNavigationLabel}
+			class="fixed inset-0 z-50 m-0 hidden h-full max-h-none w-full max-w-none flex-col justify-between overflow-y-auto border-0 bg-surface-container-lowest px-margin-mobile py-space-md text-on-surface [&:popover-open]:flex tablet:[&:popover-open]:hidden"
+		>
+			<div class="flex items-center justify-between border-b border-outline-variant pb-space-md">
+				<div class="flex flex-col">
+					<span class="font-headline-sm text-headline-sm uppercase text-on-surface">
+						{messages.brandName}
+					</span>
+					<span class="font-label-caption text-label-caption uppercase text-primary">
+						{messages.mobileMenuEyebrow}
+					</span>
+				</div>
+
+				<div class="flex items-center gap-space-sm">
+					<button
+						type="button"
+						popovertarget="mobile-curatorial-menu"
+						popovertargetaction="hide"
+						class="inline-flex h-10 cursor-pointer items-center justify-center border border-outline-variant bg-surface-container-low px-space-sm font-label-technical text-label-technical uppercase text-on-surface hover:bg-surface-container-high hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+					>
+						[ {messages.mobileMenuCloseText} × ]
+					</button>
+				</div>
+			</div>
+
+			<div class="my-space-lg flex flex-col gap-space-sm">
+				{mobileEntries.map((entry) => (
+					<div class="border-b border-outline-variant bg-surface-container-low">
+						<a
+							class="group flex flex-col p-space-md no-underline hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+							href={entry.href}
+						>
+							<div class="flex items-baseline justify-between gap-space-sm">
+								<span class="font-headline-md text-headline-md text-on-surface group-hover:text-primary">
+									{entry.label}
+								</span>
+								<span class="font-label-technical text-label-technical uppercase text-primary">
+									{entry.badge}
+								</span>
+							</div>
+							<span class="mt-space-xs font-body-md text-body-md italic text-on-surface-variant">
+								{entry.subtitle}
+							</span>
+						</a>
+					</div>
+				))}
+			</div>
+
+			<div class="flex flex-col gap-space-md">
+				{featuredArtwork && featuredTranslation && featuredHref && (
+					<div class="border border-outline-variant bg-surface-container">
+						<a
+							class="flex flex-col gap-space-xs p-space-md no-underline hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+							href={featuredHref}
+						>
+							<div class="flex items-center justify-between gap-space-sm">
+								<span class="font-label-caption text-label-caption uppercase text-primary">
+									{messages.mobileMenuCustodyEyebrow}
+								</span>
+								<span class="border border-carmine-border bg-surface-container-lowest px-space-xs py-0.5 font-label-caption text-label-caption uppercase text-on-surface">
+									{featuredArtwork.inventoryNumber}
+								</span>
+							</div>
+							<span class="font-headline-sm text-headline-sm text-on-surface">
+								{featuredTranslation.title} ({featuredArtwork.year})
+							</span>
+							<span class="font-body-md text-body-md italic text-on-surface-variant">
+								{featuredTranslation.technique} · {featuredDimensions}
+							</span>
+						</a>
+					</div>
+				)}
+
+				{hasContactRoute && (
+					<div class="flex flex-col gap-space-xs border border-outline-variant bg-surface-container-low p-space-md">
+						<span class="font-label-technical text-label-technical uppercase text-on-surface-variant">
+							{messages.mobileMenuCorrespondenceTitle}
+						</span>
+						<a
+							class="font-body-lg text-body-lg italic text-primary underline decoration-surface-variant underline-offset-4 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+							href={localizedPaths.contact}
+						>
+							{messages.contactEmailAddress}
+						</a>
+					</div>
+				)}
+			</div>
+		</aside>
+	)}
 </header>

@@ -12,12 +12,18 @@ const spanishPath = languagePaths.es;
 const englishPath = languagePaths.en;
 ---
 
-<div class="flex items-center gap-space-sm font-label-technical text-label-technical" role="group" aria-label={messages.languageSelectorLabel}>
+<div
+	class="inline-flex items-center gap-space-xs border border-outline-variant bg-surface-container-low p-space-xs font-label-technical text-label-technical uppercase"
+	role="group"
+	aria-label={messages.languageSelectorLabel}
+>
 	{spanishPath ? (
 		<a
 			class:list={[
-				'no-underline focus-visible:outline-2 focus-visible:outline-primary',
-				locale === 'es' ? 'text-primary' : 'text-on-surface-variant',
+				'inline-flex min-h-8 items-center justify-center px-space-xs py-space-xs no-underline focus-visible:outline-2 focus-visible:outline-primary tablet:px-space-sm',
+				locale === 'es'
+					? 'bg-primary text-on-primary'
+					: 'text-on-surface hover:bg-surface-container-high hover:text-primary',
 			]}
 			href={spanishPath}
 			lang="es"
@@ -27,7 +33,7 @@ const englishPath = languagePaths.en;
 			ES
 		</a>
 	) : (
-		<span class="text-on-surface-variant" lang="es">
+		<span class="inline-flex min-h-8 items-center justify-center px-space-xs py-space-xs text-on-surface-variant tablet:px-space-sm" lang="es">
 			ES
 		</span>
 	)}
@@ -35,8 +41,10 @@ const englishPath = languagePaths.en;
 	{englishPath ? (
 		<a
 			class:list={[
-				'no-underline focus-visible:outline-2 focus-visible:outline-primary',
-				locale === 'en' ? 'text-primary' : 'text-on-surface-variant',
+				'inline-flex min-h-8 items-center justify-center px-space-xs py-space-xs no-underline focus-visible:outline-2 focus-visible:outline-primary tablet:px-space-sm',
+				locale === 'en'
+					? 'bg-primary text-on-primary'
+					: 'text-on-surface hover:bg-surface-container-high hover:text-primary',
 			]}
 			href={englishPath}
 			lang="en"
@@ -46,7 +54,7 @@ const englishPath = languagePaths.en;
 			EN
 		</a>
 	) : (
-		<span class="text-on-surface-variant" lang="en">
+		<span class="inline-flex min-h-8 items-center justify-center px-space-xs py-space-xs text-on-surface-variant tablet:px-space-sm" lang="en">
 			EN
 		</span>
 	)}
