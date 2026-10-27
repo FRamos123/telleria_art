@@ -124,7 +124,7 @@ export const en = {
 	contactEyebrowScope: 'Artistic, curatorial, and institutional inquiries',
 	contactHeaderCaption: 'Liaison and archive office',
 	contactPageHeading: 'Artwork inquiries',
-	contactPageHeadingPrefix: 'Inquiries &',
+	contactPageHeadingPrefix: 'Inquiries',
 	contactPageHeadingAccent: 'about works',
 	contactCard01Eyebrow: '01 · Studio and archive',
 	contactCard01Title: 'Studio and archive in Vigo',

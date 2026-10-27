@@ -124,7 +124,7 @@ export const es = {
 	contactEyebrowScope: 'Consultas artísticas, curatoriales e institucionales',
 	contactHeaderCaption: 'Gabinete de enlace y archivo',
 	contactPageHeading: 'Consultas sobre obras',
-	contactPageHeadingPrefix: 'Consultas &',
+	contactPageHeadingPrefix: 'Consultas',
 	contactPageHeadingAccent: 'sobre obras',
 	contactCard01Eyebrow: '01 · Estudio y archivo',
 	contactCard01Title: 'Taller y archivo en Vigo',
