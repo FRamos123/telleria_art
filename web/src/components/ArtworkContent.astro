@@ -104,9 +104,6 @@ const relatedExhibitions = sortExhibitionsForIndex(exhibitions, locale).flatMap(
 });
 
 const nextArtworkTranslation = nextArtwork?.artwork.translations[locale];
-const nextArtworkDimensions = nextArtwork
-	? `${numberFormat.format(nextArtwork.artwork.heightCm)} × ${numberFormat.format(nextArtwork.artwork.widthCm)} ${messages.centimeterUnit}`
-	: '';
 
 if (
 	visibleSeries.id !== artwork.seriesId
@@ -234,7 +231,6 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 						sizes="(min-width: 1280px) 58vw, 100vw"
 					/>
 				</div>
-				<InventoryBadge inventoryNumber={artwork.inventoryNumber} />
 				<div class="pointer-events-none absolute bottom-space-sm left-space-sm z-20 border border-outline-variant bg-surface-container-lowest px-space-sm py-space-xs font-label-caption text-label-caption uppercase text-on-surface-variant">
 					{dimensions} · {translation.support}
 				</div>
@@ -438,7 +434,7 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 			</div>
 
 			{nextArtwork && nextArtworkTranslation && (
-				<div class="grid grid-cols-1 bg-surface-container-low tablet:grid-cols-8 desktop:grid-cols-12">
+				<div class="grid grid-cols-1 border border-outline-variant bg-surface-container-lowest tablet:grid-cols-8 desktop:grid-cols-12">
 					<a
 						class="relative flex aspect-3/4 items-center justify-center overflow-hidden bg-surface-dim tablet:col-span-3 desktop:col-span-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
 						href={nextArtwork.href}
@@ -455,22 +451,35 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 						</span>
 					</a>
 					<div class="flex flex-col justify-between gap-space-md p-space-lg tablet:col-span-5 desktop:col-span-7">
-						<div class="space-y-space-sm">
-							<div class="flex flex-wrap items-center gap-space-xs font-label-caption text-label-caption uppercase text-on-surface-variant">
-								<span>{nextArtwork.artwork.inventoryNumber}</span>
-								<span aria-hidden="true">·</span>
-								<span>{nextArtworkTranslation.technique}</span>
-								<span aria-hidden="true">·</span>
-								<span>{nextArtworkDimensions}</span>
+						<div class="space-y-space-md">
+							<div class="space-y-space-xs">
+								<div class="flex flex-wrap items-center gap-space-xs font-label-caption text-label-caption uppercase text-primary">
+									<span>{messages.artworkCatalogedPiece}</span>
+									<span aria-hidden="true">·</span>
+									<span>{nextArtwork.artwork.inventoryNumber}</span>
+								</div>
+								<h3 class="m-0 font-headline-md text-headline-md text-on-surface">
+									<a
+										class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+										href={nextArtwork.href}
+									>
+										{nextArtworkTranslation.title}
+									</a>
+								</h3>
 							</div>
-							<h3 class="m-0 font-headline-md text-headline-md text-on-surface">
-								<a
-									class="text-on-surface underline decoration-surface-variant underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-									href={nextArtwork.href}
-								>
-									{nextArtworkTranslation.title}
-								</a>
-							</h3>
+
+							<ArtworkTechnicalSheet
+								availability={nextArtwork.artwork.availability}
+								headingId="next-artwork-technical-sheet-title"
+								headingLevel={3}
+								heightCm={nextArtwork.artwork.heightCm}
+								locale={locale}
+								support={nextArtworkTranslation.support}
+								technique={nextArtworkTranslation.technique}
+								widthCm={nextArtwork.artwork.widthCm}
+								year={nextArtwork.artwork.year}
+							/>
+
 							{nextArtworkTranslation.workshopNote?.trim() && (
 								<p class="m-0 border-l-2 border-primary pl-space-sm font-body-md text-body-md italic text-on-surface-variant">
 									{nextArtworkTranslation.workshopNote.trim()}
@@ -484,11 +493,9 @@ const visualArtworkJsonLd = JSON.stringify(visualArtwork).replaceAll('<', '\\u00
 							>
 								{messages.artworkNextInSeriesAction}
 							</a>
-							<div class="flex items-center gap-space-sm font-label-technical text-label-technical uppercase text-on-surface-variant">
-								<span>{nextArtwork.artwork.year}</span>
-								<span aria-hidden="true">·</span>
-								<AvailabilityLabel availability={nextArtwork.artwork.availability} locale={locale} />
-							</div>
+							<span class="font-label-caption text-label-caption uppercase text-on-surface-variant">
+								{visibleSeries.name} · {nextArtwork.artwork.inventoryNumber}
+							</span>
 						</div>
 					</div>
 				</div>

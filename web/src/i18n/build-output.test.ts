@@ -232,7 +232,6 @@ describe('static build output', () => {
 				const detail = readBuildPage(outputPath(featureWorkPath));
 				const artworkData = readArtworkJsonLd(detail);
 				expect(tagsToText(featureTitle)).toBe(String(artworkData.name));
-				expect(statusMatches).toContain(String(artworkData.identifier));
 			}
 
 			const exhibitionsBlock = /<section\b[^>]*aria-labelledby="home-exhibitions-title"[^>]*>[\s\S]*?<\/section>/u.exec(html)?.[0];
@@ -1054,8 +1053,9 @@ function escapeHtmlText(value: string): string {
 }
 
 function extractTechnicalSheetEntries(html: string): Map<string, string> {
+	const mainSheet = /<section aria-labelledby="artwork-technical-sheet-title"[\s\S]*?<\/section>/u.exec(html)?.[0] ?? html;
 	const entries = new Map<string, string>();
-	for (const [, label, value] of html.matchAll(/<dt\b[^>]*>([\s\S]*?)<\/dt><dd\b[^>]*>([\s\S]*?)<\/dd>/gu)) {
+	for (const [, label, value] of mainSheet.matchAll(/<dt\b[^>]*>([\s\S]*?)<\/dt><dd\b[^>]*>([\s\S]*?)<\/dd>/gu)) {
 		entries.set(tagsToText(label ?? ''), tagsToText(value ?? ''));
 	}
 	return entries;

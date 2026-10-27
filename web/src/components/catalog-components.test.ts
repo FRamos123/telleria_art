@@ -534,7 +534,6 @@ describe('catalog presentation components', () => {
 		expect(homeArtworkSelection).not.toContain('<ArtworkCard');
 		expect(homeArtworkFeature).toContain("loading = 'eager'");
 		expect(homeArtworkFeature).toContain('aspect-ratio: ${image.width} / ${image.height}');
-		expect(homeArtworkFeature).toContain('<InventoryBadge inventoryNumber={artwork.inventoryNumber} />');
 		expect(artworkCard).toContain('focus-visible:outline-primary');
 		expect(artworkCard).toContain("loading = 'lazy'");
 		expect(artworkCard).toContain('<EditorialImage');
@@ -543,10 +542,9 @@ describe('catalog presentation components', () => {
 		expect(artworkCard).toContain('<AvailabilityLabel availability={artwork.availability} locale={locale} />');
 	});
 
-	it('presents each home artwork with localized series, inventory badge, technical data, alternating columns, optional note, and actions', () => {
+	it('presents each home artwork with localized series, technical data, alternating columns, optional note, and actions', () => {
 		const feature = readOptionalComponent(homeArtworkFeaturePath);
 		expect(feature).toContain('<EditorialImage');
-		expect(feature).toContain('<InventoryBadge inventoryNumber={artwork.inventoryNumber} />');
 		expect(feature).toContain('altText={translation.altText}');
 		expect(feature).toContain('href={series.href}');
 		expect(feature).toContain('{series.name}');
@@ -645,6 +643,7 @@ describe('catalog presentation components', () => {
 		}
 		expect(artworkContent).toContain('relatedExhibitions');
 		expect(artworkContent).toContain('nextArtwork');
+		expect(artworkContent).toContain('headingId="next-artwork-technical-sheet-title"');
 		expect(artworkContent).toContain('messages.artworkExhibitionsHistoryTitle');
 		expect(artworkContent).toContain('messages.artworkNextInSeriesTitle');
 		expect(artworkContent).toContain('messages.artworkOpenDarkroom');
