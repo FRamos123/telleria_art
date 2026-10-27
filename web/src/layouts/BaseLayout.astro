@@ -42,6 +42,7 @@ const languagePaths: Partial<Record<Locale, string>> = {
 		{canonicalUrl && Object.entries(languagePaths).map(([alternateLocale, path]) => (
 			path && <link rel="alternate" hreflang={alternateLocale} href={new URL(path, siteUrl).href} />
 		))}
+		<link rel="icon" href="/favicon.png" />
 	</head>
 	<body class="m-0 min-h-screen bg-surface-container-lowest font-body-md text-on-surface">
 		<div class="flex min-h-screen flex-col">
