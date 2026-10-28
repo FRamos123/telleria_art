@@ -40,4 +40,22 @@ export const seriesTranslationType = defineType({
     }),
     createLocalizedImageAltField('imageAlt', 'Texto alternativo de la imagen', 'name'),
   ],
+  preview: {
+  select: {
+    title: 'name',
+    language: 'language',
+    media: 'series.image',
+    
+  },
+  prepare({ title, language, media, }) {
+    return {
+      title: title || 'Traducción sin título',
+      subtitle: [
+        language?.toUpperCase(),
+  
+      ].filter(Boolean).join(' · '),
+      media,
+    }
+  },
+},
 })

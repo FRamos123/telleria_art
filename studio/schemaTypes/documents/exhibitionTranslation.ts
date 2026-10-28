@@ -43,4 +43,22 @@ export const exhibitionTranslationType = defineType({
     }),
     createLocalizedImageAltField('imageAlt', 'Texto alternativo de la imagen', 'title'),
   ],
+  preview: {
+  select: {
+    title: 'title',
+    language: 'language',
+    media: 'exhibition.image',
+   
+  },
+  prepare({ title, language, media, }) {
+    return {
+      title: title || 'Traducción sin título',
+      subtitle: [
+        language?.toUpperCase(),
+        
+      ].filter(Boolean).join(' · '),
+      media,
+    }
+  },
+},
 })

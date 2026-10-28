@@ -47,4 +47,22 @@ export const criticalTextTranslationType = defineType({
       ),
     }),
   ],
+  preview: {
+  select: {
+    title: 'criticalText.referenceName',
+    language: 'language',
+    media: 'criticalText.mainImage',
+    inventoryNumber: 'criticalText.inventoryNumber',
+  },
+  prepare({ title, language, media, inventoryNumber }) {
+    return {
+      title: title || 'Traducción sin título',
+      subtitle: [
+        language?.toUpperCase(),
+        inventoryNumber,
+      ].filter(Boolean).join(' · '),
+      media,
+    }
+  },
+},
 })

@@ -8,6 +8,7 @@ export const artworkTranslationType = defineType({
   type: 'document',
   fields: [
     createReferenceField('artwork', 'Obra', ['artwork'], true),
+    
     defineField({
       name: 'language',
       title: 'Idioma',
@@ -62,4 +63,22 @@ export const artworkTranslationType = defineType({
       ),
     }),
   ],
+  preview: {
+  select: {
+    title: 'title',
+    language: 'language',
+    media: 'artwork.mainImage',
+    inventoryNumber: 'artwork.inventoryNumber',
+  },
+  prepare({ title, language, media, inventoryNumber }) {
+    return {
+      title: title || 'Traducción sin título',
+      subtitle: [
+        language?.toUpperCase(),
+        inventoryNumber,
+      ].filter(Boolean).join(' · '),
+      media,
+    }
+  },
+},
 })

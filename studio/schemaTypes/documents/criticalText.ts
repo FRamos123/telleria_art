@@ -1,12 +1,21 @@
 import { defineField, defineType } from 'sanity'
 import { createReferenceListField } from '../fields'
-import { isEditorialLanguage, isEmptyValue, validationMessages } from '../validation'
+import { isEditorialLanguage, isEmptyValue, validationMessages,hasRequiredText } from '../validation'
 
 export const criticalTextType = defineType({
   name: 'criticalText',
   title: 'Texto crítico',
   type: 'document',
   fields: [
+        defineField({
+      name: 'referenceName',
+      title: 'Nombre interno de referencia',
+      description: 'Solo para identificar la serie en Sanity; no se muestra en la web.',
+      type: 'string',
+      validation: (Rule) => Rule.required().custom((value) =>
+        isEmptyValue(value) || hasRequiredText(value) || validationMessages.requiredText,
+      ),
+    }),
     defineField({
       name: 'originalLanguage',
       title: 'Idioma original',
