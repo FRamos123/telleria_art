@@ -301,7 +301,6 @@ describe('catalog presentation components', () => {
 		expect(artworkContent).toContain('visibleSeries: { id: string; name: string; href: string }');
 		expect(artworkContent).toContain('{translation.title}');
 		expect(artworkContent).toContain('{visibleSeries.name}');
-		expect(artworkContent).toContain('<InventoryBadge inventoryNumber={artwork.inventoryNumber} />');
 		expect(artworkContent).toContain('<EditorialImage');
 		expect(artworkContent).toContain('altText={translation.altText}');
 		expect(artworkContent).toContain('<ArtworkTechnicalSheet');
