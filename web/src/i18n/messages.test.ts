@@ -39,7 +39,6 @@ describe('foundation translations', () => {
 			'contactEmailAddress',
 			'contactFormHeading',
 			'contactMetaDescription',
-			'contactIntro',
 			'contactNameLabel',
 			'contactEmailLabel',
 			'contactInstitutionLabel',

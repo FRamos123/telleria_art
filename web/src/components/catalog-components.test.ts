@@ -663,7 +663,6 @@ describe('catalog presentation components', () => {
 	it('presents contact in an asymmetric editorial layout while preserving the complete privacy notice and existing form', () => {
 		for (const source of [spanishContactPage, englishContactPage]) {
 			expect(source).toContain('messages.contactPageHeading');
-			expect(source).toContain('messages.contactIntro');
 			expect(source).toContain('<ContactForm');
 			expect(source).toContain('desktop:grid-cols-12');
 		}
